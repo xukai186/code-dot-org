@@ -189,7 +189,7 @@ Logging:
   # LOGGER_SEVERITY_DETAILED_DEBUG - All information is written to the log.
   LogComponents:
   # Data is unloaded from the source database.
-<% severity = task_name == 'cron-level-sources-pii' ? 'DETAILED_DEBUG' : 'WARNING' -%>
+<% severity = 'WARNING' -%>
   - {Id: SOURCE_UNLOAD,  Severity: LOGGER_SEVERITY_<%=severity%>}
   # Data is captured from the source database.
   - {Id: SOURCE_CAPTURE, Severity: LOGGER_SEVERITY_<%=severity%>}

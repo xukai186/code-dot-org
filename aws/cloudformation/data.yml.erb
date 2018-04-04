@@ -93,6 +93,18 @@ Resources:
       # Default value: 10
       # Valid values: 1 - 64
       ExtraConnectionAttributes: maxFileSize=<%=100.megabytes%>;fileTransferUploadStreams=20
+  LevelSourcesEndpoint:
+    Type: AWS::DMS::Endpoint
+    Properties:
+      EndpointIdentifier: !Sub "LevelSources-${AWS::StackName}"
+      EndpointType: target
+      EngineName: redshift
+      ServerName: !GetAtt Tableau.Endpoint.Address
+      Port: !GetAtt Tableau.Endpoint.Port
+      Username: !Ref RedshiftUsername
+      Password: !Ref RedshiftPassword
+      DatabaseName: !Ref RedshiftDatabase
+
 <% Cdo::DMS.tasks(aws_dir('dms/tasks.yml')).each do |task_name, table_mappings| -%>
   DMS<%=task_name.underscore.camelize%>:
     Type: AWS::DMS::ReplicationTask
@@ -101,7 +113,7 @@ Resources:
       ReplicationInstanceArn: !Ref TableauSync
       ReplicationTaskIdentifier: <%= task_name %>
       SourceEndpointArn: !Ref RDSEndpoint
-      TargetEndpointArn: !Ref RedshiftEndpoint
+      TargetEndpointArn: !Ref <%= task_name == 'level-sources-pii' ? 'LevelSources': 'Redshift' %>Endpoint
       ReplicationTaskSettings: !Sub |
         <%= YAML.load(erb_file(aws_dir('dms/replication-task-settings.yml.erb'), task_name: task_name)).to_json %>
       TableMappings: !Sub |
