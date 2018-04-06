@@ -104,7 +104,7 @@ Resources:
       Username: !Ref RedshiftUsername
       Password: !Ref RedshiftPassword
       DatabaseName: !Ref RedshiftDatabase
-
+      ExtraConnectionAttributes: maxFileSize=<%=100.megabytes%>;fileTransferUploadStreams=20;keepCSVFiles=true;keepErrorFiles=true
 <% Cdo::DMS.tasks(aws_dir('dms/tasks.yml')).each do |task_name, table_mappings| -%>
   DMS<%=task_name.underscore.camelize%>:
     Type: AWS::DMS::ReplicationTask
