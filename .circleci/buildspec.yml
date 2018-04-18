@@ -22,7 +22,7 @@ phases:
       - >
         cd .circleci && docker build \
           --cache-from ${REPO_TAG} \
-          --tag ${REPO_TAG}
+          --tag ${REPO_TAG} \
           .
   post_build:
     commands:
