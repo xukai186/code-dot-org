@@ -25,7 +25,7 @@
         Unplug11: Clabhsúr
         MazeEC: An Chathair Ghríobháin
         Bounce: Preabadh
-        Flappy: "Éan Flapach"
+        Flappy: Éan Flapach
         Jigsaw: Míreanna Mearaí
         MazeStep: 'Cathair Ghríobháin: Mód Céime'
         Wordsearch: Cuardach focal
@@ -42,7 +42,7 @@
       name:
         Bronze: Cré-umha
         Silver: Airgead
-        Gold: "Ór"
+        Gold: Ór
     concept:
       description:
         sequence: Seicheamh
@@ -217,9 +217,9 @@
         turtle_2_10: Seo é cód lenar féidir bíseanna éagsúla a tharraingt. Cad a tharlaíonn
           nuair a athraíonn tú an uillinn? Nó má úsáideann tú dath randamach laistigh
           den lúb? Déan cibé rud is rogha leat.
-        maze_karel_2_1: "Úsáid na blocanna chun cabhrú liom na cairn go léir a bhaint
+        maze_karel_2_1: 'Úsáid na blocanna chun cabhrú liom na cairn go léir a bhaint
           agus na poill go léir a líonadh. Déan iarracht lúba a úsáid in áit go leor
-          blocanna. Leid: is féidir lúb amháin a chur isteach i lúb eile!"
+          blocanna. Leid: is féidir lúb amháin a chur isteach i lúb eile!'
         maze_karel_2_2: Chruthaíomar ár mbloc féin darb ainm "líon 5", atá sa chatagóir
           "Feidhmeanna" anois. Bain úsáid aisti chun cabhrú liom an poll seo a líonadh.
         maze_karel_2_3: Úsáid an fheidhm nua "líon 5" le tabhairt orm na poill go
@@ -649,8 +649,8 @@
         CSF_maze_intro_k1_blocks: Eolas bunúsach ar an Stiúideo Códála
         CSF_maze_intro_text_blocks: Eolas bunúsach ar an Stiúideo Códála
         CSF_my_robotic_friends: Mo Chairde Róbatacha
-        CSF_Power_of_Words: Power of Words
-        CSF_Super_Digital_Citizen: Super Digital Citizen
+        CSF_Power_of_Words: Cumhacht na Teanga
+        CSF_Super_Digital_Citizen: Sárshaoránach Digiteach
         CSF_stevie_big_project: Stiofán agus an Tionscadal Mór
         CSF_unspotted_bugs: Fabhtanna nár tugadh faoi deara
         CSF_zuck_loops_short: Lúbanna "Athdhéan"
@@ -664,18 +664,24 @@
         infinity_playlab_intro: Súgradh is Dáiríre - Réamhrá
         infinity_playlab_events: Súgradh is Dáiríre - Teagmhais
         infinity_playlab_repeat_forever: Súgradh is Dáiríre - Athdhéan go deo
-        csd_concept_how_computers_work: Introducing How Computers Work
-        csd_concept_computer: Cad is Ríomhaire ann, i ndáiríre?
-        csd_concept_binary_data: 'How Computers Work: Binary & Data'
-        csd_concept_circuits_logic: 'How Computers Work: Circuits & Logic'
-        csd_concept_memory_cpu_input_output: 'How Computers Work: Memory, CPU, Input,
-          & Output'
-        csd_concept_hardware_software: 'How Computers Work: Hardware & Software'
+        csd_concept_how_computers_work: 'An chaoi a n-oibríonn ríomhairí: Brollach'
+        csd_concept_computer: 'An chaoi a n-oibríonn ríomhairí: Cad is ríomhaire ann,
+          i ndáiríre?'
+        csd_concept_binary_data: 'An chaoi a n-oibríonn ríomhairí: Dénárchódú agus
+          Sonraí'
+        csd_concept_circuits_logic: 'An chaoi a n-oibríonn ríomhairí: Ciorcaid agus
+          Loighic'
+        csd_concept_memory_cpu_input_output: 'An chaoi a n-oibríonn ríomhairí: Cuimhne,
+          LAP, Ionchur agus Aschur'
+        csd_concept_hardware_software: 'An chaoi a n-oibríonn ríomhairí: Crua-earraí
+          agus Bogearraí'
         csd_concept_search: Conas a Oibríonn Inneall Cuardaigh
-        csd_external_amazon_data: How Big Data Is Used In Amazon Recommendation Systems
-          To Change Our Lives
-        csd_external_netflix_data: How Does Netflix Make TV Show and Movie Suggestions?
-        csd_external_waze_data: Why Are So Many Users Obsessed With Waze?
+        csd_external_amazon_data: An chaoi a n-úsáideann Amazon mórshonraí i gcórais
+          mholta chun do shaol a athrú
+        csd_external_netflix_data: Cén chaoi a molann Netflix scannáin agus cláir
+          theilifíse duit?
+        csd_external_waze_data: Cén fáth a bhfuil go leor daoine go hiomlán gafa le
+          Waze?
         csd_gamelab_animation_tab: An Cluaisín Beochana
         csd_gamelab_conditionals_1: Introduction to Conditionals - Part 1
         csd_gamelab_conditionals_2: Introduction to Conditionals - Part 2
@@ -777,40 +783,47 @@
         mc_2016_events: Uair Chódála Minecraft - Teagmhais
         mc_2016_spawn: Uair Chódála Minecraft - Sceitheadh
         mc_2016_congrats: Uair Chódála Minecraft - Comhghairdeas
-        applab_hoc_welcome: App Lab Hour of Code - Welcome
-        applab_hoc_setproperty: App Lab Hour of Code - setProperty
-        applab_hoc_onevent: App Lab Hour of Code - onEvent
-        applab_hoc_designmode: AppLab Hour of Code - Design Mode
-        applab_hoc_share: AppLab Hour of Code - Share
-        mc_2017_agent_intro: Minecraft Hour of Code - The Agent
-        mc_2017_repeat: Minecraft Hour of Code - Repeat Loops
-        mc_2017_functions: Minecraft Hour of Code - Functions
+        applab_hoc_welcome: Uair Chódála sa tSaotharlann Aipeanna - Fáilte
+        applab_hoc_setproperty: Uair Chódála sa tSaotharlann Aipeanna - setProperty
+        applab_hoc_onevent: Uair Chódála sa tSaotharlann Aipeanna - onEvent
+        applab_hoc_designmode: Uair Chódála sa tSaotharlann Aipeanna - Mód Deartha
+        applab_hoc_share: Uair Chódála sa tSaotharlann Aipeanna - Comhroinnt
+        mc_2017_agent_intro: Uair Chódála Minecraft - An Gníomhaire
+        mc_2017_repeat: Uair Chódála Minecraft - Lúba Athdhéanta
+        mc_2017_functions: Uair Chódála Minecraft - Feidhmeanna
         mc_2017_congratulations: Uair Chódála Minecraft - Comhghairdeas
-        mc_2017_puzzle_1: Minecraft Hour of Code - The Agent
-        mc_2017_puzzle_3: Minecraft Hour of Code - Repeat Loops
-        mc_2017_puzzle_8: Minecraft Hour of Code - Functions
-        mc_2017_puzzle_12: Minecraft Hour of Code - Freeplay
-        hint_videos_d_11_3_first: 'Hint Videos: D.11.3 First'
-        hint_videos_d_11_3_last: 'Hint Videos: D.11.3 Last'
-        hint_videos_d_11_4_first: 'Hint Videos: D.11.4 First'
-        hint_videos_d_11_4_last: 'Hint Videos: D.11.4 Last'
-        hint_videos_d_11_5_first: 'Hint Videos: D.11.5 First'
-        hint_videos_d_11_5_last: 'Hint Videos: D.11.5 Last'
-        hint_videos_d_11_6_first: 'Hint Videos: D.11.6 First'
-        hint_videos_d_11_6_last: 'Hint Videos: D.11.6 Last'
-        hint_videos_d_11_7_first: 'Hint Videos: D.11.7 First'
-        hint_videos_d_11_7_last: 'Hint Videos: D.11.7 Last'
-        hint_videos_d_11_9_first: 'Hint Videos: D.11.9 First'
-        hint_videos_d_11_9_last: 'Hint Videos: D.11.9 Last'
-        hint_videos_d_11_11_first: 'Hint Videos: D.11.11 First'
-        hint_videos_d_11_11_last: 'Hint Videos: D.11.11 Last'
-        applab_intro_welcome: App Lab - Getting Started
-        applab_intro_events: App Lab - Make It Interactive
-        applab_intro_sounds: App Lab - Images and Sounds
-        applab_intro_designmode: App Lab - Design Mode
-        applab_intro_share: App Lab - Share Your App
+        mc_2017_puzzle_1: Uair Chódála Minecraft - An Gníomhaire
+        mc_2017_puzzle_3: Uair Chódála Minecraft - Lúba Athdhéanta
+        mc_2017_puzzle_8: Uair Chódála Minecraft - Feidhmeanna
+        mc_2017_puzzle_12: Uair Chódála Minecraft - Saorimirt
+        hint_videos_d_11_3_first: 'Físeáin Chabhracha: D.11.3 Tús'
+        hint_videos_d_11_3_last: 'Físeáin Chabhracha: D.11.3 Deireadh'
+        hint_videos_d_11_4_first: 'Físeáin Chabhracha: D.11.4 Tús'
+        hint_videos_d_11_4_last: 'Físeáin Chabhracha: D.11.4 Deireadh'
+        hint_videos_d_11_5_first: 'Físeáin Chabhracha: D.11.5 Tús'
+        hint_videos_d_11_5_last: 'Físeáin Chabhracha: D.11.5 Deireadh'
+        hint_videos_d_11_6_first: 'Físeáin Chabhracha: D.11.6 Tús'
+        hint_videos_d_11_6_last: 'Físeáin Chabhracha: D.11.6 Deireadh'
+        hint_videos_d_11_7_first: 'Físeáin Chabhracha: D.11.7 Tús'
+        hint_videos_d_11_7_last: 'Físeáin Chabhracha: D.11.7 Deireadh'
+        hint_videos_d_11_9_first: 'Físeáin Chabhracha: D.11.9 Tús'
+        hint_videos_d_11_9_last: 'Físeáin Chabhracha: D.11.9 Deireadh'
+        hint_videos_d_11_11_first: 'Físeáin Chabhracha: D.11.11 Tús'
+        hint_videos_d_11_11_last: 'Físeáin Chabhracha: D.11.11 Deireadh'
+        applab_intro_welcome: An tSaotharlann Aipeanna - Tús Maith
+        applab_intro_events: An tSaotharlann Aipeanna - Idirghníomhaíocht
+        applab_intro_sounds: An tSaotharlann Aipeanna - Íomhánna agus Fuaimeanna
+        applab_intro_designmode: An tSaotharlann Aipeanna - An Mód Deartha
+        applab_intro_share: An tSaotharlann Aipeanna - Foilsigh d'Aip
         csd_applab_arrays: Introduction to Arrays
-        CSF_skinOverview_Harvester: The Harvester
+        CSF_skinOverview_Harvester: An Buainteoir
+        CSF_bb8_skinOverview_C-F: BB-8
+        CSF_bb8_skinOverview_K-1: BB-8
+        CSF_bb8_loops_C-F: Loops with BB-8
+        CSF_harvester_skinOverview_K-1: An Buainteoir
+        CSF_harvester_loops_K1: Loops in Harvester
+        CSF_scrat_loops_K1: Loops in Ice Age
+        CSF_scrat_loops_CF: Loops in Ice Age
     callout:
       text:
         drag_blocks: Tarraing bloc "téigh ar aghaidh" agus ceangail faoin bhloc eile
@@ -841,12 +854,12 @@
           oibre"
         repeat_blocks_2: (2) Tarraing an bloc "athdhéan" anseo, agus cuir na blocanna
           liatha taobh istigh de
-        snowflake_dropdown: "Úsáid an roghchlár anuas seo chun calóga sneachta éagsúla
-          a chruthú!"
+        snowflake_dropdown: Úsáid an roghchlár anuas seo chun calóga sneachta éagsúla
+          a chruthú!
         degrees_per_side: Roinn 360 ar líon na dtaobhanna le teacht ar mhéid gach
           uillinne (céimeanna).
-        set_sides: "Úsáid an bloc seo chun líon na dtaobh a shocrú agus an dúshlán
-          a chríochnú."
+        set_sides: Úsáid an bloc seo chun líon na dtaobh a shocrú agus an dúshlán
+          a chríochnú.
         set_length: Úsáid an bloc seo chun an luach "fad" a shocrú.
         which_equation: Cén chothromóid a dhéanfaidh na taobhanna níos giorra i gcruthanna
           a bhfuil níos mó taobhanna acu?
@@ -860,10 +873,10 @@
           cliceáil "Cruthaigh Feidhm".
         house_hint: Ná bí buartha murar cosúil le teach é an pictiúr. Feabhsóimid
           sa chéad dúshlán eile é.
-        edit_draw_square: "Úsáid an cnaipe seo chun an fheidhm a chur in eagar agus
-          lúb a chur léi."
-        edit_get_nectar: "Úsáid an cnaipe seo chun an fheidhm a chur in eagar agus
-          an treo ina gcasann an Beach le neachtar a fháil a athrú."
+        edit_draw_square: Úsáid an cnaipe seo chun an fheidhm a chur in eagar agus
+          lúb a chur léi.
+        edit_get_nectar: Úsáid an cnaipe seo chun an fheidhm a chur in eagar agus
+          an treo ina gcasann an Beach le neachtar a fháil a athrú.
         logic_category: Oscail an rialtán "Loighic" chun teacht ar an mbloc "má/i
           ngach cás eile".
         length_parameter: An féidir leat an fheidhm seo a athrú chun úsáid a bhaint
@@ -877,8 +890,8 @@
         frozen_create_square: Ceangail níos mó blocanna anseo le cearnóg a chruthú
         playlab_drag_say: Tarraing an bloc "abair" anseo agus cuir "dia dhuit" isteach
           ann
-        playlab_use_twice: "Úsáid an bloc seo faoi dhó, agus ná dearmad uimhir an
-          aisteora a athrú"
+        playlab_use_twice: Úsáid an bloc seo faoi dhó, agus ná dearmad uimhir an aisteora
+          a athrú
         playlab_move_girl: Úsáid an bloc "téigh ar dheis" chun an Cailín Leadóige
           a aistriú
         playlab_play_sound: Cuir bloc "seinn fuaim" anseo
@@ -913,13 +926,13 @@
           ciorcal iomlán a dhéanamh
         place_length_variable: Tarraing an athróg "fad" anseo agus cuir in ionad na
           gcomharthaí ceiste í
-        arrows_move_actor: "Úsáid na saighde chun an t-aisteoir a aistriú"
-        right_arrow_fireball: "Úsáid an tsaighead dheas chun meallta tine a chaitheamh"
+        arrows_move_actor: Úsáid na saighde chun an t-aisteoir a aistriú
+        right_arrow_fireball: Úsáid an tsaighead dheas chun meallta tine a chaitheamh
         name_function: Scríobh ainm na feidhme anseo
         Infinity_move_right_runbutton: Cuir bloc "téigh" anseo
         Infinity_move_directions_callout: Cén bloc a aistreoidh Baymax suas nuair
           a bhrúifear an tsaighead suas?
-        Infinity_move_directions_callout_arrow: "Úsáid na saighde seo le stiúradh"
+        Infinity_move_directions_callout_arrow: Úsáid na saighde seo le stiúradh
         Infinity_move_collide_callout: Seinn fuaim nuair a tharlaíonn an teagmhas
           seo.
         Infinity_repeat_callout: Cuir blocanna Téigh isteach anseo

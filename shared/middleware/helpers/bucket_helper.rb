@@ -80,7 +80,7 @@ class BucketHelper
       filename = %r{#{prefix}(.+)$}.match(fileinfo.key)[1]
       category = category_from_file_type(File.extname(filename))
 
-      {filename: filename, category: category, size: fileinfo.size}
+      {filename: filename, category: category, size: fileinfo.size, timestamp: fileinfo.last_modified}
     end
   end
 
@@ -187,7 +187,7 @@ class BucketHelper
 
     FirehoseClient.instance.put_record(
       study: 'project-data-integrity',
-      study_group: 'v2',
+      study_group: 'v3',
       event: 'replace-non-current-main-json',
 
       project_id: encrypted_channel_id,
@@ -300,7 +300,7 @@ class BucketHelper
           metadata: {
             abuse_score: get_abuse_score(encrypted_channel_id, filename).to_s,
             failed_restore_at: Time.now.to_s,
-            failed_restore_from_version: version_id
+            failed_restore_from_version: version_id || ''
           }
         )
         version_restored = true
@@ -357,7 +357,7 @@ class BucketHelper
     key = s3_path owner_id, channel_id, filename
     FirehoseClient.instance.put_record(
       study: 'project-data-integrity',
-      study_group: 'v2',
+      study_group: 'v3',
       event: 'version-restored',
 
       # Make it easy to limit our search to restores in the sources bucket for a certain project.

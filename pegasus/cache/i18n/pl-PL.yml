@@ -261,7 +261,7 @@
   participant_parent: Rodzic
   participant_educator: Nauczyciel
   participant_engineer: Programista
-  participant_other: "Żaden z powyższych"
+  participant_other: Żaden z powyższych
   print_all: Drukuj wszystko
   print_ice_art: Drukuj swoje lodowe kompozycje
   create_art_with_zombie: lub utwórz zaawansowane kompozycje z zombie
@@ -357,7 +357,7 @@
   studiobar_donate_title: Podaruj
   studiobar_donate_body: Jedno dziecko się uczy za każdego dolara, który podarujesz
   studiobar_shop_title: Sklep
-  studiobar_shop_body: "Łam stereotypy. Noś nasze logo z dumą."
+  studiobar_shop_body: Łam stereotypy. Noś nasze logo z dumą.
   homepage_stats_students: amerykańskich studentów mają konta na Code.org
   homepage_stats_female: naszych studentów to kobiety
   homepage_stats_teachers: nauczyciele korzystają z Code.org
@@ -652,8 +652,10 @@
   video_title_real_madrid: Godzina Kodowania z Realem Madryt
   video_title_marco_belinelli: Godzina Kodowania z Marco Belinellim
   video_title_chris_bosh: Chris Bosh o informatyce
+  video_title_my_name_is_aracely: My Name is Aracely
   video_1min: 1 min
   video_2min: 2 min
+  video_3min: 3 min
   video_5min: 5 min
   speak_another_language: Czy mówisz w innym języku?
   help_translate: Pomóż nam z tłumaczeniem.
@@ -1055,7 +1057,7 @@
   dashboard_login_picture: Obrazek/Zdjęcie
   dashboard_login_none: e-mail
   dashboard_stage: Etap
-  dashboard_puzzle: "Łamigłówka"
+  dashboard_puzzle: Łamigłówka
   dashboard_question: Pytanie
   dashboard_response: Odpowiedź
   dashboard_correctness: Poprawność

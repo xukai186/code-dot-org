@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import $ from 'jquery';
 import { OAuthSectionTypes } from './shapes';
+import experiments, { COURSE_VERSIONS } from '../../util/experiments';
+
 /**
  * @const {string[]} The only properties that can be updated by the user
  * when creating or editing a section.
@@ -39,6 +41,7 @@ const importUrlByProvider = {
 //
 const SET_VALID_GRADES = 'teacherDashboard/SET_VALID_GRADES';
 const SET_VALID_ASSIGNMENTS = 'teacherDashboard/SET_VALID_ASSIGNMENTS';
+const SET_CSF_SCRIPT_IDS = 'teacherDashboard/SET_CSF_SCRIPT_IDS';
 const SET_STUDENT_SECTION = 'teacherDashboard/SET_STUDENT_SECTION';
 const SET_OAUTH_PROVIDER = 'teacherDashboard/SET_OAUTH_PROVIDER';
 const SET_SECTIONS = 'teacherDashboard/SET_SECTIONS';
@@ -57,13 +60,6 @@ const EDIT_SECTION_REQUEST = 'teacherDashboard/EDIT_SECTION_REQUEST';
 const EDIT_SECTION_SUCCESS = 'teacherDashboard/EDIT_SECTION_SUCCESS';
 /** Reports server request has failed */
 const EDIT_SECTION_FAILURE = 'teacherDashboard/EDIT_SECTION_FAILURE';
-
-/** Reports server request has started */
-const UPDATE_SHARING_REQUEST = 'teacherDashboard/UPDATE_SHARING_REQUEST';
-/** Reports server request has succeeded */
-const UPDATE_SHARING_SUCCESS = 'teacherDashboard/UPDATE_SHARING_SUCCESS';
-/** Reports server request has failed */
-const UPDATE_SHARING_FAILURE = 'teacherDashboard/UPDATE_SHARING_FAILURE';
 
 const ASYNC_LOAD_BEGIN = 'teacherSections/ASYNC_LOAD_BEGIN';
 const ASYNC_LOAD_END = 'teacherSections/ASYNC_LOAD_END';
@@ -95,6 +91,7 @@ export const __testInterface__ = {
 // Action Creators
 //
 export const setValidGrades = grades => ({ type: SET_VALID_GRADES, grades });
+export const setCsfScriptIds = ids => ({ type: SET_CSF_SCRIPT_IDS, ids });
 export const setOAuthProvider = provider => ({ type: SET_OAUTH_PROVIDER, provider });
 export const setValidAssignments = (validCourses, validScripts) => ({
   type: SET_VALID_ASSIGNMENTS,
@@ -197,38 +194,35 @@ export const editSectionLoginType = (sectionId, loginType) => dispatch => {
   return dispatch(finishEditingSection());
 };
 
-export const updateShareSetting = (sectionId, shareSetting) => dispatch => {
-  dispatch({type: UPDATE_SHARING_REQUEST});
-  return new Promise((resolve, reject) => {
-    $.ajax({
-      url: `dashboardapi/sections/${sectionId}/update_sharing_disabled`,
-      method: 'POST',
-      contentType: 'application/json;charset=UTF-8',
-      data: JSON.stringify({sharing_disabled: shareSetting}),
-    }).done(result => {
-      dispatch({
-        type: UPDATE_SHARING_SUCCESS,
-        sectionId: sectionId,
-        serverSectionShareSetting: result.sharing_disabled,
-        serverStudents: result.students
-      });
-      resolve();
-    }).fail((jqXhr, status) => {
-      dispatch({type: UPDATE_SHARING_FAILURE});
-      reject(status);
-    });
-  });
-};
-
 export const asyncLoadSectionData = (id) => (dispatch) => {
   dispatch({type: ASYNC_LOAD_BEGIN});
   // If section id is provided, load students for the current section.
+  const courseVersions = experiments.isEnabled(COURSE_VERSIONS);
 
   dispatch({type: ASYNC_LOAD_BEGIN});
   let apis = [
     '/dashboardapi/sections',
-    '/dashboardapi/courses',
-    '/v2/sections/valid_scripts'
+
+    // Because there is no notion of hidden courses, the server by default looks
+    // up only our specified list of courses (csp and csd). When the
+    // courseVersions experiment is enabled, we also ask the server for other
+    // versions (e.g. csd-2018) of those courses.
+    `/dashboardapi/courses${courseVersions ? '?allVersions=1' : ''}`,
+
+    // Let users in the courseVersions experiment see hidden scripts (e.g.
+    // csd3-2018) associated with unreleased course versions (e.g. csd-2018) by
+    // letting them see all hidden scripts. This clutters the UI for people in
+    // the experiment, but avoids doing a bunch of work to temporarily un-hide
+    // certain scripts that will already have been made visible by the time this
+    // experiment launches.
+    //
+    // Prior to the launch of this experiment, any hidden scripts associated
+    // with new versions of multi-unit courses like csp and csd should be made
+    // visible, and the includeHidden url param should be removed.
+    //
+    // When launching this experiment, includeHidden MUST NOT be set by
+    // default here.
+    `/v2/sections/valid_scripts${courseVersions ? '?includeHidden=1' : ''}`
   ];
   if (id) {
     apis.push('/dashboardapi/sections/' + id + '/students');
@@ -338,10 +332,12 @@ const initialState = {
   validGrades: [],
   sectionIds: [],
   selectedSectionId: NO_SECTION,
+  // A map from assignmentId to assignment (see assignmentShape PropType).
   validAssignments: {},
-  // Ids of assignments that go in our first dropdown (i.e. courses, and scripts
-  // that are not in a course)
-  primaryAssignmentIds: [],
+  // Array of assignment families, to populate the assignment family dropdown
+  // with options like "CSD", "Course A", or "Frozen". See the
+  // assignmentFamilyShape PropType.
+  assignmentFamilies: [],
   // Mapping from sectionId to section object
   sections: {},
   // List of students in section currently being edited
@@ -390,11 +386,25 @@ function newSectionData(id, courseId, scriptId, loginType) {
   };
 }
 
+const defaultVersionYear = '2017';
+
+// Fields to copy from the assignmentInfo when creating an assignmentFamily.
+export const assignmentFamilyFields = [
+  'category_priority', 'category', 'position', 'name', 'assignment_family_name'
+];
+
 export default function teacherSections(state=initialState, action) {
   if (action.type === SET_OAUTH_PROVIDER) {
     return {
       ...state,
       provider: action.provider
+    };
+  }
+
+  if (action.type === SET_CSF_SCRIPT_IDS) {
+    return {
+      ...state,
+      csfScriptIds: action.ids,
     };
   }
 
@@ -407,10 +417,9 @@ export default function teacherSections(state=initialState, action) {
 
   if (action.type === SET_VALID_ASSIGNMENTS) {
     const validAssignments = {};
+    const assignmentFamilies = [];
 
-    // Primary assignment ids are (a) courses and (b) scripts that are not in any
-    // of our courses.
-    let primaryAssignmentIds = [];
+    // Array of assignment ids of scripts which belong to any valid courses.
     let secondaryAssignmentIds = [];
 
     // NOTE: We depend elsewhere on the order of our keys in validAssignments
@@ -426,7 +435,16 @@ export default function teacherSections(state=initialState, action) {
         assignId,
         path: `/courses/${course.script_name}`
       };
-      primaryAssignmentIds.push(assignId);
+
+      // Borrow the fields we need to display the assignment family from the
+      // course in that family with the default version year, 2017. This assumes
+      // that course has a display name suitable or describing all versions in
+      // the family like "CS Discoveries", not a version-specific name like "CS
+      // Discoveries 2017".
+      if (course.version_year === defaultVersionYear) {
+        assignmentFamilies.push(_.pick(course, assignmentFamilyFields));
+      }
+
       secondaryAssignmentIds.push(...scriptAssignIds);
     });
     secondaryAssignmentIds = _.uniq(secondaryAssignmentIds);
@@ -438,18 +456,32 @@ export default function teacherSections(state=initialState, action) {
         courseId: null,
         scriptId: script.id,
         assignId,
-        path: `/s/${script.script_name}`
+        path: `/s/${script.script_name}`,
+
+        // For now we put each script in its own assignment family. When we
+        // implement versioning for scripts we will start computing these values
+        // on the server.
+        assignment_family_name: script.script_name,
+        version_year: defaultVersionYear,
       };
 
+      // Do not add assignment families for scripts belonging to courses. To assign
+      // them, one must first select the corresponding course from the assignment
+      // family dropdown, and then select the script from the secondary dropdown.
       if (!secondaryAssignmentIds.includes(assignId)) {
-        primaryAssignmentIds.push(assignId);
+        // Scripts currently have only one version, so each script will form its
+        // own assignment family.
+        assignmentFamilies.push({
+          ..._.pick(script, assignmentFamilyFields),
+          assignment_family_name: script.script_name
+        });
       }
     });
 
     return {
       ...state,
       validAssignments,
-      primaryAssignmentIds,
+      assignmentFamilies,
     };
   }
 
@@ -458,16 +490,6 @@ export default function teacherSections(state=initialState, action) {
       studentFromServerStudent(student, action.sectionId));
     return {
       ...state,
-      selectedStudents: students
-    };
-  }
-
-  if (action.type === UPDATE_SHARING_SUCCESS) {
-    const students = action.serverStudents.map(student =>
-      studentFromServerStudent(student, action.sectionId));
-    return {
-      ...state,
-      saveInProgress: false,
       selectedStudents: students
     };
   }
@@ -531,20 +553,6 @@ export default function teacherSections(state=initialState, action) {
       ...state,
       sectionIds: _.without(state.sectionIds, sectionId),
       sections: _.omit(state.sections, sectionId)
-    };
-  }
-
-  if (action.type === UPDATE_SHARING_REQUEST) {
-    return {
-      ...state,
-      saveInProgress: true,
-    };
-  }
-
-  if (action.type === UPDATE_SHARING_FAILURE) {
-    return {
-      ...state,
-      saveInProgress: false
     };
   }
 
@@ -889,6 +897,13 @@ export const assignmentPaths = (validAssignments, section) => {
   const assignments = assignmentsForSection(validAssignments, section);
   return assignments.map(assignment => assignment ? assignment.path : '');
 };
+
+/**
+ * Is the given script ID a CSF course? `script.rb` owns the list.
+ * @param state
+ * @param id
+ */
+export const isCsfScript = (state, id) => state.teacherSections.csfScriptIds.indexOf(id) > -1;
 
 /**
  * Ask whether the user is currently adding a new section using

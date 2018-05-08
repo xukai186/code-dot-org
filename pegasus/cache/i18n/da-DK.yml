@@ -655,8 +655,10 @@
   video_title_real_madrid: Hour of Code with Real Madrid
   video_title_marco_belinelli: Hour of Code with Marco Belinelli
   video_title_chris_bosh: Chris Bosh on Computer Science
+  video_title_my_name_is_aracely: My Name is Aracely
   video_1min: 1 min
   video_2min: 2 min
+  video_3min: 3 min
   video_5min: 5 min
   speak_another_language: Taler du et andet sprog?
   help_translate: Hjælp os med at oversætte.
@@ -1131,7 +1133,7 @@
   carousel_heading_domestic: Tutorials på engelsk
   carousel_heading_beginners: Tutorials for begyndere
   carousel_heading_beyond_beginners: Tutorials for begyndere
-  carousel_heading_javascript: "Øvelser, hvor du lærer Javascript"
+  carousel_heading_javascript: Øvelser, hvor du lærer Javascript
   carousel_heading_beyond_javascript: Tutorials hvor du lærer Javascript
   carousel_heading_unplugged: Ingen enhed eller internettet? Prøv "unplugged" kodning
   carousel_heading_devices: Tutorial apps for mobiler og tablets
@@ -1156,8 +1158,8 @@
     Klik her.</a>
   how_to_teach_hoc: Sådan undervises i Én Times Kode
   more_resources_educators: Flere ressourcer til lærere og undervisere
-  beyond_submission: "Ønsker du at indsende en tutorial til Beyond an Hour? Se kriterierne
-    og indsendelseformularen."
+  beyond_submission: Ønsker du at indsende en tutorial til Beyond an Hour? Se kriterierne
+    og indsendelseformularen.
   third_party_submission: Want to submit a tutorial to be listed here? <a href="%{submission_url}">See
     the criteria and submission form.</a>
   participants: deltagerne

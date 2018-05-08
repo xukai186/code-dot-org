@@ -5,12 +5,16 @@ import React, {PropTypes} from 'react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import applicationDashboardReducers, {
-  setRegionalPartnerName,
-  setRegionalPartnerGroup,
   setRegionalPartners,
+  setRegionalPartnerFilter,
+  setRegionalPartnerGroup,
   setWorkshopAdminPermission,
   setLockApplicationPermission,
 } from './reducers';
+import {
+  ALL_PARTNERS_OPTION,
+  UNMATCHED_PARTNER_OPTION
+} from './constants';
 import Header from '../components/header';
 import {
   Router,
@@ -51,27 +55,34 @@ const paths = {
 
 export default class ApplicationDashboard extends React.Component {
   static propTypes = {
-    regionalPartnerName: PropTypes.string,
-    regionalPartnerGroup: PropTypes.number,
     regionalPartners: PropTypes.arrayOf(PropTypes.shape({
       id: PropTypes.number,
-      name: PropTypes.string
-    })),
+      name: PropTypes.string,
+      group: PropTypes.number
+    })).isRequired,
     isWorkshopAdmin: PropTypes.bool,
     canLockApplications: PropTypes.bool,
   };
 
+  getInitialRegionalPartnerFilter() {
+    let regionalPartnerFilter = JSON.parse(sessionStorage.getItem("regionalPartnerFilter"));
+
+    if (!regionalPartnerFilter) {
+      regionalPartnerFilter = this.props.isWorkshopAdmin ? UNMATCHED_PARTNER_OPTION : ALL_PARTNERS_OPTION;
+    }
+
+    return regionalPartnerFilter;
+  }
+
+
   componentWillMount() {
-    if (this.props.regionalPartnerName) {
-      store.dispatch(setRegionalPartnerName(this.props.regionalPartnerName));
-    }
+    store.dispatch(setRegionalPartners(this.props.regionalPartners));
+    store.dispatch(setRegionalPartnerFilter(this.getInitialRegionalPartnerFilter()));
 
-    if (this.props.regionalPartnerGroup) {
-      store.dispatch(setRegionalPartnerGroup(this.props.regionalPartnerGroup));
-    }
-
-    if (this.props.regionalPartners) {
-      store.dispatch(setRegionalPartners(this.props.regionalPartners));
+    // Use the group from the first partner. Usually there will only be a single partner anyway, or admin.
+    // We shouldn't see mixed group multi-partners
+    if (this.props.regionalPartners.length > 0) {
+      store.dispatch(setRegionalPartnerGroup(this.props.regionalPartners[0].group));
     }
 
     if (this.props.isWorkshopAdmin) {

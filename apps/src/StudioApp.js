@@ -20,7 +20,7 @@ import * as dom from './dom';
 import * as dropletUtils from './dropletUtils';
 import * as shareWarnings from './shareWarnings';
 import * as utils from './utils';
-import AbuseError from './code-studio/components/abuse_error';
+import AbuseError from './code-studio/components/AbuseError';
 import Alert from './templates/alert';
 import AuthoredHints from './authoredHints';
 import ChallengeDialog from './templates/ChallengeDialog';
@@ -55,6 +55,7 @@ import {resetAniGif} from '@cdo/apps/utils';
 import {setIsRunning} from './redux/runState';
 import {setPageConstants} from './redux/pageConstants';
 import {setVisualizationScale} from './redux/layout';
+import {mergeProgress} from './code-studio/progressRedux';
 import {
   setAchievements,
   setBlockLimit,
@@ -257,6 +258,7 @@ StudioApp.prototype.init = function (config) {
   if (config.isLegacyShare && config.hideSource) {
     $("body").addClass("legacy-share-view");
     if (dom.isMobile()) {
+      $("body").addClass("legacy-share-view-mobile");
       $('#main-logo').hide();
     }
     if (dom.isIOS() && !window.navigator.standalone) {
@@ -278,6 +280,7 @@ StudioApp.prototype.init = function (config) {
         />
         <FinishDialog
           onContinue={() => this.onContinue()}
+          getShareUrl={() => this.lastShareUrl}
         />
       </div>
     </Provider>,
@@ -1046,6 +1049,7 @@ StudioApp.prototype.onReportComplete = function (response) {
   if (!response) {
     return;
   }
+  this.lastShareUrl = response.level_source;
 
   // Track GA events
   if (response.new_level_completed) {
@@ -1406,24 +1410,38 @@ StudioApp.prototype.displayFeedback = function (options) {
     options.feedbackType = TestResults.EDIT_BLOCKS;
   }
 
+  // Write updated progress to Redux.
+  const store = getStore();
+  store.dispatch(mergeProgress({[this.config.serverLevelId]: options.feedbackType}));
+
   if (experiments.isEnabled('bubbleDialog')) {
-    // eslint-disable-next-line no-unused-vars
-    const { level, response, preventDialog, feedbackType, ...otherOptions } = options;
-    if (Object.keys(otherOptions).length === 0) {
-      const store = getStore();
+    const {response, preventDialog, feedbackType, feedbackImage} = options;
+
+    const newFinishDialogApps = {
+      turtle: true,
+      karel: true,
+      maze: true,
+      studio: true,
+      flappy: true,
+      bounce: true,
+    };
+    const hasNewFinishDialog = newFinishDialogApps[this.config.app];
+
+    if (hasNewFinishDialog && !this.hasContainedLevels) {
       const generatedCodeProperties =
         this.feedback_.getGeneratedCodeProperties(this.config.appStrings);
       const studentCode = {
         message: generatedCodeProperties.shortMessage,
         code: generatedCodeProperties.code,
       };
+      const canShare = !this.disableSocialShare && !options.disableSocialShare;
       store.dispatch(setFeedbackData({
         isChallenge: this.config.isChallengeLevel,
         isPerfect: feedbackType >= TestResults.MINIMUM_OPTIMAL_RESULT,
         blocksUsed: this.feedback_.getNumCountableBlocks(),
         displayFunometer: response && response.puzzle_ratings_enabled,
         studentCode,
-        canShare: !this.disableSocialShare && !options.disableSocialShare,
+        feedbackImage: canShare && feedbackImage,
       }));
       store.dispatch(setAchievements(getAchievements(store.getState())));
       if (this.shouldDisplayFeedbackDialog_(preventDialog, feedbackType)) {
@@ -1431,9 +1449,6 @@ StudioApp.prototype.displayFeedback = function (options) {
         this.onFeedback(options);
         return;
       }
-    } else {
-      console.warn('Unexpected feedback props:');
-      console.warn(otherOptions);
     }
   }
   options.onContinue = this.onContinue;
@@ -2318,9 +2333,14 @@ StudioApp.prototype.setStartBlocks_ = function (config, loadLastAttempt) {
     this.loadBlocks(startBlocks);
   } catch (e) {
     if (loadLastAttempt) {
-      Blockly.mainBlockSpace.clear();
-      // Try loading the default start blocks instead.
-      this.setStartBlocks_(config, false);
+      try {
+        Blockly.mainBlockSpace.clear();
+        // Try loading the default start blocks instead.
+        this.setStartBlocks_(config, false);
+      } catch (otherException) {
+        // re-throw the original exception
+        throw e;
+      }
     } else {
       throw e;
     }

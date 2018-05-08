@@ -14,9 +14,18 @@ def sequel_connect(writer, reader, validation_frequency: nil)
   reader_uri = URI(reader)
   db =
     if reader_uri.host != URI(writer).host
-      Sequel.connect writer, servers: {read_only: {host: reader_uri.host}}, encoding: 'utf8mb4', default_group: 'cdo'
+      Sequel.connect writer,
+        servers: {read_only: {host: reader_uri.host}},
+        encoding: 'utf8mb4',
+        default_group: 'cdo',
+        reconnect: true,
+        connect_timeout: 2
     else
-      Sequel.connect writer, encoding: 'utf8mb4', default_group: 'cdo'
+      Sequel.connect writer,
+        encoding: 'utf8mb4',
+        default_group: 'cdo',
+        reconnect: true,
+        connect_timeout: 2
     end
 
   db.extension :server_block
@@ -38,3 +47,4 @@ end
 PEGASUS_DB = sequel_connect CDO.pegasus_db_writer, CDO.pegasus_db_reader
 POSTE_DB = PEGASUS_DB
 DASHBOARD_DB = sequel_connect CDO.dashboard_db_writer, CDO.dashboard_db_reader
+DASHBOARD_REPORTING_DB_READER = sequel_connect CDO.dashboard_reporting_db_reader, CDO.dashboard_reporting_db_reader

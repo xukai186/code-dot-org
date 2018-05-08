@@ -26,6 +26,7 @@ import TooltipWithIcon from './TooltipWithIcon';
 
 const styles = {
   main: {
+    boxSizing: 'content-box',
     fontFamily: '"Gotham 5r", sans-serif',
     width: DOT_SIZE,
     height: DOT_SIZE,
@@ -50,7 +51,9 @@ const styles = {
     width: DIAMOND_DOT_SIZE,
     height: DIAMOND_DOT_SIZE,
     borderRadius: 4,
-    transform: 'rotate(45deg)'
+    transform: 'rotate(45deg)',
+    marginTop: 6,
+    marginBottom: 6,
   },
   small: {
     width: SMALL_DOT_SIZE,
@@ -84,10 +87,12 @@ class ProgressBubble extends React.Component {
     disabled: PropTypes.bool.isRequired,
     smallBubble: PropTypes.bool,
     selectedSectionId: PropTypes.string,
+    selectedStudentId: PropTypes.string,
     // This prop is provided as a testing hook, in normal use it will just be
     // set to window.location; see defaultProps.
     currentLocation: PropTypes.object.isRequired,
     stageTrophyEnabled: PropTypes.bool,
+    hideToolTips: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -95,7 +100,7 @@ class ProgressBubble extends React.Component {
   };
 
   render() {
-    const { level, smallBubble, selectedSectionId, currentLocation, stageTrophyEnabled } = this.props;
+    const { level, smallBubble, selectedSectionId, selectedStudentId, currentLocation, stageTrophyEnabled } = this.props;
 
     const number = level.levelNumber;
     const url = level.url;
@@ -117,6 +122,9 @@ class ProgressBubble extends React.Component {
       const queryParams = queryString.parse(currentLocation.search);
       if (selectedSectionId) {
         queryParams.section_id = selectedSectionId;
+      }
+      if (selectedStudentId) {
+        queryParams.user_id = selectedStudentId;
       }
       const paramString = queryString.stringify(queryParams);
       href = url;
@@ -146,7 +154,7 @@ class ProgressBubble extends React.Component {
           levels={[level]}
           text={i18n.unpluggedActivity()}
           fontSize={16}
-          tooltip={tooltip}
+          tooltip={this.props.hideToolTips ? null : tooltip}
         />
       );
     }
@@ -185,7 +193,7 @@ class ProgressBubble extends React.Component {
                 {smallBubble ? '' : number}
               </span>
             )}
-            {tooltip}
+            {!this.props.hideToolTips && tooltip}
           </div>
         </div>
       </div>

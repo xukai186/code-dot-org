@@ -87,6 +87,9 @@ class ProjectsController < ApplicationController
       name: 'New Game Lab Jr Project',
       levelbuilder_required: true,
     },
+    spritelab: {
+      name: 'New Sprite Lab Project',
+    },
     makerlab: {
       name: 'New Maker Lab Project',
       login_required: true
@@ -367,8 +370,8 @@ class ProjectsController < ApplicationController
       remix_parent_id: remix_parent_id,
     )
     AssetBucket.new.copy_files src_channel_id, new_channel_id
-    AnimationBucket.new.copy_files src_channel_id, new_channel_id
-    SourceBucket.new.copy_files src_channel_id, new_channel_id
+    animation_list = AnimationBucket.new.copy_files src_channel_id, new_channel_id
+    SourceBucket.new.remix_source src_channel_id, new_channel_id, animation_list
     FileBucket.new.copy_files src_channel_id, new_channel_id
     redirect_to action: 'edit', channel_id: new_channel_id
   end

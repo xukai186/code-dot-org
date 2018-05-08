@@ -4,13 +4,14 @@ import {Heading1, h3Style} from "../../lib/ui/Headings";
 import * as styleConstants from '@cdo/apps/styleConstants';
 import Button from '../Button';
 import AssignmentSelector from '@cdo/apps/templates/teacherDashboard/AssignmentSelector';
-import { sectionShape, assignmentShape } from './shapes';
+import { sectionShape, assignmentShape, assignmentFamilyShape } from './shapes';
 import DialogFooter from './DialogFooter';
 import i18n from '@cdo/locale';
 import {
   editSectionProperties,
   finishEditingSection,
   cancelEditingSection,
+  isCsfScript,
 } from './teacherSectionsRedux';
 
 const style = {
@@ -45,13 +46,14 @@ class EditSectionForm extends Component {
     //Comes from redux
     validGrades: PropTypes.arrayOf(PropTypes.string).isRequired,
     validAssignments: PropTypes.objectOf(assignmentShape).isRequired,
-    primaryAssignmentIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+    assignmentFamilies: PropTypes.arrayOf(assignmentFamilyShape).isRequired,
     sections: PropTypes.objectOf(sectionShape).isRequired,
     section: sectionShape.isRequired,
     editSectionProperties: PropTypes.func.isRequired,
     handleSave: PropTypes.func.isRequired,
     handleClose: PropTypes.func.isRequired,
     isSaveInProgress: PropTypes.bool.isRequired,
+    isCsfScript: PropTypes.func.isRequired,
   };
 
   onSaveClick = () => {
@@ -67,10 +69,11 @@ class EditSectionForm extends Component {
       title,
       validGrades,
       validAssignments,
-      primaryAssignmentIds,
+      assignmentFamilies,
       isSaveInProgress,
       editSectionProperties,
       handleClose,
+      isCsfScript,
     } = this.props;
     if (!section) {
       return null;
@@ -96,14 +99,16 @@ class EditSectionForm extends Component {
             section={section}
             onChange={ids => editSectionProperties(ids)}
             validAssignments={validAssignments}
-            primaryAssignmentIds={primaryAssignmentIds}
+            assignmentFamilies={assignmentFamilies}
             disabled={isSaveInProgress}
           />
-          <LessonExtrasField
-            value={section.stageExtras}
-            onChange={stageExtras => editSectionProperties({stageExtras})}
-            disabled={isSaveInProgress}
-          />
+          {isCsfScript(section.scriptId) &&
+            <LessonExtrasField
+              value={section.stageExtras}
+              onChange={stageExtras => editSectionProperties({stageExtras})}
+              disabled={isSaveInProgress}
+            />
+          }
           <PairProgrammingField
             value={section.pairingAllowed}
             onChange={pairingAllowed => editSectionProperties({pairingAllowed})}
@@ -137,10 +142,11 @@ export const UnconnectedEditSectionForm = EditSectionForm;
 export default connect(state => ({
   validGrades: state.teacherSections.validGrades,
   validAssignments: state.teacherSections.validAssignments,
-  primaryAssignmentIds: state.teacherSections.primaryAssignmentIds,
+  assignmentFamilies: state.teacherSections.assignmentFamilies,
   sections: state.teacherSections.sections,
   section: state.teacherSections.sectionBeingEdited,
   isSaveInProgress: state.teacherSections.saveInProgress,
+  isCsfScript: id => isCsfScript(state, id),
 }), {
   editSectionProperties,
   handleSave: finishEditingSection,
@@ -205,7 +211,7 @@ const AssignmentField = ({
   section,
   onChange,
   validAssignments,
-  primaryAssignmentIds,
+  assignmentFamilies,
   disabled,
 }) => (
   <div>
@@ -218,8 +224,8 @@ const AssignmentField = ({
     <AssignmentSelector
       section={section}
       onChange={ids => onChange(ids)}
-      primaryAssignmentIds={primaryAssignmentIds}
       assignments={validAssignments}
+      assignmentFamilies={assignmentFamilies}
       chooseLaterOption={true}
       dropdownStyle={style.dropdown}
       disabled={disabled}
@@ -230,7 +236,7 @@ AssignmentField.propTypes = {
   section: sectionShape,
   onChange: PropTypes.func.isRequired,
   validAssignments: PropTypes.objectOf(assignmentShape).isRequired,
-  primaryAssignmentIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  assignmentFamilies: PropTypes.arrayOf(assignmentFamilyShape).isRequired,
   disabled: PropTypes.bool,
 };
 

@@ -20,6 +20,7 @@
 #  decision_notification_email_sent_at :datetime
 #  accepted_at                         :datetime
 #  properties                          :text(65535)
+#  deleted_at                          :datetime
 #
 # Indexes
 #
@@ -49,6 +50,10 @@ module Pd::Application
       auto_assigned_enrollment_id
     )
 
+    has_one :pd_teachercon1819_registration,
+      class_name: 'Pd::Teachercon1819Registration',
+      foreign_key: 'pd_application_id'
+
     before_save :destroy_autoenrollment, if: -> {status_changed? && status != "accepted"}
     def destroy_autoenrollment
       return unless auto_assigned_enrollment_id
@@ -73,6 +78,7 @@ module Pd::Application
         where(type: descendants.map(&:name)). # this is an abstract class, so query descendant types
         where(status: [:accepted, :withdrawn]).
         where.not(locked_at: nil).
+        includes(:pd_teachercon1819_registration).
         all.
         select {|application| application.pd_workshop_id && teachercon_ids.include?(application.pd_workshop_id)}
     end
@@ -129,7 +135,7 @@ module Pd::Application
 
     def registered_workshop?
       # inspect the cached workshop.enrollments rather than querying the DB
-      workshop.enrollments.any? {|e| e.user_id == user.id} if pd_workshop_id
+      workshop&.enrollments&.any? {|e| e.user_id == user.id} if pd_workshop_id
     end
 
     # Assigns the default workshop, if one is not yet assigned

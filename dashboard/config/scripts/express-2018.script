@@ -10,107 +10,35 @@ level 'GraphPaperProgramming_2018'
 
 stage 'Introduction'
 level 'courseE_video_ramp1_2018'
-variants
-  level 'courseD_scrat_ramp1_2018'
-  level 'courseE_maze_ramp1_2018'
-endvariants
-variants
-  level 'courseD_scrat_ramp2_2018'
-  level 'courseE_maze_ramp2_2018'
-endvariants
-variants
-  level 'courseD_scrat_ramp3_2018'
-  level 'courseE_maze_ramp3_2018'
-endvariants
-variants
-  level 'courseD_scrat_ramp4_2018'
-  level 'courseE_maze_ramp4_2018'
-endvariants
-variants
-  level 'courseD_scrat_ramp5_2018'
-  level 'courseE_maze_ramp5_2018'
-endvariants
-variants
-  level 'courseD_scrat_predict1_2018'
-  level 'courseE_maze_predict1_2018'
-endvariants
-variants
-  level 'courseD_video_ScratLoops_2018'
-  level 'courseCDEF_video_AngryBirdLoops_2018'
-endvariants
-variants
-  level 'courseD_scrat_ramp6_2018'
-  level 'courseE_maze_ramp6_2018'
-endvariants
-variants
-  level 'courseD_scrat_ramp7_2018'
-  level 'courseE_maze_ramp7_2018'
-endvariants
-variants
-  level 'courseD_scrat_ramp8_2018', challenge: true
-  level 'courseE_artist_ramp8_2018', challenge: true
-endvariants
-variants
-  level 'ramp_video_artistIntro_2018'
-  level 'courseC_video_angles_2018'
-endvariants
-variants
-  level 'courseE_artist_ramp8_2_2018'
-  level 'courseE_artist_ramp9_2018'
-endvariants
-variants
-  level 'courseC_video_angles2_2018'
-  level 'courseE_artist_predict1_2018'
-endvariants
-variants
-  level 'courseE_artist_ramp9_2_2018'
-  level 'courseD_video_nestedLoopsArtist_2018'
-endvariants
+level 'courseD_scrat_ramp1_2018'
+level 'courseD_scrat_ramp2_2018'
+level 'courseD_scrat_ramp3_2018'
+level 'courseD_scrat_ramp4_2018'
+level 'courseD_scrat_ramp5_2018'
+level 'courseD_scrat_predict1_2018'
+level 'courseD_video_ScratLoops_2018'
+level 'courseD_scrat_ramp6_2018'
+level 'courseD_scrat_ramp7_2018'
+level 'courseD_scrat_ramp8_2018', challenge: true
+level 'ramp_video_artistIntro_2018'
+level 'courseE_artist_ramp8_2_2018'
+level 'courseC_video_angles2_2018'
+level 'courseE_artist_ramp9_2_2018'
 
 stage 'Building a Foundation'
 level 'BuildingAFoundation_2018'
 
 stage 'Debugging in Collector'
-variants
-  level 'courseC_video_debugging_2018'
-  level 'courseD_video_debugging_2018'
-endvariants
-variants
-  level 'courseC_maze_debugging1_2018'
-  level 'courseD_collector_debugging1_2018'
-endvariants
-variants
-  level 'courseC_maze_debugging2_2018'
-  level 'courseD_collector_debugging2_2018'
-endvariants
-variants
-  level 'courseC_maze_debugging3_2018'
-  level 'courseD_collector_debugging3_2018'
-endvariants
-variants
-  level 'courseC_maze_debugging4_2018'
-  level 'courseD_collector_debugging4_2018'
-endvariants
-variants
-  level 'courseC_maze_debugging5_2018'
-  level 'courseD_collector_debugging5_2018'
-endvariants
-variants
-  level 'courseC_maze_debugging6_2018'
-  level 'courseD_collector_debugging6_2018'
-endvariants
-variants
-  level 'courseC_maze_debugging7_2018', challenge: true
-  level 'courseD_collector_debugging8_2018', challenge: true
-endvariants
-variants
-  level 'courseC_maze_debugging8_predict1_2018'
-  level 'courseD_collector_debugging9_2018'
-endvariants
-variants
-  level 'courseC_maze_debugging9_2018'
-  level 'courseD_collector_debugging10_predict1_2018'
-endvariants
+level 'courseC_video_debugging_2018'
+level 'courseC_maze_debugging1_2018'
+level 'courseC_maze_debugging2_2018'
+level 'courseC_maze_debugging3_2018'
+level 'courseC_maze_debugging4_2018'
+level 'courseC_maze_debugging5_2018'
+level 'courseC_maze_debugging6_2018'
+level 'courseC_maze_debugging7_2018', challenge: true
+level 'courseC_maze_debugging8_predict1_2018'
+level 'courseC_maze_debugging9_2018'
 bonus 'courseC_maze_debugging_challenge1_2018'
 bonus 'courseC_maze_debugging_challenge2_2018'
 bonus 'courseD_bee_debugging_challenge1_2018'
@@ -244,7 +172,7 @@ assessment 'courseD_farmer_while10_predict2_2018'
 bonus 'courseD_farmer_while_challenge1_2018'
 bonus 'courseD_farmer_while_challenge2_2018'
 
-stage 'Conditional Loops in Maze'
+stage 'Until Loops in Maze'
 level 'courseD_maze_until1_2018'
 level 'courseD_video_repeatUntil_2018'
 level 'courseD_maze_until2_predict1_2018'
@@ -253,29 +181,26 @@ level 'courseD_maze_until4_2018'
 level 'courseD_maze_until5_2018'
 level 'courseD_maze_until6_2018'
 level 'courseD_maze_until7_2018'
-level 'courseD_video_ifElse_2018'
-level 'courseD_maze_until8_2018'
 level 'courseD_maze_until9_2018', challenge: true
 level 'courseD_maze_until10_2018'
 assessment 'courseD_maze_until10_predict2_2018'
-bonus 'courseD_maze_until_challenge1_2018'
-bonus 'courseD_farmer_until_challenge2_2018'
 
-stage 'Conditionals in Minecraft'
-level 'Overworld Move to Sheep_2018'
-level 'Overworld Chop Tree_2018'
-level 'Overworld Shear Sheep_2018'
-level 'Overworld Chop Trees_2018'
-level 'Overworld Place Wall_2018'
-level 'Overworld House Frame Chosen_2018'
-level 'Overworld Plant Crops_2018'
-level 'Overworld Avoid Monsters_2018'
-level 'Underground Mining Coal_2018'
-level 'Underground Iron_2018'
-level 'Underground Avoiding Lava_2018'
-level 'Underground If Statements_2018'
-level 'Overworld Powered Minecart_2018'
-level 'Overworld Free Play 20x20_2018'
+stage 'Conditionals in Bee'
+level 'courseD_bee_conditionalsVid1_2018'
+level 'courseD_bee_conditionals1_predict1_2018'
+level 'courseD_bee_conditionals2_2018'
+level 'courseD_bee_conditionals3_2018'
+level 'courseD_bee_conditionals4_2018'
+level 'courseD_bee_conditionals5_2018'
+level 'courseD_bee_conditionals6_2018'
+level 'courseD_bee_conditionalsVidIfElse_2018'
+level 'courseD_bee_conditionals7_2018'
+level 'courseD_bee_conditionals7_predict2_2018'
+level 'courseD_bee_conditionals8_2018', challenge: true
+level 'courseD_bee_conditionals9_2018'
+level 'courseD_bee_conditionals10_2018'
+bonus 'courseD_bee_conditionals_challenge1_2018'
+bonus 'courseD_bee_conditionals_challenge2_2018'
 
 stage 'Conditionals & Loops in Farmer'
 level 'harvester_skinOverview_video'

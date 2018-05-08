@@ -55,6 +55,7 @@ import {TestResults, ResultType} from '../constants';
 import {showHideWorkspaceCallouts} from '../code-studio/callouts';
 import GameLabJrLib from './GameLabJr.interpreted';
 import defaultSprites from './defaultSprites.json';
+import {GamelabAutorunOptions} from '@cdo/apps/util/sharedConstants';
 
 const LIBRARIES = {
   'GameLabJr': GameLabJrLib,
@@ -74,7 +75,8 @@ var ArrowIds = {
   LEFT: 'leftButton',
   UP: 'upButton',
   RIGHT: 'rightButton',
-  DOWN: 'downButton'
+  DOWN: 'downButton',
+  SPACE: 'studio-space-button',
 };
 
 /**
@@ -147,7 +149,7 @@ GameLab.prototype.log = function (object, logLevel) {
  */
 GameLab.prototype.injectStudioApp = function (studioApp) {
   this.studioApp_ = studioApp;
-  this.studioApp_.reset = this.reset.bind(this);
+  this.studioApp_.reset = this.resetHandler.bind(this);
   this.studioApp_.runButtonClick = this.runButtonClick.bind(this);
 
   this.studioApp_.setCheckForEmptyBlocks(true);
@@ -171,6 +173,10 @@ GameLab.prototype.init = function (config) {
   this.skin.winAvatar = null;
   this.skin.failureAvatar = null;
   this.level = config.level;
+  this.showDPad = config.level.showDPad && config.share && dom.isMobile();
+
+  this.shouldAutoRunSetup = config.level.autoRunSetup &&
+    !this.level.edit_blocks;
 
   this.level.softButtons = this.level.softButtons || {};
   if (this.level.useDefaultSprites) {
@@ -281,10 +287,20 @@ GameLab.prototype.init = function (config) {
     });
 
     this.setCrosshairCursorForPlaySpace();
-  };
 
-  // Always hide DPad until better UI is created.
-  this.level.showDPad = false;
+    if (this.shouldAutoRunSetup) {
+      const changeHandler = this.rerunSetupCode.bind(this);
+      if (this.studioApp_.isUsingBlockly()) {
+        const blocklyCanvas = Blockly.mainBlockSpace.getCanvas();
+        blocklyCanvas.addEventListener('blocklyBlockSpaceChange',
+          changeHandler);
+      } else {
+        this.studioApp_.editor.on('change', changeHandler);
+        // Droplet doesn't automatically bubble up aceEditor changes
+        this.studioApp_.editor.aceEditor.on('change', changeHandler);
+      }
+    }
+  };
 
   var showFinishButton = !this.level.isProjectLevel;
   var finishButtonFirstLine = _.isEmpty(this.level.softButtons);
@@ -435,7 +451,7 @@ GameLab.prototype.afterInject_ = function (config) {
     dom.addMouseDownTouchEvent(document.getElementById(ArrowIds[btn]),
         this.onArrowButtonDown.bind(this, ArrowIds[btn]));
   }
-  if (this.level.showDPad) {
+  if (this.showDPad) {
     dom.addMouseDownTouchEvent(document.getElementById('studio-dpad-button'),
         this.onDPadButtonDown.bind(this));
   }
@@ -503,11 +519,22 @@ GameLab.prototype.startTickTimer = function () {
 };
 
 /**
- * Reset GameLab to its initial state.
+ * Reset GameLab to its initial state and optionally run setup code
  * @param {boolean} ignore Required by the API but ignored by this
  *     implementation.
  */
-GameLab.prototype.reset = function (ignore) {
+GameLab.prototype.resetHandler = function (ignore) {
+  if (this.shouldAutoRunSetup) {
+    this.execute(false /* keepTicking */);
+  } else {
+    this.reset();
+  }
+};
+
+/**
+ * Reset GameLab to its initial state.
+ */
+GameLab.prototype.reset = function () {
   this.haltExecution_();
 
   /*
@@ -551,10 +578,23 @@ GameLab.prototype.reset = function (ignore) {
     $('#soft-buttons').removeClass('soft-buttons-none').addClass('soft-buttons-' + softButtonCount);
   }
 
-  if (this.level.showDPad) {
+  if (this.showDPad) {
     $('#studio-dpad').removeClass('studio-dpad-none');
     this.resetDPad();
   }
+};
+
+GameLab.prototype.rerunSetupCode = function () {
+  if (getStore().getState().runState.isRunning ||
+      !this.gameLabP5.p5 ||
+      !this.areAnimationsReady_()) {
+    return;
+  }
+  this.gameLabP5.p5.allSprites.removeSprites();
+  this.JSInterpreter.deinitialize();
+  this.initInterpreter(false /* attachDebugger */);
+  this.onP5Setup();
+  this.gameLabP5.p5.redraw();
 };
 
 GameLab.prototype.onPuzzleComplete = function (submit) {
@@ -684,6 +724,8 @@ function p5KeyCodeFromArrow(idBtn) {
       return window.p5.prototype.UP_ARROW;
     case ArrowIds.DOWN:
       return window.p5.prototype.DOWN_ARROW;
+    case ArrowIds.SPACE:
+      return window.p5.prototype.KEY.SPACE;
   }
 }
 
@@ -731,7 +773,8 @@ GameLab.prototype.onDPadButtonDown = function (e) {
 var DPAD_DEAD_ZONE = 3;
 
 GameLab.prototype.onDPadMouseMove = function (e) {
-  var dPadButton = $('#studio-dpad-button');
+  const dPadButton = $('#studio-dpad-button');
+  const dPadCone = $('#studio-dpad-cone');
   var self = this;
 
   function notifyKeyHelper(keyCode, cssClass, start, prev, cur, invert) {
@@ -746,10 +789,12 @@ GameLab.prototype.onDPadMouseMove = function (e) {
       if (prev >= start) {
         self.gameLabP5.notifyKeyCodeDown(keyCode);
         dPadButton.addClass(cssClass);
+        dPadCone.addClass(cssClass);
       }
     } else if (prev < start) {
       self.gameLabP5.notifyKeyCodeUp(keyCode);
       dPadButton.removeClass(cssClass);
+      dPadCone.removeClass(cssClass);
     }
   }
 
@@ -797,6 +842,11 @@ GameLab.prototype.resetDPad = function () {
 GameLab.prototype.onMouseUp = function (e) {
   // Reset all arrow buttons on "global mouse up" - this handles the case where
   // the mouse moved off the arrow button and was released somewhere else
+
+  if (e.touches && e.touches.length > 0) {
+    return;
+  }
+
   for (var buttonId in this.btnState) {
     if (this.btnState[buttonId] === ButtonState.DOWN) {
 
@@ -811,14 +861,14 @@ GameLab.prototype.onMouseUp = function (e) {
 /**
  * Execute the user's code.  Heaven help us...
  */
-GameLab.prototype.execute = function () {
+GameLab.prototype.execute = function (keepTicking = true) {
   this.result = ResultType.UNSET;
   this.testResults = TestResults.NO_TESTS_RUN;
   this.waitingForReport = false;
   this.response = null;
 
   // Reset all state.
-  this.studioApp_.reset();
+  this.reset();
   this.studioApp_.clearAndAttachRuntimeAnnotations();
 
   if (this.studioApp_.isUsingBlockly() &&
@@ -830,6 +880,7 @@ GameLab.prototype.execute = function () {
   }
 
   this.gameLabP5.startExecution();
+  this.gameLabP5.setLoop(keepTicking);
 
   if (!this.JSInterpreter ||
       !this.JSInterpreter.initialized() ||
@@ -837,15 +888,17 @@ GameLab.prototype.execute = function () {
     return;
   }
 
-  if (this.studioApp_.isUsingBlockly()) {
+  if (this.studioApp_.isUsingBlockly() && keepTicking) {
     // Disable toolbox while running
     Blockly.mainBlockSpaceEditor.setEnableToolbox(false);
   }
 
-  this.startTickTimer();
+  if (keepTicking) {
+    this.startTickTimer();
+  }
 };
 
-GameLab.prototype.initInterpreter = function () {
+GameLab.prototype.initInterpreter = function (attachDebugger=true) {
 
   var self = this;
   function injectGamelabGlobals() {
@@ -872,7 +925,9 @@ GameLab.prototype.initInterpreter = function () {
   window.tempJSInterpreter = this.JSInterpreter;
   this.JSInterpreter.onExecutionError.register(this.handleExecutionError.bind(this));
   this.consoleLogger_.attachTo(this.JSInterpreter);
-  getStore().dispatch(jsDebugger.attach(this.JSInterpreter));
+  if (attachDebugger) {
+    getStore().dispatch(jsDebugger.attach(this.JSInterpreter));
+  }
   let code = this.studioApp_.getCode();
   if (this.level.customHelperLibrary) {
     code = this.level.customHelperLibrary + code;
@@ -996,7 +1051,7 @@ GameLab.prototype.preloadAnimations_ = function () {
     }
   }).then(() => {
     // Animations are ready - send them to p5 to be loaded into the engine.
-    this.gameLabP5.preloadAnimations(store.getState().animationList);
+    return this.gameLabP5.preloadAnimations(store.getState().animationList);
   });
 };
 
@@ -1137,7 +1192,22 @@ GameLab.prototype.completeSetupIfSetupComplete = function () {
 GameLab.prototype.onP5Draw = function () {
   if (this.JSInterpreter && this.eventHandlers.draw) {
     this.drawInProgress = true;
-    this.eventHandlers.draw.apply(null);
+    if (getStore().getState().runState.isRunning) {
+      this.eventHandlers.draw.apply(null);
+    } else if (this.shouldAutoRunSetup) {
+      this.gameLabP5.p5.background('white');
+      switch (this.level.autoRunSetup) {
+        case GamelabAutorunOptions.draw_loop:
+          this.eventHandlers.draw.apply(null);
+          break;
+        case GamelabAutorunOptions.draw_sprites:
+          this.JSInterpreter.evalInCurrentScope('drawSprites();');
+          break;
+        case GamelabAutorunOptions.custom:
+          this.JSInterpreter.evalInCurrentScope(this.level.customSetupCode);
+          break;
+      }
+    }
   }
   this.completeRedrawIfDrawComplete();
 };
@@ -1226,9 +1296,10 @@ GameLab.prototype.getSerializedAnimationList = function (callback) {
  */
 GameLab.prototype.getExportableAnimationList = function (callback) {
   getStore().dispatch(saveAnimations(() => {
-    const list = getStore().getState().animationList;
+    const state = getStore().getState();
+    const list = state.animationList;
     const serializedList = getSerializedAnimationList(list);
-    const exportableList = withAbsoluteSourceUrls(serializedList);
+    const exportableList = withAbsoluteSourceUrls(serializedList, state.pageConstants && state.pageConstants.channelId);
     callback(exportableList);
   }));
 };

@@ -6,6 +6,7 @@
 
 import $ from 'jquery';
 import React, {PropTypes} from 'react';
+import {connect} from 'react-redux';
 import Select from "react-select";
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
@@ -32,7 +33,19 @@ import {
   DATE_FORMAT,
   DATETIME_FORMAT
 } from '../workshopConstants';
-import Permission from '../../permission';
+import {
+  PermissionPropType,
+  WorkshopAdmin,
+  Organizer,
+  Facilitator,
+  ProgramManager,
+  Partner,
+  CsfFacilitator
+} from "../permission";
+import {
+  Courses,
+  Subjects
+} from '@cdo/apps/generated/pd/sharedWorkshopConstants';
 
 const styles = {
   readOnlyInput: {
@@ -50,12 +63,14 @@ const placeholderSession = {
   endTime: '5:00pm'
 };
 
-export default class WorkshopForm extends React.Component {
+export class WorkshopForm extends React.Component {
   static contextTypes = {
     router: PropTypes.object.isRequired
   };
 
   static propTypes = {
+    permission: PermissionPropType.isRequired,
+    facilitatorCourses: PropTypes.arrayOf(PropTypes.string).isRequired,
     workshop: PropTypes.shape({
       id: PropTypes.number.isRequired,
       facilitators: PropTypes.array.isRequired,
@@ -81,7 +96,6 @@ export default class WorkshopForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = this.computeInitialState(props);
-    this.permission = new Permission();
   }
 
   computeInitialState(props) {
@@ -271,7 +285,17 @@ export default class WorkshopForm extends React.Component {
   };
 
   renderCourseSelect(validation) {
-    const options = window.dashboard.workshop.COURSES.map((course, i) => {
+    let allowedCourses;
+    if (this.props.permission.hasAny(Organizer, ProgramManager, WorkshopAdmin)) {
+      allowedCourses = Courses;
+    } else if (this.props.permission.has(Facilitator)) {
+      allowedCourses = this.props.facilitatorCourses;
+    } else {
+      console.error("Insufficient permissions, expected one one of: Organizer, ProgramManager, WorkshopAdmin, or Facilitator");
+      allowedCourses = [];
+    }
+
+    const options = allowedCourses.map((course, i) => {
       return (<option key={i} value={course}>{course}</option>);
     });
     const placeHolder = this.state.course ? null : <option />;
@@ -281,6 +305,7 @@ export default class WorkshopForm extends React.Component {
         <FormControl
           componentClass="select"
           value={this.state.course || ''}
+          id="course"
           name="course"
           onChange={this.handleCourseChange}
           style={this.getInputStyle()}
@@ -360,6 +385,7 @@ export default class WorkshopForm extends React.Component {
             </ControlLabel>
             <FormControl
               componentClass="select"
+              id="funded"
               name="funded"
               value={value}
               onChange={this.handleFundingChange}
@@ -381,7 +407,7 @@ export default class WorkshopForm extends React.Component {
   }
 
   shouldRenderSubject() {
-    return this.state.course && window.dashboard.workshop.SUBJECTS[this.state.course];
+    return this.state.course && Subjects[this.state.course];
   }
 
   renderWorkshopTypeOptions(validation) {
@@ -419,14 +445,18 @@ export default class WorkshopForm extends React.Component {
   renderRegionalPartnerSelect() {
     const editDisabled = this.props.readOnly ||
     (
-      !this.permission.isWorkshopAdmin && //Enabled for these permissions
-      !this.permission.isOrganizer &&
-      !this.permission.isProgramManager &&
-      !this.permission.isPartner &&
-      !(this.permission.isCsfFacilitator && !this.props.workshop) //Enabled  for CSF facilitators when they are creating a new workshop
+      // Enabled for these permissions
+      !this.props.permission.hasAny(WorkshopAdmin, Organizer, ProgramManager, Partner) &&
+
+      // Enabled for CSF facilitators when they are creating a new workshop
+      !(this.props.permission.has(CsfFacilitator) && !this.props.workshop)
     );
 
-    const options = [{value: '', label: 'None'}];
+    const options = [];
+    if (this.props.permission.has(CsfFacilitator) || this.props.permission.has(WorkshopAdmin)) {
+      options.push({value: '', label: 'None'});
+    }
+
     if (this.state.regionalPartners) {
       const sortedPartners = _.sortBy(this.state.regionalPartners, partner => partner.name);
       options.push(...sortedPartners.map(partner => ({
@@ -446,23 +476,35 @@ export default class WorkshopForm extends React.Component {
         <ControlLabel>
           Regional Partner
         </ControlLabel>
-        <Select
-          name="regional_partner_id"
-          onChange={this.handleRegionalPartnerSelect}
-          style={this.getInputStyle()}
-          value={this.state.regional_partner_id || ''}
-          options={options}
+        {
+          options.length > 1 &&
+          <Select
+            id="regional-partner-select"
+            name="regional_partner_id"
+            onChange={this.handleRegionalPartnerSelect}
+            style={this.getInputStyle()}
+            value={this.state.regional_partner_id || ''}
+            options={options}
 
-          // Facilitators (who are not organizers, partners, nor admins) cannot edit this field
-          disabled={editDisabled}
-        />
+            // Facilitators (who are not organizers, partners, nor admins) cannot edit this field
+            disabled={editDisabled}
+          />
+        }
+        {
+          options.length === 1 &&
+          <p
+            id="regional-partner-name"
+          >
+            {options[0].label}
+          </p>
+        }
       </FormGroup>
     );
   }
 
   renderSubjectSelect(validation) {
     if (this.shouldRenderSubject()) {
-      const options = window.dashboard.workshop.SUBJECTS[this.state.course].map((subject, i) => {
+      const options = Subjects[this.state.course].map((subject, i) => {
         return (<option key={i} value={subject}>{subject}</option>);
       });
       const placeHolder = this.state.subject ? null : <option />;
@@ -472,6 +514,7 @@ export default class WorkshopForm extends React.Component {
           <FormControl
             componentClass="select"
             value={this.state.subject || ''}
+            id="subject"
             name="subject"
             onChange={this.handleFieldChange}
             style={this.props.readOnly && styles.readOnlyInput}
@@ -774,6 +817,7 @@ export default class WorkshopForm extends React.Component {
                 <FormControl
                   type="text"
                   value={this.state.location_name || ''}
+                  id="location_name"
                   name="location_name"
                   onChange={this.handleFieldChange}
                   maxLength={255}
@@ -792,6 +836,7 @@ export default class WorkshopForm extends React.Component {
                   ref={ref => this.locationAddressControl = ReactDOM.findDOMNode(ref)}
                   value={this.state.location_address || ''}
                   placeholder="Enter a location"
+                  id="location_address"
                   name="location_address"
                   onChange={this.handleFieldChange}
                   maxLength={255}
@@ -809,6 +854,7 @@ export default class WorkshopForm extends React.Component {
                 <FormControl
                   type="text"
                   value={this.state.capacity || ''}
+                  id="capacity"
                   name="capacity"
                   onChange={this.handleFieldChange}
                   maxLength={4}
@@ -844,6 +890,7 @@ export default class WorkshopForm extends React.Component {
                   placeholder="Use this space to tell teachers any important
                   information like building location, lunch options or pre-work."
                   value={this.state.notes || ''}
+                  id="notes"
                   name="notes"
                   onChange={this.handleFieldChange}
                   maxLength={65535}
@@ -872,3 +919,8 @@ export default class WorkshopForm extends React.Component {
     );
   }
 }
+
+export default connect(state => ({
+  permission: state.permission,
+  facilitatorCourses: state.facilitatorCourses
+}))(WorkshopForm);

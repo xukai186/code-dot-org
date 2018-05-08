@@ -7,6 +7,7 @@ const styles = {
     width: 20,
     borderWidth: 1,
     borderStyle: 'solid',
+    boxSizing: 'content-box',
   },
   filler: {
     width: 20

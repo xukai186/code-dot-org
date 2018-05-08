@@ -12,6 +12,7 @@ import FontAwesome from '@cdo/apps/templates/FontAwesome';
 import React, { Component, PropTypes } from 'react';
 import color from '../util/color';
 import msg from '@cdo/locale';
+import { shareProject } from '@cdo/apps/code-studio/headerShare';
 
 const styles = {
   pageWrapper: {
@@ -24,7 +25,7 @@ const styles = {
     left: 0,
     right: 0,
     margin: 'auto',
-    zIndex: 1050,
+    zIndex: 1040,
   },
   modal: {
     position: 'relative',
@@ -107,6 +108,27 @@ const styles = {
   mastery: {
     display: 'inline-block',
   },
+  share: {
+    float: 'left',
+    width: 180,
+    height: 200,
+    paddingTop: 20,
+  },
+  thumbnail: {
+    width: 150,
+    height: 150,
+    backgroundSize: 'cover',
+    marginLeft: 15,
+    border: '1px solid',
+  },
+  shareButton: {
+    background: color.cyan,
+    color: color.white,
+  },
+  achievementWrapper: {
+    marginLeft: 20,
+    marginRight: 20,
+  },
   achievementsHeading: {
     margin: '20px auto 0',
     color: color.light_gray,
@@ -114,7 +136,6 @@ const styles = {
     fontSize: 16,
   },
   achievements: {
-    width: 380,
     display: 'block',
     margin: '4px auto 4px',
     borderColor: color.lighter_gray,
@@ -135,10 +156,12 @@ const styles = {
     verticalAlign: 'middle',
   },
   achievementRow: {
-    width: '50%',
     padding: 10,
     boxSizing: 'border-box',
     textAlign: 'left',
+  },
+  achievementRowNonShare: {
+    width: '50%',
     float: 'left',
   },
   generatedCodeWrapper: {
@@ -148,8 +171,8 @@ const styles = {
   },
   funometer: {
     marginTop: 5,
+    marginLeft: 20,
     display: 'flex',
-    flexDirection: 'row-reverse',
     minHeight: 32,
   },
   button: {
@@ -207,11 +230,12 @@ export class UnconnectedFinishDialog extends Component {
       message: PropTypes.string,
     })),
     showFunometer: PropTypes.bool,
-    canShare: PropTypes.bool,
+    getShareUrl: PropTypes.func,
     studentCode: PropTypes.shape({
       message: PropTypes.string,
       code: PropTypes.string,
     }),
+    feedbackImage: PropTypes.string,
   };
 
   componentWillReceiveProps(nextProps) {
@@ -351,6 +375,7 @@ export class UnconnectedFinishDialog extends Component {
                 <div
                   style={{
                     ...styles.achievementRow,
+                    ...(!this.props.feedbackImage && styles.achievementRowNonShare),
                     color: interpolateColors(
                       color.lighter_gray,
                       color.dark_charcoal,
@@ -466,16 +491,43 @@ export class UnconnectedFinishDialog extends Component {
                     style={styles.generatedCode}
                   />
                 </div> :
-                <div style={styles.content}>
+                <div
+                  style={{
+                    ...styles.content,
+                    ...(this.props.feedbackImage && {minHeight: 277}),
+                  }}
+                >
                   <div style={styles.mastery}>
                     <StageProgress stageTrophyEnabled />
                   </div>
-                  {showAchievements && <div>
-                    <div style={styles.achievementsHeading}>
-                      {msg.achievements()}
+                  {this.props.feedbackImage &&
+                    <div style={styles.share}>
+                      <div
+                        style={{
+                          ...styles.thumbnail,
+                          backgroundImage: `url(${this.props.feedbackImage})`,
+                        }}
+                      />
+                      <button
+                        style={styles.shareButton}
+                        onClick={() => shareProject(this.props.getShareUrl())}
+                      >
+                        {msg.share()}
+                      </button>
                     </div>
-                    {this.getAchievements()}
-                  </div>
+                  }
+                  {showAchievements &&
+                    <div
+                      style={{
+                        ...styles.achievementWrapper,
+                        ...(this.props.feedbackImage && {marginLeft: 180}),
+                      }}
+                    >
+                      <div style={styles.achievementsHeading}>
+                        {msg.achievements()}
+                      </div>
+                      {this.getAchievements()}
+                    </div>
                   }
                   {this.getFunometer()}
                 </div>}
@@ -498,8 +550,8 @@ export default connect(state => ({
   blockLimit: state.feedback.blockLimit,
   achievements: state.feedback.achievements,
   showFunometer: state.feedback.displayFunometer,
-  canShare: state.feedback.canShare,
   studentCode: state.feedback.studentCode,
+  feedbackImage: state.feedback.feedbackImage,
 }), dispatch => ({
   onReplay: () => dispatch(hideFeedback()),
 }))(UnconnectedFinishDialog);

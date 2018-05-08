@@ -15,7 +15,9 @@ const STORAGE_KEY = 'experimentsList';
 const GA_EVENT = 'experiments';
 const EXPERIMENT_LIFESPAN_HOURS = 12;
 
-experiments.SHARE_COLUMN = 'shareColumn';
+// specific experiment names
+experiments.COURSE_VERSIONS = 'courseVersions';
+
 /**
  * Get our query string. Provided as a method so that tests can mock this.
  */

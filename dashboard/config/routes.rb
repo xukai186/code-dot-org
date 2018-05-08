@@ -76,6 +76,7 @@ Dashboard::Application.routes.draw do
       resources :students, only: [:index, :update], controller: 'sections_students' do
         collection do
           post 'bulk_add'
+          get 'completed_levels_count'
         end
         member do
           post 'remove'
@@ -85,6 +86,7 @@ Dashboard::Application.routes.draw do
         post 'join'
         post 'leave'
         post 'update_sharing_disabled'
+        get 'student_script_ids'
       end
     end
   end
@@ -286,7 +288,7 @@ Dashboard::Application.routes.draw do
 
   # internal support tools
   get '/admin/account_repair', to: 'admin_users#account_repair_form', as: 'account_repair_form'
-  post '/admin/account_repair', to: 'admin_users#account_repair', as: 'account_repair'
+  post '/admin/account_repair', to: 'admin_users#account_repair',  as: 'account_repair'
   get '/admin/assume_identity', to: 'admin_users#assume_identity_form', as: 'assume_identity_form'
   post '/admin/assume_identity', to: 'admin_users#assume_identity', as: 'assume_identity'
   post '/admin/undelete_user', to: 'admin_users#undelete_user', as: 'undelete_user'
@@ -320,7 +322,10 @@ Dashboard::Application.routes.draw do
 
   post '/sms/send', to: 'sms#send_to_phone', as: 'send_to_phone'
 
+  # Experiments are get requests so that a user can click on a link to join or leave an experiment
   get '/experiments/set_course_experiment/:experiment_name', to: 'experiments#set_course_experiment'
+  get '/experiments/set_single_user_experiment/:experiment_name', to: 'experiments#set_single_user_experiment'
+  get '/experiments/disable_single_user_experiment/:experiment_name', to: 'experiments#disable_single_user_experiment'
 
   get '/peer_reviews/dashboard', to: 'peer_reviews#dashboard'
   resources :peer_reviews
@@ -428,7 +433,7 @@ Dashboard::Application.routes.draw do
         post :principal_approval, to: 'principal_approval_applications#create'
       end
 
-      resources :applications, controller: 'applications', only: [:index, :show, :update] do
+      resources :applications, controller: 'applications', only: [:index, :show, :update, :destroy] do
         collection do
           get :quick_view
           get :cohort_view
@@ -468,6 +473,9 @@ Dashboard::Application.routes.draw do
     get 'teachercon_registration/lead_facilitator(/:city)', to: 'teachercon1819_registration#lead_facilitator'
     get 'teachercon_registration/:application_guid', to: 'teachercon1819_registration#new'
     get 'fit_weekend_registration/:application_guid', to: 'fit_weekend1819_registration#new'
+
+    delete 'teachercon_registration/:application_guid', to: 'teachercon1819_registration#destroy'
+    delete 'fit_weekend_registration/:application_guid', to: 'fit_weekend1819_registration#destroy'
 
     get 'facilitator_program_registration', to: 'facilitator_program_registration#new'
     get 'regional_partner_program_registration', to: 'regional_partner_program_registration#new'
@@ -592,7 +600,7 @@ Dashboard::Application.routes.draw do
   # the constraint on :q to match anything but a slash.
   # @see http://guides.rubyonrails.org/routing.html#specifying-constraints
   get '/dashboardapi/v1/districtsearch/:q/:limit', to: 'api/v1/school_districts#search', defaults: {format: 'json'}, constraints: {q: /[^\/]+/}
-  get '/dashboardapi/v1/schoolsearch/:q/:limit', to: 'api/v1/schools#search', defaults: {format: 'json'}, constraints: {q: /[^\/]+/}
+  get '/dashboardapi/v1/schoolsearch/:q/:limit(/:use_new_search)', to: 'api/v1/schools#search', defaults: {format: 'json'}, constraints: {q: /[^\/]+/}
 
   get '/dashboardapi/v1/regional-partners/:school_district_id', to: 'api/v1/regional_partners#index', defaults: {format: 'json'}
   get '/dashboardapi/v1/projects/section/:section_id', to: 'api/v1/projects/section_projects#index', defaults: {format: 'json'}

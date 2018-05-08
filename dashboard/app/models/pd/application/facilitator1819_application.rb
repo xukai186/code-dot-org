@@ -20,6 +20,7 @@
 #  decision_notification_email_sent_at :datetime
 #  accepted_at                         :datetime
 #  properties                          :text(65535)
+#  deleted_at                          :datetime
 #
 # Indexes
 #
@@ -44,6 +45,10 @@ module Pd::Application
       fit_workshop_id
       auto_assigned_fit_enrollment_id
     )
+
+    has_one :pd_fit_weekend1819_registration,
+      class_name: 'Pd::FitWeekend1819Registration',
+      foreign_key: 'pd_application_id'
 
     def send_decision_notification_email
       # Accepted, declined, and waitlisted are the only valid "final" states;
@@ -98,6 +103,7 @@ module Pd::Application
         where(type: name).
         where(status: [:accepted, :withdrawn]).
         where.not(locked_at: nil).
+        includes(:pd_fit_weekend1819_registration).
         select(&:fit_workshop_id?)
     end
 
@@ -108,6 +114,10 @@ module Pd::Application
       cache_fetch self.class.get_workshop_cache_key(fit_workshop_id) do
         Pd::Workshop.includes(:sessions, :enrollments).find_by(id: fit_workshop_id)
       end
+    end
+
+    def fit_workshop_date_and_location
+      fit_workshop.try(&:date_and_location_name)
     end
 
     def registered_fit_workshop?
@@ -589,6 +599,10 @@ module Pd::Application
         course: workshop_course,
         city: find_default_fit_teachercon[:city]
       )
+    end
+
+    def fit_weekend_registration
+      Pd::FitWeekend1819Registration.find_by_pd_application_id(id)
     end
 
     # override

@@ -5,6 +5,7 @@ require 'timecop'
 require 'cdo/firehose'
 
 MAIN_JSON = 'main.json'
+COMMENT_BLOCK_SOURCES = File.join(__dir__, 'fixtures', 'comment-block-sources.json')
 
 class SourcesTest < FilesApiTestBase
   def setup
@@ -460,168 +461,327 @@ class SourcesTest < FilesApiTestBase
   end
 
   def test_restore_main_json_with_bad_animation_versions
-    animation_key = @api.add_random_suffix('animation-key')
-    animation_filename = "#{animation_key}.png"
-    delete_all_animation_versions(animation_filename)
-
-    # Create an animation
-    animation_v1_vid = put_animation(animation_filename, 'stub-png-v1')
-
-    # Upload main.json version 1 with bad animation version
-    v1_parsed = {
-      "source": "//version 1",
-      "animations": {
-        "orderedKeys": [animation_key],
-        "propsByKey": {
-          "#{animation_key}": {
-            "name": "Test animation v1",
-            "version": "not_a_real_version_id_v1"
-          }
-        }
-      }
-    }.stringify_keys
-    main_json_v1_vid = put_main_json(v1_parsed)
-
-    # Modify the animation
-    animation_v2 = 'stub-png-v2'
-    animation_v2_vid = put_animation(animation_filename, animation_v2)
-
-    # Update main.json, with different bad version
-    main_json_v2 = {
-      "source": "//version 2",
-      "animations": {
-        "orderedKeys": [animation_key],
-        "propsByKey": {
-          "#{animation_key}": {
-            "name": "Test animation v2",
-            "version": "not_a_real_version_id_v2"
-          }
-        }
-      }
-    }.stringify_keys
-    main_json_v2_vid = put_main_json(main_json_v2)
-
-    # Restore main.json to v1
-    main_json_restored_vid = restore_main_json(main_json_v1_vid)
-
-    # Expect animation to have a v3 based on v2
-    animation_versions = @animations_api.list_object_versions(animation_filename)
-    assert successful?
-    assert_equal 3, animation_versions.count
-    animation_restored_vid = animation_versions[0]['versionId']
-    assert_equal animation_v2_vid, animation_versions[1]['versionId']
-    assert_equal animation_v1_vid, animation_versions[2]['versionId']
-    refute_equal animation_v1_vid, animation_restored_vid
-    refute_equal animation_v2_vid, animation_restored_vid
-
-    @animations_api.get_object(animation_filename)
-    assert_equal(animation_v2, last_response.body)
-
-    # Expect main.json to have a v3 based on v1
-    main_json_versions = @api.list_object_versions(MAIN_JSON)
-    assert successful?
-    assert_equal 3, main_json_versions.count
-    assert_equal main_json_restored_vid, main_json_versions[0]['versionId']
-    assert_equal main_json_v2_vid, main_json_versions[1]['versionId']
-    assert_equal main_json_v1_vid, main_json_versions[2]['versionId']
-    refute_equal main_json_v1_vid, main_json_restored_vid
-    refute_equal main_json_v2_vid, main_json_restored_vid
-
-    # Expect latest main.json v3 to reference animation v3
-    @api.get_object(MAIN_JSON)
-    v3_parsed = JSON.parse(last_response.body)
-    assert_equal(v1_parsed['source'], v3_parsed['source'])
-    assert_equal(
-      animation_restored_vid,
-      v3_parsed['animations']['propsByKey'][animation_key]['version']
-    )
-
-    delete_all_animation_versions(animation_filename)
-    delete_all_source_versions(MAIN_JSON)
+    assert_restores_main_json_with_animation_version 'not_a_real_version_id'
   end
 
   def test_restore_main_json_with_empty_animation_versions
-    animation_key = @api.add_random_suffix('animation-key')
-    animation_filename = "#{animation_key}.png"
-    delete_all_animation_versions(animation_filename)
+    assert_restores_main_json_with_animation_version ''
+  end
 
-    # Create an animation
-    animation_v1_vid = put_animation(animation_filename, 'stub-png-v1')
+  def test_restore_main_json_with_null_animation_versions
+    assert_restores_main_json_with_animation_version nil
+  end
 
-    # Upload main.json version 1 with bad animation version
-    v1_parsed = {
+  def test_remix_source_file
+    # Mock destination
+    @destination_channel = create_channel
+    @destination_api = FilesApiTestHelper.new(current_session, 'sources', @destination_channel)
+    @destination_animation_api = FilesApiTestHelper.new(current_session, 'animations', @destination_channel)
+
+    # Create two animations
+    animation_key_1 = @api.add_random_suffix('animation-key')
+    animation_key_2 = @api.add_random_suffix('animation-key-1')
+    animation_filename_1 = "#{animation_key_1}.png"
+    animation_filename_2 = "#{animation_key_2}.png"
+    delete_all_animation_versions(animation_filename_1)
+    delete_all_animation_versions(animation_filename_2)
+
+    # Upload the two animations
+    animation_1 = 'stub-png-1'
+    animation_2 = 'stub-png-2'
+    animation_1_vid = put_animation(animation_filename_1, animation_1)
+    animation_2_vid = put_animation(animation_filename_2, animation_2)
+
+    # Update main.json
+    main_json_v1 = {
       "source": "//version 1",
       "animations": {
-        "orderedKeys": [animation_key],
+        "orderedKeys": [animation_key_1, animation_key_2],
         "propsByKey": {
-          "#{animation_key}": {
-            "name": "Test animation v1",
-            "version": "" # Intentionally blank for this test
+          "#{animation_key_1}": {
+            "name": "Remix First",
+            "sourceUrl": nil,
+            "version": animation_1_vid
+          },
+          "#{animation_key_2}": {
+            "name": "Remix Second",
+            "sourceUrl": nil,
+            "version": animation_2_vid
           }
         }
       }
     }.stringify_keys
-    main_json_v1_vid = put_main_json(v1_parsed)
+    put_main_json(main_json_v1)
 
-    # Modify the animation
-    animation_v2 = 'stub-png-v2'
-    animation_v2_vid = put_animation(animation_filename, animation_v2)
+    # Remix
+    animation_list = AnimationBucket.new.copy_files @channel, @destination_channel
+    SourceBucket.new.remix_source @channel, @destination_channel, animation_list
 
-    # Update main.json, with different bad version
-    main_json_v2 = {
-      "source": "//version 2",
+    # Check that source manifest exists in destination channel
+    # Check that destination source includes a reference to the
+    # animation with a different version than that in the original destination
+    remixed_source = @destination_api.get_object(MAIN_JSON)
+    assert successful?
+    props = JSON.parse(remixed_source)['animations']['propsByKey']
+    refute_includes [animation_1_vid, animation_2_vid], props[animation_key_1]['version']
+    refute_includes [animation_1_vid, animation_2_vid], props[animation_key_2]['version']
+
+    # Check that manifest in destination references the version id of the animation
+    # that exists in the destination
+    remixed_animation_versions_1 = @destination_animation_api.list_object_versions(animation_filename_1)
+    remixed_animation_versions_2 = @destination_animation_api.list_object_versions(animation_filename_2)
+    assert successful?
+    assert_includes [props[animation_key_1]['version'], props[animation_key_2]['version']], remixed_animation_versions_1[0]['versionId']
+    assert_includes [props[animation_key_1]['version'], props[animation_key_2]['version']], remixed_animation_versions_2[0]['versionId']
+
+    # Clear original and remixed buckets
+    delete_all_source_versions(MAIN_JSON)
+    delete_all_animation_versions(animation_filename_1)
+    delete_all_animation_versions(animation_filename_2)
+
+    delete_all_versions(CDO.sources_s3_bucket, "sources_test/1/2/#{MAIN_JSON}")
+    delete_all_versions(CDO.animations_s3_bucket, "animations_test/1/2/#{animation_filename_1}")
+    delete_all_versions(CDO.animations_s3_bucket, "animations_test/1/2/#{animation_filename_2}")
+  end
+
+  def test_remix_source_file_with_library_animations
+    # Mock destination
+    @destination_channel = create_channel
+    @destination_api = FilesApiTestHelper.new(current_session, 'sources', @destination_channel)
+    @destination_animation_api = FilesApiTestHelper.new(current_session, 'animations', @destination_channel)
+
+    animation_key = @api.add_random_suffix('animation-key')
+
+    # Update main.json
+    main_json_v1 = {
+      "source": "Remix Library",
       "animations": {
         "orderedKeys": [animation_key],
         "propsByKey": {
           "#{animation_key}": {
-            "name": "Test animation v2",
-            "version": "" # Intentionally blank for this test
+            "name": "bear_1",
+            "sourceUrl": "https://studio.code.org/api/test/url/category_animals/bear.png",
+            "version": "1234"
           }
         }
       }
     }.stringify_keys
-    main_json_v2_vid = put_main_json(main_json_v2)
+    put_main_json(main_json_v1)
 
-    # Restore main.json to v1
-    main_json_restored_vid = restore_main_json(main_json_v1_vid)
+    # Remix
+    animation_list = AnimationBucket.new.copy_files @channel, @destination_channel
+    SourceBucket.new.remix_source @channel, @destination_channel, animation_list
 
-    # Expect animation to have a v3 based on v2
-    animation_versions = @animations_api.list_object_versions(animation_filename)
+    # Check that source manifest exists in destination channel
+    # Check that destination source includes a reference to the
+    # animation with a different version than that in the original destination
+    remixed_source = @destination_api.get_object(MAIN_JSON)
     assert successful?
-    assert_equal 3, animation_versions.count
-    animation_restored_vid = animation_versions[0]['versionId']
-    assert_equal animation_v2_vid, animation_versions[1]['versionId']
-    assert_equal animation_v1_vid, animation_versions[2]['versionId']
-    refute_equal animation_v1_vid, animation_restored_vid
-    refute_equal animation_v2_vid, animation_restored_vid
+    props = JSON.parse(remixed_source)['animations']['propsByKey']
+    assert_equal "1234", props[animation_key]['version']
 
-    @animations_api.get_object(animation_filename)
-    assert_equal(animation_v2, last_response.body)
+    # Clear original and remixed buckets
+    delete_all_source_versions(MAIN_JSON)
 
-    # Expect main.json to have a v3 based on v1
-    main_json_versions = @api.list_object_versions(MAIN_JSON)
+    delete_all_versions(CDO.sources_s3_bucket, "sources_test/1/2/#{MAIN_JSON}")
+  end
+
+  def test_remix_not_main
+    # Mock destination
+    @destination_channel = create_channel
+    @destination_api = FilesApiTestHelper.new(current_session, 'sources', @destination_channel)
+
+    # Create non-main file
+    src_file_v1 = {
+      "source": "this is not a main.json file"
+    }.stringify_keys
+    @api.put_object('test.json', src_file_v1.to_json, {'CONTENT_TYPE' => 'application/json'})
+
+    # Remix
+    animation_list = AnimationBucket.new.copy_files @channel, @destination_channel
+    SourceBucket.new.remix_source @channel, @destination_channel, animation_list
+
+    # Check that source exists in destination channel
+    # Check that remix-ed file is equal to the original file
+    remixed_source = @destination_api.get_object('test.json')
     assert successful?
-    assert_equal 3, main_json_versions.count
-    assert_equal main_json_restored_vid, main_json_versions[0]['versionId']
-    assert_equal main_json_v2_vid, main_json_versions[1]['versionId']
-    assert_equal main_json_v1_vid, main_json_versions[2]['versionId']
-    refute_equal main_json_v1_vid, main_json_restored_vid
-    refute_equal main_json_v2_vid, main_json_restored_vid
+    assert_equal src_file_v1.to_json, remixed_source
 
-    # Expect latest main.json v3 to reference animation v3
-    @api.get_object(MAIN_JSON)
-    v3_parsed = JSON.parse(last_response.body)
-    assert_equal(v1_parsed['source'], v3_parsed['source'])
-    assert_equal(
-      animation_restored_vid,
-      v3_parsed['animations']['propsByKey'][animation_key]['version']
-    )
+    # Clear original and remixed buckets
+    delete_all_source_versions('test.json')
 
-    delete_all_animation_versions(animation_filename)
+    delete_all_versions(CDO.sources_s3_bucket, "sources_test/1/2/test.json")
+  end
+
+  def test_remix_no_animations
+    # Mock destination
+    @destination_channel = create_channel
+    @destination_api = FilesApiTestHelper.new(current_session, 'sources', @destination_channel)
+
+    # Update main.json
+    main_json_v1 = {
+      "source": "//version 1",
+      "animations": {
+        "orderedKeys": [],
+        "propsByKey": {}
+      }
+    }.stringify_keys
+    put_main_json(main_json_v1)
+
+    # Remix
+    animation_list = AnimationBucket.new.copy_files @channel, @destination_channel
+    SourceBucket.new.remix_source @channel, @destination_channel, animation_list
+
+    # Check that source exists in destination channel
+    # Check that remixed source does not contain animations
+    remixed_source = @destination_api.get_object(MAIN_JSON)
+    assert successful?
+    props = JSON.parse(remixed_source)['animations']
+    assert_equal props["orderedKeys"], []
+
+    # Clear original and remixed buckets
+    delete_all_source_versions(MAIN_JSON)
+
+    delete_all_versions(CDO.sources_s3_bucket, "sources_test/1/2/#{MAIN_JSON}")
+  end
+
+  def test_remove_under_13_comments
+    comment_block_sources = JSON.parse(IO.read(COMMENT_BLOCK_SOURCES))
+    birthdays = [Date.parse("1900-01-01"), Date.today]
+    sources = ["short_source_with_comments", "long_source_with_comments"]
+    sessions = [:admin, :non_owner]
+
+    birthdays.each do |birthday|
+      user_age = UserHelpers.age_from_birthday(birthday)
+      FilesApi.any_instance.stubs(:under_13?).returns(user_age < 13)
+
+      sources.each do |source|
+        put_main_json({"source": comment_block_sources[source]}.stringify_keys)
+
+        # owner sees unchanged
+        @api.get_object(MAIN_JSON)
+        assert successful?
+        assert_equal(
+          comment_block_sources[source],
+          JSON.parse(last_response.body)['source'],
+          "#{user_age}-year-old user sees own complete #{source}"
+        )
+
+        # iff owner is under 13, non-owners (including admins) should see
+        # version without comments
+        sessions.each do |session|
+          with_session(session) do
+            non_owner_api = FilesApiTestHelper.new(current_session, 'sources', @channel)
+            non_owner_api.get_object(MAIN_JSON)
+            assert successful?
+            response_source = JSON.parse(last_response.body)['source']
+            if user_age < 13
+              assert_equal(
+                comment_block_sources["source_without_comments"],
+                response_source,
+                "#{session} user sees sanitized source for #{user_age}-year-old user's #{source}"
+              )
+            else
+              assert_equal(
+                comment_block_sources[source],
+                response_source,
+                "#{session} user sees complete source for #{user_age}-year-old user's #{source}"
+              )
+            end
+          end
+        end
+      end
+
+      FilesApi.any_instance.unstub(:under_13?)
+    end
+
     delete_all_source_versions(MAIN_JSON)
   end
 
   private
+
+  def assert_restores_main_json_with_animation_version(version_value)
+    delete_all_source_versions(MAIN_JSON)
+
+    animation_key = @api.add_random_suffix('animation-key')
+    animation_filename = "#{animation_key}.png"
+    delete_all_animation_versions(animation_filename)
+
+    # Create an animation
+    animation_v1_vid = put_animation(animation_filename, 'stub-png-v1')
+
+    # Upload main.json version 1 with bad animation version
+    v1_parsed = {
+      "source": "//version 1",
+      "animations": {
+        "orderedKeys": [animation_key],
+        "propsByKey": {
+          "#{animation_key}": {
+            "name": "Test animation v1",
+            "version": version_value
+          }
+        }
+      }
+    }.stringify_keys
+    main_json_v1_vid = put_main_json(v1_parsed)
+
+    # Modify the animation
+    animation_v2 = 'stub-png-v2'
+    animation_v2_vid = put_animation(animation_filename, animation_v2)
+
+    # Update main.json, with different bad version
+    main_json_v2 = {
+      "source": "//version 2",
+      "animations": {
+        "orderedKeys": [animation_key],
+        "propsByKey": {
+          "#{animation_key}": {
+            "name": "Test animation v2",
+            "version": version_value
+          }
+        }
+      }
+    }.stringify_keys
+    main_json_v2_vid = put_main_json(main_json_v2)
+
+    # Restore main.json to v1
+    main_json_restored_vid = restore_main_json(main_json_v1_vid)
+
+    # Expect animation to have a v3 based on v2
+    animation_versions = @animations_api.list_object_versions(animation_filename)
+    assert successful?
+    assert_equal 3, animation_versions.count
+    animation_restored_vid = animation_versions[0]['versionId']
+    assert_equal animation_v2_vid, animation_versions[1]['versionId']
+    assert_equal animation_v1_vid, animation_versions[2]['versionId']
+    refute_equal animation_v1_vid, animation_restored_vid
+    refute_equal animation_v2_vid, animation_restored_vid
+
+    @animations_api.get_object(animation_filename)
+    assert_equal(animation_v2, last_response.body)
+
+    # Expect main.json to have a v3 based on v1
+    main_json_versions = @api.list_object_versions(MAIN_JSON)
+    assert successful?
+    assert_equal 3, main_json_versions.count
+    assert_equal main_json_restored_vid, main_json_versions[0]['versionId']
+    assert_equal main_json_v2_vid, main_json_versions[1]['versionId']
+    assert_equal main_json_v1_vid, main_json_versions[2]['versionId']
+    refute_equal main_json_v1_vid, main_json_restored_vid
+    refute_equal main_json_v2_vid, main_json_restored_vid
+
+    # Expect latest main.json v3 to reference animation v3
+    @api.get_object(MAIN_JSON)
+    v3_parsed = JSON.parse(last_response.body)
+    assert_equal(v1_parsed['source'], v3_parsed['source'])
+    assert_equal(
+      animation_restored_vid,
+      v3_parsed['animations']['propsByKey'][animation_key]['version']
+    )
+
+    delete_all_animation_versions(animation_filename)
+    delete_all_source_versions(MAIN_JSON)
+  end
 
   #
   # Upload a new main.json version to the API

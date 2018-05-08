@@ -20,6 +20,7 @@
 #  decision_notification_email_sent_at :datetime
 #  accepted_at                         :datetime
 #  properties                          :text(65535)
+#  deleted_at                          :datetime
 #
 # Indexes
 #
@@ -40,6 +41,8 @@ module Pd::Application
   class ApplicationBase < ActiveRecord::Base
     include ApplicationConstants
     include Pd::Form
+
+    acts_as_paranoid # Use deleted_at column instead of deleting rows.
 
     OTHER = 'Other'.freeze
     OTHER_WITH_TEXT = 'Other:'.freeze
@@ -276,6 +279,10 @@ module Pd::Application
     def unlock!
       return unless locked?
       update! locked_at: nil
+    end
+
+    def email
+      user.try(:email) || sanitize_form_data_hash[:alternate_email]
     end
 
     def regional_partner_name

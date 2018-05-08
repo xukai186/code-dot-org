@@ -88,3 +88,80 @@ Scenario: Applab Flow
   And I am on "http://studio.code.org/"
 
   # TODO - maybe we do a remix and/or create new as well
+
+@no_mobile
+Scenario: Save Project After Signing Out
+  Given I create a student named "Sally Student"
+  And I am on "http://studio.code.org/projects/applab/new"
+  And I get redirected to "/projects/applab/([^\/]*?)/edit" via "dashboard"
+  And I wait for the page to fully load
+  And I wait for initial project save to complete
+  And I ensure droplet is in block mode
+  And I switch to text mode
+  And I add code "// comment 1" to ace editor
+  And I press "runButton"
+  And element ".project_updated_at" eventually contains text "Saved"
+
+  When I sign out using jquery
+  And I add code "// comment 2" to ace editor
+  And ace editor code is equal to "// comment 1// comment 2"
+  And I press "resetButton"
+  And I click selector "#runButton" once I see it
+  Then I get redirected to "/users/sign_in" via "dashboard"
+
+  When I sign in as "Sally Student" from the sign in page
+  And I get redirected to "/projects/applab/([^\/]*?)/edit" via "dashboard"
+  And I wait for the page to fully load
+  And I ensure droplet is in text mode
+  Then ace editor code is equal to "// comment 1"
+
+@no_mobile
+Scenario: Save Script Level After Signing Out
+  Given I create a student named "Sally Student"
+  And I am on "http://studio.code.org/s/csp3/stage/5/puzzle/3"
+  And I wait for the page to fully load
+  And I wait for initial project save to complete
+  And I ensure droplet is in block mode
+  And I switch to text mode
+  And I add code "// turtle 1" to ace editor
+  And I press "runButton"
+  And element ".project_updated_at" eventually contains text "Saved"
+
+  When I sign out using jquery
+  And I add code "// turtle 2" to ace editor
+  And ace editor code is equal to "// turtle 1// turtle 2"
+  And I press "resetButton"
+  And I click selector "#runButton" once I see it
+  Then I get redirected to "/users/sign_in" via "dashboard"
+
+  When I sign in as "Sally Student" from the sign in page
+  And I get redirected to "/s/csp3/stage/5/puzzle/3" via "dashboard"
+  And I wait for the page to fully load
+  And I ensure droplet is in text mode
+  Then ace editor code is equal to "// turtle 1"
+
+@dashboard_db_access @as_student
+@no_mobile
+Scenario: Remix project creates and redirects to new channel
+  Given I am on "http://studio.code.org/projects/applab"
+  And I get redirected to "/projects/applab/([^\/]*?)/edit" via "dashboard"
+  And I rotate to landscape
+  And I wait for the page to fully load
+  Then evaluate JavaScript expression "localStorage.setItem('is13Plus', 'true'), true"
+  And element "#runButton" is visible
+  And element ".project_updated_at" eventually contains text "Saved"
+  And I click selector ".project_edit"
+  And I type "Code Ninja" into "input.project_name"
+  And I click selector ".project_save"
+  And I wait until element ".project_edit" is visible
+  Then I should see title "Code Ninja - App Lab"
+  And I save the URL
+
+  Then I click selector ".project_remix" to load a new page
+  And I wait for the page to fully load
+  And I should see title "Remix: Code Ninja - App Lab"
+  And check that the URL contains "/edit"
+  And check that the URL contains "http://studio.code.org/projects/applab"
+  And current URL is different from the last saved URL
+  And element "#runButton" is visible
+  And I click selector "#runButton"

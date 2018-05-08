@@ -455,39 +455,45 @@
           très utile.
       swipeRightPassThrough:
         title: Recruitment Scenarios Session
-        desc: |-
-          # Recruitment Scenarios Session\r
-          \r
-          ## Swipe Right for CS\r
-          For this session we'll use a tool called "Swipe Right for CS", which has been developed by our partners at MIT. In Swipe Right for CS, you will read through some student profiles and consider specific statements that you might use to convince him or her to enroll in your CS Principles course. \r
-          \r
-          ### How it Works\r
-          When playing the Swipe Right for CS game you will see a series of quotes that you might say to each student. You will swipe right on quotes that you think would be effective in convincing students to enroll in the course and swipe left on statements that you think will not be effective. During the session we will discuss as a group your thoughts on the types of statements that are most effective in getting a student to enroll in CS, and you will have a chance to see how other people in your workshop swiped on each of the arguments. \r
-          \r
-          \r
-          When you click continue below, we'll send you to the game, and pass along the Code.org email address you're logged in with.
+        desc: "# Recruitment Scenarios Session\r\n\r\n## Swipe Right for CS\r\nFor
+          this session we'll use a tool called \"Swipe Right for CS\", which has been
+          developed by our partners at MIT. In Swipe Right for CS, you will read through
+          some student profiles and consider specific statements that you might use
+          to convince him or her to enroll in your CS Principles course. \r\n\r\n###
+          How it Works\r\nWhen playing the Swipe Right for CS game you will see a
+          series of quotes that you might say to each student. You will swipe right
+          on quotes that you think would be effective in convincing students to enroll
+          in the course and swipe left on statements that you think will not be effective.
+          During the session we will discuss as a group your thoughts on the types
+          of statements that are most effective in getting a student to enroll in
+          CS, and you will have a chance to see how other people in your workshop
+          swiped on each of the arguments. \r\n\r\n\r\nWhen you click continue below,
+          we'll send you to the game, and pass along the Code.org email address you're
+          logged in with."
       swipeRightPassThrough-test123:
         title: Recruitment Scenarios Session
-        desc: |-
-          # Recruitment Scenarios Session\r
-          \r
-          ## Swipe Right for CS\r
-          For this session we'll use a tool called "Swipe Right for CS", which has been developed by our partners at MIT. In Swipe Right for CS, you will read through some student profiles and consider specific statements that you might use to convince him or her to enroll in your CS Principles course. \r
-          \r
-          ### How it Works\r
-          When playing the Swipe Right for CS game you will see a series of quotes that you might say to each student. You will swipe right on quotes that you think would be effective in convincing students to enroll in the course and swipe left on statements that you think will not be effective. During the session we will discuss as a group your thoughts on the types of statements that are most effective in getting a student to enroll in CS, and you will have a chance to see how other people in your workshop swiped on each of the arguments. \r
-          \r
-          \r
-          When you click continue below, we'll send you to the game, and pass along the Code.org email address you're logged in with.
+        desc: "# Recruitment Scenarios Session\r\n\r\n## Swipe Right for CS\r\nFor
+          this session we'll use a tool called \"Swipe Right for CS\", which has been
+          developed by our partners at MIT. In Swipe Right for CS, you will read through
+          some student profiles and consider specific statements that you might use
+          to convince him or her to enroll in your CS Principles course. \r\n\r\n###
+          How it Works\r\nWhen playing the Swipe Right for CS game you will see a
+          series of quotes that you might say to each student. You will swipe right
+          on quotes that you think would be effective in convincing students to enroll
+          in the course and swipe left on statements that you think will not be effective.
+          During the session we will discuss as a group your thoughts on the types
+          of statements that are most effective in getting a student to enroll in
+          CS, and you will have a chance to see how other people in your workshop
+          swiped on each of the arguments. \r\n\r\n\r\nWhen you click continue below,
+          we'll send you to the game, and pass along the Code.org email address you're
+          logged in with."
       brad-repro-bug-000:
         title: Brad Repro Bug 000
-        desc: |-
-          # Brad Repro Bug 000\r
-          ## Attempt to recreate a bug Brooke reported\r
-          process as follows:\r
-          1. started with an `unplugged` level. populated with info. hit save and publish.\r
-          2. “destroyed” the level\r
-          3. made a `markdown` level with the same content and same name. checked to box to encrypt it. hit save and plush
+        desc: "# Brad Repro Bug 000\r\n## Attempt to recreate a bug Brooke reported\r\nprocess
+          as follows:\r\n1. started with an `unplugged` level. populated with info.
+          hit save and publish.\r\n2. “destroyed” the level\r\n3. made a `markdown`
+          level with the same content and same name. checked to box to encrypt it.
+          hit save and plush"
       courseB_unplugged_MRF_2018:
         title: 'translation missing: en-US.data.unplugged.courseB_unplugged_MRF_2018.title'
         desc: 'translation missing: en-US.data.unplugged.courseB_unplugged_MRF_2018.desc'
@@ -550,3 +556,52 @@
           qui sont des actions qu’un ordinateur surveille en permanence. L'enseignant
           appuiera sur des boutons à distance et les élèves réagiront en fonction
           du bouton choisi.
+      GraphPaperProgramming_2018:
+        title: Programmation sur papier quadrillé
+        desc: Les élèves écrivent un algorithme (un ensemble d'instructions) utilisant
+          un ensemble de commandes prédéfinies pour diriger leurs camarades afin de
+          reproduire un dessin.
+      courseD_unplugged_digitalCitizenship_2018:
+        title: Activité manuelle
+        desc: Aujourd'hui, vous apprendrez ce que veut dire être un Citoyen Numérique.
+      courseC_Unplugged_ScreenOutTheMean_2018:
+        title: Activité manuelle
+        desc: Aujourd'hui, vous apprendrez quoi faire si quelqu'un devient méchant
+          en ligne.
+      Conditionals_2018:
+        title: Instructions conditionnelles
+        desc: Pour mieux comprendre les instructions conditionnelles, les élèves jouent
+          à un jeu de cartes et créent des règles comme «Si je tire une carte rouge,
+          je gagne un point», ou «Si je tire une carte noire, tu gagnes un point».
+      DigitalFootprint_2018:
+        title: Ton empreinte numérique
+        desc: Les enseignants sensibilisent les élèves à l'idée que mettre en ligne
+          des informations personnelles crée une empreinte numérique ou une « trace »
+          qui a des conséquences.
+      BinaryImages_2018:
+        title: Les images binaires
+        desc: Bien que beaucoup de gens pensent au binaire comme étant strictement
+          des zéros et des uns, nos précédents cours ont enseigné aux élèves que les
+          informations peuvent être représentées d’une variété d'options binaires.  Cette
+          leçon emmène ce concept encore plus loin puisqu'elle illustre comment un
+          ordinateur peut stocker des informations encore plus complexes (telles que
+          les images et les couleurs) également en binaire.
+      PaperPlanes_2018:
+        title: 'Algorithmes du monde réel: Avions en papier'
+        desc: Cette leçon fait appel aux façons dont nous utilisons des algorithmes
+          dans notre vie quotidienne, plus précisément en faisant des avions en papier.
+          Cette leçon se concentre également sur l'informatique en général et la façon
+          dont les algorithmes jouent un rôle essentiel.
+      GettingLoopy_2018:
+        title: Tourner en rond
+        desc: Cette leçon présente le concept de programmation des boucles (instructions
+          répétées) par le biais d’une activité de danse. Les élèves apprendront une
+          chorégraphie simple, puis devront la répéter.
+      BinaryBracelets_2018:
+        title: Bracelets binaires
+        desc: Les élèves créent des bracelets comme des représentations binaires de
+          la première lettre de leur nom. Les élèves apprennent que les données peuvent
+          être représentées et stockées de plus d’une façon.
+      MoveItMoveIt_2018:
+        title: Bouge, Bouge
+        desc: ''

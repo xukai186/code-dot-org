@@ -39,7 +39,6 @@ class GamelabJr < Gamelab
         game: Game.gamelab,
         level_num: 'custom',
         properties: {
-          code_functions: JSON.parse(palette),
           show_debug_watch: true,
           helper_libraries: [
             "GameLabJr",
@@ -55,6 +54,7 @@ class GamelabJr < Gamelab
     <<-XML.chomp
 <category name="Start">
   <block type="when_run" />
+  <block type="gamelab_setup" />
 </category>
 <category name="Variables" custom="VARIABLE" />
 <category name="Functions" custom="PROCEDURE" />
@@ -69,6 +69,10 @@ class GamelabJr < Gamelab
 </category>
 <category name="Sprites">
   <block type="gamelab_makeNewSprite" />
+  <block type="gamelab_makeNewSpriteLocation" />
+  <block type="gamelab_location_picker">
+    <title name="LOCATION">{"x": 0, "y": 0}</title>
+  </block>
   <block type="gamelab_setAnimation" />
   <block type="gamelab_setTint">
     <value name="COLOR">

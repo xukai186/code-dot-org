@@ -116,6 +116,10 @@ class Pd::Teachercon1819Registration < ActiveRecord::Base
         "2 trimesters",
         "Full year",
         "I'm not sure",
+      ],
+      travel_covered: [
+        "Code.org is covering my trip",
+        "I am covering my trip"
       ]
     }.freeze
   end
@@ -183,7 +187,7 @@ class Pd::Teachercon1819Registration < ActiveRecord::Base
 
     # some fields are required based on the values of other fields
 
-    if hash[:live_far_away] == YES
+    if hash[:live_far_away] == YES && !regional_partner_id?
       requireds.concat [
         :address_street,
         :address_city,
@@ -207,6 +211,12 @@ class Pd::Teachercon1819Registration < ActiveRecord::Base
     if pd_application
       requireds.concat [
         :agree_share_contact
+      ]
+    end
+
+    if regional_partner_id?
+      requireds.concat [
+        :travel_covered
       ]
     end
 
@@ -236,6 +246,19 @@ class Pd::Teachercon1819Registration < ActiveRecord::Base
       end
   end
 
+  # Simplified string representing whether the registrant accepted the teachercon seat
+  def accepted_seat_simplified
+    if accepted?
+      'Yes'
+    elsif accept_status == TEACHER_SEAT_ACCEPTANCE_OPTIONS[:waitlist_date]
+      'Yes, but I have a conflict'
+    elsif accept_status == TEACHER_SEAT_ACCEPTANCE_OPTIONS[:waitlist_other]
+      "Yes, but I can't for another reason"
+    else
+      'No'
+    end
+  end
+
   def accept_status
     if pd_application.try(:application_type) == "Teacher"
       sanitize_form_data_hash.try(:[], :teacher_accept_seat)
@@ -251,5 +274,22 @@ class Pd::Teachercon1819Registration < ActiveRecord::Base
   def applicant_name
     hash = sanitize_form_data_hash
     "#{hash[:preferred_first_name]} #{hash[:last_name]}"
+  end
+
+  def email
+    user.try(:email) || sanitize_form_data_hash[:email]
+  end
+
+  def regional_partner_name
+    regional_partner.try(:name)
+  end
+
+  def course_name
+    pd_application.try(&:course_name)
+  end
+
+  # at the time of registration
+  def teachercon_city
+    sanitize_form_data_hash[:city]
   end
 end
