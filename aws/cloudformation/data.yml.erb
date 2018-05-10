@@ -92,7 +92,7 @@ Resources:
       # Default value: 10
       # Valid values: 1 - 64
       ExtraConnectionAttributes: <%={
-         maxFileSize: 100.megabytes / 1.kilobyte,
+         maxFileSize: 1.gigabyte / 1.kilobyte,
          fileTransferUploadStreams: 20
       }.map{|x|x.join('=')}.join(';')%>
 <% Cdo::DMS.tasks(aws_dir('dms/tasks.yml')).each do |task_name, table_mappings| -%>
