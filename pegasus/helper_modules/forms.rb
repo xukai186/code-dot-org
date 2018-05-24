@@ -1,9 +1,12 @@
 require 'cdo/db'
+require 'cdo/shared_cache'
+require 'cdo/cache_method'
 
 # Helper functions for Pegasus forms.
 module Forms
   Sequel.extension :core_refinements
   using Sequel::CoreRefinements
+  using CacheMethod
   FORMS = ::PEGASUS_DB[:forms]
 
   # Converts a simple x.y JSON-attribute path to a MySQL 5.7 JSON expression using the inline-path operator.
@@ -17,7 +20,13 @@ module Forms
   STATE_CODE = json('processed_data.location_state_code_s')
 
   class << self
-    def events_by_country(kind, except_country='US', explain: false)
+    self.cache_options = {
+      cache: CDO.shared_cache,
+      expires_in: rack_env?(:development) ? 10.seconds : 1.hour,
+      race_condition_ttl: 5.seconds
+    }
+
+    cached def events_by_country(kind, except_country='US', explain: false)
       FORMS.
         where({kind: kind} & ~{COUNTRY_CODE => except_country}).
         group_and_count(COUNTRY_CODE.as(:country_code)).
@@ -25,7 +34,7 @@ module Forms
         all
     end
 
-    def events_by_state(kind, country='US', explain: false)
+    cached def events_by_state(kind, country='US', explain: false)
       FORMS.
         where(
           kind: kind,
@@ -38,7 +47,7 @@ module Forms
         all
     end
 
-    def events_by_name(kind, country='US', state=nil, explain: false)
+    cached def events_by_name(kind, country='US', state=nil, explain: false)
       where = {
         kind: kind,
         COUNTRY_CODE => country
