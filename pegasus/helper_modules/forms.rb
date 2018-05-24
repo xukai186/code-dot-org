@@ -1,7 +1,4 @@
 require 'cdo/db'
-require 'cdo/shared_cache'
-require 'dynamic_config/dcdo'
-require 'cdo/cache_method'
 
 # Helper functions for Pegasus forms.
 module Forms
@@ -16,18 +13,19 @@ module Forms
     "#{column}->>'$.#{attribute}'".lit
   end
 
-  COUNTRY_CODE = json('processed_data.location_country_code_s')
+  COUNTRY_CODE = :location_country_code_s
   STATE_CODE = json('processed_data.location_state_code_s')
 
   class << self
-    def events_by_country(kind, except_country='US')
+    def events_by_country(kind, except_country='US', explain: false)
       FORMS.
         where({kind: kind} & ~{COUNTRY_CODE => except_country}).
         group_and_count(COUNTRY_CODE.as(:country_code)).
+        tap {|x| puts x.sql, x.explain if explain}.
         all
     end
 
-    def events_by_state(kind, country='US')
+    def events_by_state(kind, country='US', explain: false)
       FORMS.
         where(
           kind: kind,
@@ -36,10 +34,11 @@ module Forms
         group_and_count(
           STATE_CODE.as(:state_code)
         ).
+        tap {|x| puts x.sql, x.explain if explain}.
         all
     end
 
-    def events_by_name(kind, country, state=nil)
+    def events_by_name(kind, country='US', state=nil, explain: false)
       where = {
         kind: kind,
         COUNTRY_CODE => country
@@ -54,6 +53,7 @@ module Forms
         where(where).
         order_by(:city, :name).
         distinct.
+        tap {|x| puts x.sql, x.explain if explain}.
         all
     end
   end
