@@ -1,5 +1,6 @@
 require 'active_support/cache'
 require 'active_support/core_ext/object/blank'
+require 'active_support/notifications'
 require 'honeybadger'
 require 'dalli/elasticache'
 

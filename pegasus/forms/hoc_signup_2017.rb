@@ -37,7 +37,7 @@ class HocSignup2017 < HocSignup2014
         nces_school_name = school_data[:name]
       end
     end
-    super(data).merge!(nces_school_name_s:  nces_school_name)
+    process(data).merge!(nces_school_name_s:  nces_school_name)
   end
 
   def self.receipt
