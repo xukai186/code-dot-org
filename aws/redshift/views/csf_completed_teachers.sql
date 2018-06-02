@@ -14,7 +14,7 @@ from
     com.script_id,
     com.script_name,
     completed_at,
-    row_number() over(partition by se.user_id, com.school_year order by completed_at asc) completed_at_order
+    row_number() over(partition by se.user_id, com.script_id, com.school_year order by completed_at asc) completed_at_order
   from analysis.csf_completed com
     join analysis.school_years sy on com.completed_at between sy.started_at and sy.ended_at
     join dashboard_production.followers f on f.student_user_id = com.user_id and f.created_at between sy.started_at and sy.ended_at
