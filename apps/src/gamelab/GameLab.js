@@ -1120,29 +1120,34 @@ GameLab.prototype.initInterpreter = function (attachDebugger=true) {
     code += this.level.customHelperLibrary + '\n';
   }
   code += this.studioApp_.getCode();
-  this.JSInterpreter.parse({
-    code,
-    blocks: dropletConfig.blocks,
-    blockFilter: this.level.executePaletteApisOnly && this.level.codeFunctions,
-    enableEvents: true,
-    initGlobals: injectGamelabGlobals
-  });
-  if (!this.JSInterpreter.initialized()) {
-    return;
-  }
+  code += "\n//# sourceURL=main.interpreted.js";
 
-  gameLabSprite.injectJSInterpreter(this.JSInterpreter);
-  gameLabGroup.injectJSInterpreter(this.JSInterpreter);
+  const pl = this.gameLabP5.getGlobalPropertyList();
+  Function.apply(null, Object.keys(pl).concat(code)).apply(null, (Object.values(pl).map(a => typeof(a[0]) === 'function' ? a[0].bind(a[1]) : a[0])));
 
-  this.gameLabP5.p5specialFunctions.forEach(function (eventName) {
-    var func = this.JSInterpreter.findGlobalFunction(eventName);
-    if (func) {
-      this.eventHandlers[eventName] =
-          CustomMarshalingInterpreter.createNativeFunctionFromInterpreterFunction(func);
-    }
-  }, this);
-
-  this.globalCodeRunsDuringPreload = !!this.eventHandlers.setup;
+  // this.JSInterpreter.parse({
+  //   code,
+  //   blocks: dropletConfig.blocks,
+  //   blockFilter: this.level.executePaletteApisOnly && this.level.codeFunctions,
+  //   enableEvents: true,
+  //   initGlobals: injectGamelabGlobals
+  // });
+  // if (!this.JSInterpreter.initialized()) {
+  //   return;
+  // }
+  //
+  // gameLabSprite.injectJSInterpreter(this.JSInterpreter);
+  // gameLabGroup.injectJSInterpreter(this.JSInterpreter);
+  //
+  // this.gameLabP5.p5specialFunctions.forEach(function (eventName) {
+  //   var func = this.JSInterpreter.findGlobalFunction(eventName);
+  //   if (func) {
+  //     this.eventHandlers[eventName] =
+  //         CustomMarshalingInterpreter.createNativeFunctionFromInterpreterFunction(func);
+  //   }
+  // }, this);
+  //
+  // this.globalCodeRunsDuringPreload = !!this.eventHandlers.setup;
 
   /*
   if (this.checkForEditCodePreExecutionFailure()) {
