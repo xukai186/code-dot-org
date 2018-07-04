@@ -629,6 +629,7 @@ GameLab.prototype.reset = function () {
 
 GameLab.prototype.rerunSetupCode = function () {
   if (getStore().getState().runState.isRunning ||
+      !this.JSInterpreter ||
       !this.gameLabP5.p5 ||
       !this.areAnimationsReady_()) {
     return;
@@ -1087,20 +1088,20 @@ GameLab.prototype.initInterpreter = function (attachDebugger=true) {
     );
   };
 
-  this.JSInterpreter = new JSInterpreter({
-    studioApp: this.studioApp_,
-    maxInterpreterStepsPerTick: MAX_INTERPRETER_STEPS_PER_TICK,
-    shouldRunAtMaxSpeed: () => (this.gameLabP5.stepSpeed >= 1),
-    customMarshalGlobalProperties: this.gameLabP5.getCustomMarshalGlobalProperties(),
-    customMarshalBlockedProperties: this.gameLabP5.getCustomMarshalBlockedProperties(),
-    customMarshalObjectList: this.gameLabP5.getCustomMarshalObjectList(),
-  });
-  window.tempJSInterpreter = this.JSInterpreter;
-  this.JSInterpreter.onExecutionError.register(this.handleExecutionError.bind(this));
-  this.consoleLogger_.attachTo(this.JSInterpreter);
-  if (attachDebugger) {
-    getStore().dispatch(jsDebugger.attach(this.JSInterpreter));
-  }
+  // this.JSInterpreter = new JSInterpreter({
+  //   studioApp: this.studioApp_,
+  //   maxInterpreterStepsPerTick: MAX_INTERPRETER_STEPS_PER_TICK,
+  //   shouldRunAtMaxSpeed: () => (this.gameLabP5.stepSpeed >= 1),
+  //   customMarshalGlobalProperties: this.gameLabP5.getCustomMarshalGlobalProperties(),
+  //   customMarshalBlockedProperties: this.gameLabP5.getCustomMarshalBlockedProperties(),
+  //   customMarshalObjectList: this.gameLabP5.getCustomMarshalObjectList(),
+  // });
+  // window.tempJSInterpreter = this.JSInterpreter;
+  // this.JSInterpreter.onExecutionError.register(this.handleExecutionError.bind(this));
+  // this.consoleLogger_.attachTo(this.JSInterpreter);
+  // if (attachDebugger) {
+  //   getStore().dispatch(jsDebugger.attach(this.JSInterpreter));
+  // }
   let code = '';
   if (this.level.validationCode) {
     code += ValidationSetupCode + '\n';
@@ -1123,7 +1124,8 @@ GameLab.prototype.initInterpreter = function (attachDebugger=true) {
   code += "\n//# sourceURL=main.interpreted.js";
 
   const pl = this.gameLabP5.getGlobalPropertyList();
-  Function.apply(null, Object.keys(pl).concat(code)).apply(null, (Object.values(pl).map(a => typeof(a[0]) === 'function' ? a[0].bind(a[1]) : a[0])));
+  this.eventHandlers.setup = Function.bind.apply(Function.apply(null, Object.keys(pl).concat(code)), [null].concat(Object.values(pl).map(a => typeof(a[0]) === 'function' ? a[0].bind(a[1]) : a[0])));
+  this.globalCodeRunsDuringPreload = true;
 
   // this.JSInterpreter.parse({
   //   code,
@@ -1333,23 +1335,23 @@ GameLab.prototype.onP5Setup = function () {
     );
     for (const method in preloadMethods) {
       this.JSInterpreter.createGlobalProperty(
-          method,
-          this.gameLabP5.p5[method],
-          this.gameLabP5.p5);
+        method,
+        this.gameLabP5.p5[method],
+        this.gameLabP5.p5);
     }
-
-    this.setupInProgress = true;
-    if (!this.globalCodeRunsDuringPreload) {
-      // If the setup() method was not provided, we need to run the interpreter
-      // for the first time at this point:
-      this.JSInterpreter.executeInterpreter(true);
-      this.interpreterStarted = true;
-    }
-    if (this.eventHandlers.setup) {
-      this.eventHandlers.setup.apply(null);
-    }
-    this.completeSetupIfSetupComplete();
   }
+
+  this.setupInProgress = true;
+  if (!this.globalCodeRunsDuringPreload) {
+    // If the setup() method was not provided, we need to run the interpreter
+    // for the first time at this point:
+    this.JSInterpreter.executeInterpreter(true);
+    this.interpreterStarted = true;
+  }
+  if (this.eventHandlers.setup) {
+    this.eventHandlers.setup.apply(null);
+  }
+  this.completeSetupIfSetupComplete();
 };
 
 GameLab.prototype.completeSetupIfSetupComplete = function () {
