@@ -588,6 +588,7 @@ GameLab.prototype.resetHandler = function (ignore) {
  */
 GameLab.prototype.reset = function () {
   this.haltExecution_();
+  songLoader = null;
 
   /*
   var divGameLab = document.getElementById('divGameLab');
@@ -1054,6 +1055,7 @@ GameLab.prototype.execute = function (keepTicking = true) {
     return;
   }
 
+  console.log('starting execution', keepTicking);
   this.gameLabP5.startExecution();
   this.gameLabP5.setLoop(keepTicking);
 
@@ -1192,6 +1194,24 @@ GameLab.prototype.onP5ExecutionStarting = function () {
   }, this);
 };
 
+const song = '/api/v1/sound-library/category_background/jazzy_beats.mp3';
+let songLoader;
+GameLab.prototype.preloadSounds_ = function () {
+  // if (!this.level.helperLibraries.some(name => name === 'DanceLab')) {
+  //   return;
+  // }
+  if (!songLoader) {
+    songLoader = new Promise((resolve, reject) => {
+      window.defaultSong = this.gameLabP5.p5.loadSound(song, () => {
+        console.log('sounds loaded!');
+        window.defaultSong.play();
+        resolve();
+      }, reject);
+    });
+  }
+  return songLoader;
+};
+
 /**
  * This is called while this.gameLabP5 is in the preload phase. Do the following:
  *
@@ -1208,6 +1228,7 @@ GameLab.prototype.onP5ExecutionStarting = function () {
 GameLab.prototype.onP5Preload = function () {
   Promise.all([
       this.preloadAnimations_(),
+      this.preloadSounds_(),
       this.runPreloadEventHandler_()
   ]).then(() => {
     this.gameLabP5.notifyPreloadPhaseComplete();

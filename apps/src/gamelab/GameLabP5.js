@@ -529,6 +529,10 @@ GameLabP5.prototype.resetExecution = function () {
 
   gameLabSprite.setCreateWithDebug(false);
 
+  if (window.p5.defaultSong) {
+    window.p5.defaultSong.stop();
+  }
+
   if (this.p5) {
     this.p5.remove();
     this.p5 = null;
@@ -917,7 +921,7 @@ GameLabP5.prototype.getGlobalPropertyList = function () {
   }
 
   // Create a 'p5' object in the global namespace:
-  propList.p5 = [{ Vector: window.p5.Vector }, window];
+  propList.p5 = [{Vector: window.p5.Vector}, window];
 
   // Create a 'Game' object in the global namespace
   // to make older blocks compatible:

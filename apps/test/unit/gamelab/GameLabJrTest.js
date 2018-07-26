@@ -17,6 +17,7 @@ import {expect} from '../../util/configuredChai';
 import {stub} from 'sinon';
 import "script-loader!@code-dot-org/p5.play/examples/lib/p5";
 import "script-loader!@code-dot-org/p5.play/lib/p5.play";
+import "script-loader!../../../lib/p5.sound.min";
 
 describe('Game Lab Jr Helper Library', () => {
   const noop = () => {};
