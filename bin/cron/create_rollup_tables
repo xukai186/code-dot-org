@@ -51,7 +51,7 @@ def main
         next if contained_levels.
           select {|existing_contained_level| existing_contained_level[:level_id] == contained_level.id}.
           any?
-          
+
         contained_question = get_contained_question(contained_level)
         contained_levels << {
           level_id: level.id,
