@@ -443,10 +443,10 @@ class Documents < Sinatra::Base
     end
 
     def render_template(path, locals={})
-      render_(IO.read(path), File.extname(path), path, 0, locals)
+      render_(IO.read(path), File.extname(path), path, 1, locals)
     rescue => e
       Honeybadger.context({path: path, e: e})
-      raise "Error rendering #{path}: #{e}"
+      raise
     end
 
     def render_(body, extname, path=nil, line=0, locals={})

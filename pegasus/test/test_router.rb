@@ -50,6 +50,15 @@ class RouterTest < Minitest::Test
     assert_equal 10, line.to_i
   end
 
+  def test_haml_error_template
+    err = assert_raises(RuntimeError) do
+      get('/haml_template_error')
+    end
+    file, line = err.backtrace.first.split(':')
+    assert_equal file, app.helpers.content_dir('code.org/views/error.haml')
+    assert_equal 1, line.to_i
+  end
+
   def test_view
     assert_equal 200, get('/test_view').status
   end
