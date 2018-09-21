@@ -148,6 +148,7 @@ GameLabP5.prototype.resetExecution = function () {
 
   if (this.p5) {
     this.p5.remove();
+    this.p5.canvas = null;
     this.p5 = null;
     this.p5decrementPreload = null;
     this.gameLabWorld = null;

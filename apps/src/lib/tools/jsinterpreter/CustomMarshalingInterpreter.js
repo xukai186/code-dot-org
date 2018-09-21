@@ -46,6 +46,11 @@ export default class CustomMarshalingInterpreter extends Interpreter {
     });
   }
 
+  dispose() {
+    delete this.ast;
+    delete this.stateStack;
+  }
+
   /**
    * Look at a single frame on the stack.
    * @param {number} [i] - optional index to look down to on the stack

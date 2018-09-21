@@ -263,7 +263,24 @@ export default class JSInterpreter {
    */
   deinitialize() {
     this.onNextStepChanged.unregister(this._runStateUpdater);
+    JSInterpreter.teardownScope(this.globalScope, true);
+    this.globalScope = null;
+    this.interpreter.dispose();
     this.interpreter = null;
+  }
+
+  static teardownScope(node, top) {
+    if (!top && !node.parentScope) {
+      // Already visited...
+      return;
+    }
+    if (node.properties) {
+      for (let value of Object.values(node.properties)) {
+        JSInterpreter.teardownScope(value);
+      }
+    }
+    node.parentScope = null;
+    node = null;
   }
 
   /**
