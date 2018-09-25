@@ -13,7 +13,7 @@ var setupCallbacks = [];
 var loops = [];
 
 // Sprites
-var sprites = createGroup();
+var sprites = p5.createGroup();
 var sprites_by_type = {};
 
 if (LOW_BAND) {
@@ -127,11 +127,14 @@ var songs = {
   }
 };
 var song_meta = songs.macklemore;
-var processed_peaks;
-var lead_dancers = createGroup();
-var backup_dancers = createGroup();
 
-exports.preload = function preload() {
+function randomNumber() {
+  return Math.floor(p5.random.apply(p5, arguments));
+}
+
+World = p5;
+
+export function preload() {
   // Load song
   Dance.song.load(song_meta.url);
 
@@ -150,7 +153,7 @@ exports.preload = function preload() {
   }
 }
 
-exports.setup = function setup() {
+export function setup() {
   // Create animations from spritesheets
   for (var i = 0; i < SPRITE_NAMES.length; i++) {
     var this_sprite = SPRITE_NAMES[i];
@@ -163,9 +166,9 @@ exports.setup = function setup() {
     callback();
   });
 
-  Dance.fft.createPeakDetect(20, 200, 0.8, Math.round((60 / song_meta.bpm) * World.frameRate));
-  Dance.fft.createPeakDetect(400, 2600, 0.4, Math.round((60 / song_meta.bpm) * World.frameRate));
-  Dance.fft.createPeakDetect(2700, 4000, 0.5, Math.round((60 / song_meta.bpm) * World.frameRate));
+  Dance.fft.createPeakDetect(20, 200, 0.8, Math.round((60 / song_meta.bpm) * p5.framerate()));
+  Dance.fft.createPeakDetect(400, 2600, 0.4, Math.round((60 / song_meta.bpm) * p5.framerate()));
+  Dance.fft.createPeakDetect(2700, 4000, 0.5, Math.round((60 / song_meta.bpm) * p5.framerate()));
   /*
   Dance.song.processPeaks(0, function(peaks) {
     console.log(peaks);
@@ -181,23 +184,23 @@ exports.setup = function setup() {
 function Effects(alpha, blend) {
   var self = this;
   this.alpha = alpha || 1;
-  this.blend = blend || BLEND;
+  this.blend = blend || p5.BLEND;
   this.none = {
     draw: function () {
-      background(World.background_color || "white");
+      p5.background(World.background_color || "white");
     }
   };
   this.rainbow = {
-    color: color('hsla(0, 100%, 80%, ' + self.alpha + ')'),
+    color: p5.color('hsla(0, 100%, 80%, ' + self.alpha + ')'),
     update: function () {
-      push();
-      colorMode(HSL);
-      this.color = color(this.color._getHue() + 10, 100, 80, self.alpha);
-      pop();
+      p5.push();
+      p5.colorMode(HSL);
+      this.color = p5.color(this.color._getHue() + 10, 100, 80, self.alpha);
+      p5.pop();
     },
     draw: function () {
       if (Dance.fft.isPeak()) this.update();
-      background(this.color);
+      p5.background(this.color);
     }
   };
   this.disco = {
@@ -216,13 +219,13 @@ function Effects(alpha, blend) {
     },
     draw: function () {
       if (Dance.fft.isPeak() || World.frameCount == 1) this.update();
-      push();
-      noStroke();
+      p5.push();
+      p5.noStroke();
       for (var i = 0; i < this.colors.length; i++) {
-        fill(this.colors[i]);
-        rect((i % 4) * 100, Math.floor(i / 4) * 100, 100, 100);
+        p5.fill(this.colors[i]);
+        p5.rect((i % 4) * 100, Math.floor(i / 4) * 100, 100, 100);
       }
-      pop();
+      p5.pop();
     }
   };
   this.diamonds = {
@@ -232,106 +235,18 @@ function Effects(alpha, blend) {
     },
     draw: function () {
       if (Dance.fft.isPeak()) this.update();
-      push();
-      colorMode(HSB);
-      rectMode(CENTER);
-      translate(200, 200);
-      rotate(45);
-      noFill();
-      strokeWeight(map(Dance.fft.getCentroid(), 0, 4000, 0, 50));
+      p5.push();
+      p5.colorMode(HSB);
+      p5.rectMode(CENTER);
+      p5.translate(200, 200);
+      p5.rotate(45);
+      p5.noFill();
+      p5.strokeWeight(map(Dance.fft.getCentroid(), 0, 4000, 0, 50));
       for (var i = 5; i > -1; i--) {
-        stroke((this.hue + i * 10) % 360, 100, 75, self.alpha);
-        rect(0, 0, i * 100 + 50, i * 100 + 50);
+        p5.stroke((this.hue + i * 10) % 360, 100, 75, self.alpha);
+        p5.rect(0, 0, i * 100 + 50, i * 100 + 50);
       }
-      pop();
-    }
-  };
-  this.strobe = {
-    waitTime: 0,
-    flashing: false,
-    update: function () {
-      this.flashing = true;
-      this.waitTime = 6;
-    },
-    draw: function () {
-      var bgcolor = rgb(1, 1, 1);
-      if (Dance.fft.isPeak()) this.update();
-      if (this.flashing) {
-        bgcolor = rgb(255, 255, 255);
-        this.waitTime--;
-      }
-      if (this.waitTime <= 0) {
-        bgcolor = rgb(1, 1, 1);
-        this.flashing = false;
-      }
-      background(bgcolor);
-    }
-  };
-  this.rain = {
-    drops: [],
-    init: function () {
-      for (var i = 0; i < 20; i++) {
-        this.drops.push({
-          x: randomNumber(0, 380),
-          y: randomNumber(0, 380),
-          length: randomNumber(10, 20)
-        });
-      }
-    },
-    color: rgb(127, 127, 255, 0.5),
-    update: function () {
-      this.color = rgb(127, 127, randomNumber(127, 255), 0.5);
-    },
-    draw: function () {
-      if (this.drops.length < 1) this.init();
-      strokeWeight(3);
-      stroke(this.color);
-      push();
-      for (var i = 0; i < this.drops.length; i++) {
-        push();
-        translate(this.drops[i].x - 20, this.drops[i].y - 20);
-        line(0, 0, this.drops[i].length, this.drops[i].length * 2);
-        pop();
-        this.drops[i].y = (this.drops[i].y + this.drops[i].length) % 420;
-        this.drops[i].x = (this.drops[i].x + (this.drops[i].length / 2)) % 420;
-      }
-      pop();
-    }
-  };
-  this.raining_tacos = {
-    tacos: [],
-    size: 50,
-    init: function () {
-      for (var i = 0; i < 20; i++) {
-        this.tacos.push({
-          x: randomNumber(20, 380),
-          y: randomNumber(20, 380),
-          rot: randomNumber(0, 359),
-          speed: randomNumber(2, 5)
-        });
-      }
-    },
-    update: function () {
-      this.size += randomNumber(-5, 5);
-    },
-    draw: function () {
-      if (this.tacos.length < 1) this.init();
-      for (var i = 0; i < this.tacos.length; i++) {
-        push();
-        var taco = this.tacos[i];
-        translate(taco.x, taco.y);
-        rotate(taco.rot);
-        textAlign(CENTER, CENTER);
-        textSize(this.size);
-        text('taco', 0, 0);
-        taco.y += taco.speed;
-        taco.rot++;
-        if (taco.y > 450) {
-          taco.x = randomNumber(20, 380);
-          taco.y = -50;
-        }
-        pop();
-      }
+      p5.pop();
     }
   };
 }
@@ -341,15 +256,15 @@ var fg_effects = new Effects(0.8);
 World.bg_effect = bg_effects.none;
 World.fg_effect = fg_effects.none;
 
-exports.setBackground = function setBackground(color) {
+export function setBackground(color) {
   World.background_color = color;
 }
 
-exports.setBackgroundEffect = function setBackgroundEffect(effect) {
+export function setBackgroundEffect(effect) {
   World.bg_effect = bg_effects[effect];
 }
 
-exports.setForegroundEffect = function setForegroundEffect(effect) {
+export function setForegroundEffect(effect) {
   World.fg_effect = fg_effects[effect];
 }
 
@@ -362,8 +277,8 @@ function initialize(setupHandler) {
 //
 
 
-exports.makeNewDanceSprite = function makeNewDanceSprite(costume, name, location) {
-  
+export function makeNewDanceSprite(costume, name, location) {
+
   // Default to first dancer if selected a dancer that doesn't exist
   // to account for low-bandwidth mode limited character set
   if (SPRITE_NAMES.indexOf(costume) < 0) {
@@ -381,7 +296,7 @@ exports.makeNewDanceSprite = function makeNewDanceSprite(costume, name, location
 
   sprite.style = costume;
   if (!sprites_by_type.hasOwnProperty(costume)) {
-    sprites_by_type[costume] = createGroup();
+    sprites_by_type[costume] = p5.createGroup();
   }
   sprites_by_type[costume].add(sprite);
 
@@ -459,7 +374,7 @@ exports.makeNewDanceSprite = function makeNewDanceSprite(costume, name, location
 
 // Dance Moves
 
-exports.changeMoveLR = function changeMoveLR(sprite, move, dir) {
+export function changeMoveLR(sprite, move, dir) {
   if (!spriteExists(sprite)) return;
   if (move == "next") {
     move = 1 + ((sprite.current_move + 1) % (ANIMATIONS[sprite.style].length - 1));
@@ -480,7 +395,7 @@ exports.changeMoveLR = function changeMoveLR(sprite, move, dir) {
   sprite.current_move = move;
 }
 
-exports.doMoveLR = function doMoveLR(sprite, move, dir) {
+export function doMoveLR(sprite, move, dir) {
   if (!spriteExists(sprite)) return;
   if (move == "next") {
     move = (sprite.current_move + 1) % ANIMATIONS[sprite.style].length;
@@ -498,7 +413,7 @@ exports.doMoveLR = function doMoveLR(sprite, move, dir) {
   sprite.animation.changeFrame(FRAMES / 2);
 }
 
-exports.ifDanceIs = function ifDanceIs(sprite, dance, ifStatement, elseStatement) {
+export function ifDanceIs(sprite, dance, ifStatement, elseStatement) {
   if (!spriteExists(sprite)) return;
   if (sprite.current_dance == dance) {
     ifStatement();
@@ -509,7 +424,7 @@ exports.ifDanceIs = function ifDanceIs(sprite, dance, ifStatement, elseStatement
 
 // Group Blocks
 
-exports.changeMoveEachLR = function changeMoveEachLR(group, move, dir) {
+export function changeMoveEachLR(group, move, dir) {
   if (typeof (group) == "string") {
     if (!sprites_by_type.hasOwnProperty(group)) {
       console.log("There is no group of " + group);
@@ -522,74 +437,74 @@ exports.changeMoveEachLR = function changeMoveEachLR(group, move, dir) {
   });
 }
 
-exports.doMoveEachLR = function doMoveEachLR(group, move, dir) {
-    if (typeof(group) == "string") {
-      if (!sprites_by_type.hasOwnProperty(group)) {
-        console.log("There is no group of " + group);
-        return;
-      }
-      group = sprites_by_type[group];
+export function doMoveEachLR(group, move, dir) {
+  if (typeof(group) == "string") {
+    if (!sprites_by_type.hasOwnProperty(group)) {
+      console.log("There is no group of " + group);
+      return;
     }
-	group.forEach(function(sprite) { doMoveLR(sprite, move, dir);});
+    group = sprites_by_type[group];
+  }
+  group.forEach(function(sprite) { doMoveLR(sprite, move, dir);});
 }
 
-exports.layoutSprites = function layoutSprites(group, format) {
-    if (typeof(group) == "string") {
-      if (!sprites_by_type.hasOwnProperty(group)) {
-        console.log("There is no group of " + group);
-        return;
-      }
-      group = sprites_by_type[group];
-      if (!group) return;
+export function layoutSprites(group, format) {
+  if (typeof(group) == "string") {
+    if (!sprites_by_type.hasOwnProperty(group)) {
+      console.log("There is no group of " + group);
+      return;
     }
-    var count = group.length;
-    var sprite, i, j;
-    if (format == "grid") {
-      var cols = Math.ceil(Math.sqrt(count));
-      var rows = Math.ceil(count / cols);
-      var current = 0;
-      for (i=0; i<rows; i++) {
-        if (count - current >= cols) {
-          for (j=0; j<cols; j++) {
-            sprite = group[current];
-            sprite.x = (j+1) * (400 / (cols + 1));
-            sprite.y = (i+1) * (400 / (rows + 1));
-            current++;
-          }
-        } else {
-          var remainder = count - current;
-          for (j=0; j<remainder; j++) {
-            sprite = group[current];
-            sprite.x = (j+1) * (400 / (remainder + 1));
-            sprite.y = (i+1) * (400 / (rows + 1));
-            current++;
-          }
+    group = sprites_by_type[group];
+    if (!group) return;
+  }
+  var count = group.length;
+  var sprite, i, j;
+  if (format == "grid") {
+    var cols = Math.ceil(Math.sqrt(count));
+    var rows = Math.ceil(count / cols);
+    var current = 0;
+    for (i=0; i<rows; i++) {
+      if (count - current >= cols) {
+        for (j=0; j<cols; j++) {
+          sprite = group[current];
+          sprite.x = (j+1) * (400 / (cols + 1));
+          sprite.y = (i+1) * (400 / (rows + 1));
+          current++;
+        }
+      } else {
+        var remainder = count - current;
+        for (j=0; j<remainder; j++) {
+          sprite = group[current];
+          sprite.x = (j+1) * (400 / (remainder + 1));
+          sprite.y = (i+1) * (400 / (rows + 1));
+          current++;
         }
       }
-    } else if (format == "row") {
-      for (i=0; i<count; i++) {
-        sprite = group[i];
-        sprite.x = (i+1) * (400 / (count + 1));
-        sprite.y = 200;
-      }
-    } else {
-      for (i=0; i<count; i++) {
-        sprite = group[i];
-        sprite.x = 200;
-        sprite.y = (i+1) * (400 / (count + 1));
-      }
     }
+  } else if (format == "row") {
+    for (i=0; i<count; i++) {
+      sprite = group[i];
+      sprite.x = (i+1) * (400 / (count + 1));
+      sprite.y = 200;
+    }
+  } else {
+    for (i=0; i<count; i++) {
+      sprite = group[i];
+      sprite.x = 200;
+      sprite.y = (i+1) * (400 / (count + 1));
+    }
+  }
 }
 
 // Properties
 
-exports.setTint = function setTint(sprite, val) {
+export function setTint(sprite, val) {
   setProp(sprite, "tint", val);
 }
 
-exports.setProp = function setProp(sprite, property, val) {
+export function setProp(sprite, property, val) {
   if (!spriteExists(sprite) || val === undefined) return;
-  
+
   if (property == "scale") {
     sprite.scale = val / 100;
   } else if (property == "width" || property == "height") {
@@ -605,7 +520,7 @@ exports.setProp = function setProp(sprite, property, val) {
   }
 }
 
-exports.getProp = function getProp(sprite, property) {
+export function getProp(sprite, property) {
   if (!spriteExists(sprite)) return;
 
   if (property == "scale") {
@@ -623,9 +538,9 @@ exports.getProp = function getProp(sprite, property) {
   }
 }
 
-exports.changePropBy = function changePropBy(sprite,  property, val) {
+export function changePropBy(sprite,  property, val) {
   if (!spriteExists(sprite) || val === undefined) return;
-  
+
   if (property == "scale") {
     sprite.setScale(sprite.getScale() + val / 100);
     if (sprite.scale < 0) {
@@ -634,7 +549,7 @@ exports.changePropBy = function changePropBy(sprite,  property, val) {
   } else if (property == "width" || property == "height") {
     sprite[property] = getProp(sprite, property) + (SIZE * (val / 100));
   } else if (property=="direction") {
-   	sprite.direction = getDirection(sprite) + val;
+    sprite.direction = getDirection(sprite) + val;
   } else if (property=="y"){
     sprite.y-=val;
   } else {
@@ -642,7 +557,7 @@ exports.changePropBy = function changePropBy(sprite,  property, val) {
   }
 }
 
-exports.jumpTo = function jumpTo(sprite, location) {
+export function jumpTo(sprite, location) {
   if (!spriteExists(sprite)) return;
   sprite.x = location.x;
   sprite.y = location.y;
@@ -655,7 +570,7 @@ function setDanceSpeed(sprite, speed) {
 
 // Music Helpers
 
-exports.getEnergy = function getEnergy(range) {
+export function getEnergy(range) {
   if (range == "low") {
     return Dance.fft.getEnergy(20, 200);
   } else if (range == "mid") {
@@ -665,11 +580,11 @@ exports.getEnergy = function getEnergy(range) {
   }
 }
 
-exports.nMeasures = function nMeasures(n) {
+export function nMeasures(n) {
   return (240 * n) / song_meta.bpm;
 }
 
-exports.getTime = function getTime(unit) {
+export function getTime(unit) {
   if (unit == "measures") {
     return song_meta.bpm * (Dance.song.currentTime(0) / 240);
   } else {
@@ -679,7 +594,7 @@ exports.getTime = function getTime(unit) {
 
 // Music Events
 
-exports.atTimestamp = function atTimestamp(timestamp, unit, event) {
+export function atTimestamp(timestamp, unit, event) {
   registerSetup(function () {
     if (unit == "measures") {
       timestamp = nMeasures(timestamp);
@@ -689,7 +604,7 @@ exports.atTimestamp = function atTimestamp(timestamp, unit, event) {
   });
 }
 
-exports.everySeconds = function everySeconds(n, unit, event) {
+export function everySeconds(n, unit, event) {
   registerSetup(function () {
     if (unit == "measures") n = nMeasures(n);
     if (n > 0) {
@@ -702,7 +617,7 @@ exports.everySeconds = function everySeconds(n, unit, event) {
   });
 }
 
-exports.everySecondsRange = function everySecondsRange(n, start, stop, event) {
+export function everySecondsRange(n, start, stop, event) {
   registerSetup(function () {
     if (unit == "measures") n = nMeasures(n);
     if (n > 0) {
@@ -715,7 +630,7 @@ exports.everySecondsRange = function everySecondsRange(n, start, stop, event) {
   });
 }
 
-exports.everyVerseChorus = function everyVerseChorus(unit, event) {
+export function everyVerseChorus(unit, event) {
   registerSetup(function() {
     song_meta[unit].forEach(function(timestamp){
       Dance.song.addCue(0, timestamp, event);
@@ -735,7 +650,7 @@ function Behavior(func, extraArgs) {
 
 function addBehavior(sprite, behavior) {
   if (!spriteExists(sprite) || behavior === undefined) return;
-  
+
   behavior = normalizeBehavior(behavior);
 
   if (findBehavior(sprite, behavior) !== -1) {
@@ -746,7 +661,7 @@ function addBehavior(sprite, behavior) {
 
 function removeBehavior(sprite, behavior) {
   if (!spriteExists(sprite) || behavior === undefined) return;
-  
+
   behavior = normalizeBehavior(behavior);
 
   var index = findBehavior(sprite, behavior);
@@ -794,7 +709,7 @@ function behaviorsEqual(behavior1, behavior2) {
   return extraArgsEqual;
 }
 
-exports.startMapping = function startMapping(sprite, property, range) {
+export function startMapping(sprite, property, range) {
   var behavior = new Behavior(function(sprite) {
     var energy = Dance.fft.getEnergy(range);
     if (property == "x") {
@@ -817,7 +732,7 @@ exports.startMapping = function startMapping(sprite, property, range) {
   addBehavior(sprite, behavior);
 }
 
-exports.stopMapping = function stopMapping(sprite, property, range) {
+export function stopMapping(sprite, property, range) {
   var behavior = new Behavior(function(sprite) {
     var energy = Dance.fft.getEnergy(range);
     if (property == "x") {
@@ -842,16 +757,16 @@ exports.stopMapping = function stopMapping(sprite, property, range) {
 
 //Events
 
-exports.whenSetup = function whenSetup(event) {
+export function whenSetup(event) {
   setupCallbacks.push(event);
 }
 
-exports.whenSetupSong = function whenSetupSong(song, event) {
+export function whenSetupSong(song, event) {
   song_meta = songs[song];
   setupCallbacks.push(event);
 }
 
-exports.whenKey = function whenKey(key, event) {
+export function whenKey(key, event) {
   inputEvents.push({
     type: keyWentDown,
     event: event,
@@ -859,7 +774,7 @@ exports.whenKey = function whenKey(key, event) {
   });
 }
 
-exports.whenPeak = function whenPeak(range, event) {
+export function whenPeak(range, event) {
   /*
   // This approach only allows one event handler per beat detector
   Dance.fft.onPeak(range, event);
@@ -881,26 +796,9 @@ function registerSetup(callback) {
   setupCallbacks.push(callback);
 }
 
-// Sprite and Group creation
-
-function makeNewSpriteLocation(animation, loc) {
-  return makeNewSprite(animation, loc.x, loc.y);
-}
-
-function makeNewGroup() {
-  var group = createGroup();
-  group.addBehaviorEach = function (behavior) {
-    for (var i = 0; i < group.length; i++) {
-      addBehavior(group[i], behavior);
-    }
-  };
-  group.destroy = group.destroyEach;
-  return group;
-}
-
 // Miscellaneus Helpers
 
-function changeColorBy(input, method, amount) {
+export function changeColorBy(input, method, amount) {
   push();
   colorMode(HSB, 100);
   var c = color(input);
@@ -915,36 +813,19 @@ function changeColorBy(input, method, amount) {
   return new_c;
 }
 
-function mixColors(color1, color2) {
+export function mixColors(color1, color2) {
   return lerpColor(color(color1), color(color2), 0.5);
 }
 
-function randomColor() {
+export function randomColor() {
   return color('hsb(' + randomNumber(0, 359) + ', 100%, 100%)').toString();
-}
-
-function isDestroyed(sprite) {
-  return World.allSprites.indexOf(sprite) === -1;
-}
-
-function showTitleScreen(titleArg, subTitleArg) {
-  title = titleArg;
-  subTitle = subTitleArg;
-}
-
-function hideTitleScreen() {
-  title = subTitle = '';
-}
-
-function shouldUpdate() {
-  return World.frameCount > 1;
 }
 
 function spriteExists(sprite) {
   return World.allSprites.indexOf(sprite) > -1;
 }
 
-function draw() {
+export function draw() {
   Dance.fft.analyze();
 
   background("white");
@@ -958,7 +839,7 @@ function draw() {
     callback();
   });
 
-  if (shouldUpdate()) {
+  {
     // Perform sprite behaviors
     sprites.forEach(function (sprite) {
       sprite.behaviors.forEach(function (behavior) {
@@ -1053,21 +934,18 @@ function draw() {
     }
   }
 
-  drawSprites();
+  p5.drawSprites();
 
   if (World.fg_effect != fg_effects.none) {
-    push();
-    blendMode(fg_effects.blend);
+    p5.push();
+    p5.blendMode(fg_effects.blend);
     World.fg_effect.draw();
-    pop();
+    p5.pop();
   }
 
-  fill("black");
-  textStyle(BOLD);
-  textAlign(TOP, LEFT);
-  textSize(20);
-  text("Measure: " + (Math.floor(((Dance.song.currentTime() - song_meta.delay) * song_meta.bpm) / 240) + 1), 10, 20);
-  /*text("time: " + Dance.song.currentTime().toFixed(3) + " | bass: " + Math.round(Dance.fft.getEnergy("bass")) + " | mid: " + Math.round(Dance.fft.getEnergy("mid")) + " | treble: " + Math.round(Dance.fft.getEnergy("treble")) + " | framerate: " + World.frameRate, 20, 20);*/
+  p5.fill("black");
+  p5.textStyle(BOLD);
+  p5.textAlign(TOP, LEFT);
+  p5.textSize(20);
+  p5.text("Measure: " + (Math.floor(((Dance.song.currentTime() - song_meta.delay) * song_meta.bpm) / 240) + 1), 10, 20);
 }
-
-exports;
