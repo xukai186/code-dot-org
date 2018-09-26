@@ -8,6 +8,7 @@
 import $ from 'jquery';
 import _ from 'lodash';
 import React, {PropTypes} from 'react';
+import {connect} from 'react-redux';
 import moment from 'moment';
 import {
   Grid,
@@ -22,6 +23,10 @@ import ConfirmationDialog from '../components/confirmation_dialog';
 import WorkshopForm from './components/workshop_form';
 import WorkshopEnrollment from './components/workshop_enrollment';
 import Spinner from '../components/spinner';
+import {
+  PermissionPropType,
+  WorkshopAdmin
+} from "./permission";
 
 const styles = {
   linkButton: {
@@ -34,10 +39,13 @@ const styles = {
     fontSize: '14px',
     padding: '6px 0',
     margin: 1
+  },
+  adminActionButton: {
+    float: 'right'
   }
 };
 
-export default class Workshop extends React.Component {
+export class Workshop extends React.Component {
   static contextTypes = {
     router: PropTypes.object.isRequired
   };
@@ -49,6 +57,7 @@ export default class Workshop extends React.Component {
     route: PropTypes.shape({
       view: PropTypes.string
     }).isRequired,
+    permission: PermissionPropType.isRequired,
   };
 
   constructor(props) {
@@ -69,6 +78,11 @@ export default class Workshop extends React.Component {
   }
 
   shouldComponentUpdate() {
+    // Workshop admins can always edit
+    if (this.props.permission.has(WorkshopAdmin)) {
+      return true;
+    }
+
     // Don't allow editing a workshop that has been started.
     if (this.props.route.view === 'edit' && this.state.workshop && this.state.workshop.state !== 'Not Started') {
       this.context.router.replace(`/workshops/${this.props.params.workshopId}`);
@@ -165,6 +179,21 @@ export default class Workshop extends React.Component {
 
   handleStartWorkshopClick = () => {
     this.setState({showStartWorkshopConfirmation: true});
+  };
+
+  handleAdminApiAction = (action) => {
+    this.startRequest = $.ajax({
+      method: "POST",
+      url: `/api/v1/pd/workshops/${this.props.params.workshopId}/${action}`,
+      dataType: "json"
+    }).done(() => {
+      this.loadWorkshop();
+    }).fail(data => {
+      if (data.statusText !== "abort") {
+        console.log(`Failed to ${action} workshop: ${this.props.params.workshopId}`);
+        alert(`We're sorry, we were unable to ${action} the workshop. Please try again.`);
+      }
+    });
   };
 
   handleStartWorkshopCancel = () => {
@@ -298,6 +327,9 @@ export default class Workshop extends React.Component {
     const header = (
       <div>
         Workshop State: {this.state.workshop.state}
+        {
+          this.props.permission.has(WorkshopAdmin) && this.renderAdminActionButton()
+        }
       </div>
     );
 
@@ -402,6 +434,30 @@ export default class Workshop extends React.Component {
     }
 
     return this.renderPanel(header, contents);
+  }
+
+  renderAdminActionButton() {
+    let action = undefined;
+    switch (this.state.workshop.state) {
+      case "In Progress":
+        action = "Unstart";
+        break;
+      case "Ended":
+        action = "Reopen";
+        break;
+      default:
+        return;
+    }
+
+    return (
+      <Button
+        onClick={() => this.handleAdminApiAction(action.toLowerCase())}
+        bsSize="xsmall"
+        style={styles.adminActionButton}
+      >
+        {action} (admin)
+      </Button>
+    );
   }
 
   renderAttendancePanel() {
@@ -517,12 +573,13 @@ export default class Workshop extends React.Component {
 
   renderDetailsPanelHeader() {
     let button = null;
-    if (this.state.workshop.state === 'Not Started') {
-      if (this.props.route.view === 'edit') {
-        button = <Button bsSize="xsmall" bsStyle="primary" onClick={this.handleSaveClick}>Save</Button>;
-      } else {
-        button = <Button bsSize="xsmall" onClick={this.handleEditClick}>Edit</Button>;
-      }
+
+    if (this.props.route.view === 'edit') {
+      button = <Button bsSize="xsmall" bsStyle="primary" onClick={this.handleSaveClick}>Save</Button>;
+    } else if (this.state.workshop.state === 'Not Started') {
+      button = <Button bsSize="xsmall" onClick={this.handleEditClick}>Edit</Button>;
+    } else if (this.props.permission.has(WorkshopAdmin)) {
+      button = <Button bsSize="xsmall" onClick={this.handleEditClick}>Edit (admin)</Button>;
     }
 
     return (
@@ -638,3 +695,7 @@ export default class Workshop extends React.Component {
     );
   }
 }
+
+export default connect(state => ({
+  permission: state.workshopDashboard.permission,
+}))(Workshop);
