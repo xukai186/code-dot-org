@@ -67,7 +67,8 @@ export class Workshop extends React.Component {
       this.state = {
         loadingWorkshop: true,
         loadingEnrollments: true,
-        enrollmentActiveTab: 0
+        enrollmentActiveTab: 0,
+        pendingAdminAction: null
       };
     }
   }
@@ -128,6 +129,8 @@ export class Workshop extends React.Component {
           workshop: null
         });
       }
+    }).always(() => {
+      this.loadWorkshopRequest = null;
     });
   }
 
@@ -145,6 +148,7 @@ export class Workshop extends React.Component {
           enrolled_teacher_count: data.length
         })
       });
+      this.loadEnrollmentsRequest = null;
     });
   }
 
@@ -156,6 +160,7 @@ export class Workshop extends React.Component {
     }).done(() => {
       // reload
       this.loadEnrollments();
+      this.deleteEnrollmentRequest = null;
     });
   };
 
@@ -175,14 +180,22 @@ export class Workshop extends React.Component {
     if (this.endRequest) {
       this.endRequest.abort();
     }
+    if (this.adminActionRequest) {
+      this.adminActionRequest.abort();
+    }
   }
 
   handleStartWorkshopClick = () => {
     this.setState({showStartWorkshopConfirmation: true});
   };
+  handleAdminActionClick = (action) => this.setState({pendingAdminAction: action});
 
-  handleAdminApiAction = (action) => {
-    this.startRequest = $.ajax({
+  handleAdminActionCancel = (action) => this.setState({pendingAdminAction: null});
+
+  handleAdminActionConfirmed = () => {
+    const action = this.state.pendingAdminAction;
+    this.setState({pendingAdminAction: null});
+    this.adminActionRequest = $.ajax({
       method: "POST",
       url: `/api/v1/pd/workshops/${this.props.params.workshopId}/${action}`,
       dataType: "json"
@@ -193,6 +206,8 @@ export class Workshop extends React.Component {
         console.log(`Failed to ${action} workshop: ${this.props.params.workshopId}`);
         alert(`We're sorry, we were unable to ${action} the workshop. Please try again.`);
       }
+    }).always(() => {
+      this.adminActionRequest = null;
     });
   };
 
@@ -213,6 +228,8 @@ export class Workshop extends React.Component {
         console.log(`Failed to start workshop: ${this.props.params.workshopId}`);
         alert("We're sorry, we were unable to start the workshop. Please try again.");
       }
+    }).always(() => {
+      this.startRequest = null;
     });
   };
 
@@ -237,6 +254,8 @@ export class Workshop extends React.Component {
         console.log(`Failed to end workshop: ${this.props.params.workshopId}`);
         alert("We're sorry, we were unable to end the workshop. Please try again.");
       }
+    }).always(() => {
+      this.endRequest = null;
     });
   };
 
@@ -449,9 +468,21 @@ export class Workshop extends React.Component {
         return;
     }
 
+    if (this.state.pendingAdminAction) {
+      return (
+        <ConfirmationDialog
+          show={true}
+          onOk={this.handleAdminActionConfirmed}
+          onCancel={this.handleAdminActionCancel}
+          headerText={`${_.capitalize(action)} Workshop?`}
+          bodyText={`Are you sure you want to ${action} this workshop?`}
+        />
+      );
+    }
+
     return (
       <Button
-        onClick={() => this.handleAdminApiAction(action.toLowerCase())}
+        onClick={() => this.handleAdminActionClick(action.toLowerCase())}
         bsSize="xsmall"
         style={styles.adminActionButton}
       >
