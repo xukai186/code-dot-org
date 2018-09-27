@@ -474,8 +474,8 @@ export class Workshop extends React.Component {
           show={true}
           onOk={this.handleAdminActionConfirmed}
           onCancel={this.handleAdminActionCancel}
-          headerText={`${_.capitalize(action)} Workshop?`}
-          bodyText={`Are you sure you want to ${action} this workshop?`}
+          headerText={`${action} Workshop?`}
+          bodyText={`Are you sure you want to ${action.toLowerCase()} this workshop?`}
         />
       );
     }
