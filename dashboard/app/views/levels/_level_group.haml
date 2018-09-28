@@ -1,6 +1,7 @@
 - app = 'level_group'
 - data = @level.properties
 - parsed_last_attempt = JSON.parse(@last_attempt || '{}')
+- answers_visible = current_user.try(:should_see_inline_answer?, @script_level)
 
 = render partial: 'levels/common_audio'
 
@@ -64,14 +65,14 @@
               = render partial: 'levels/single_multi', locals: {standalone: false, level: level, last_attempt: sublevel_last_attempt, tight_layout: true}
             - elsif level_class == "text_match"
               -# For students (or teachers doing PD), clear out all answers.
-              - unless current_user.try(:should_see_inline_answer?, @script_level)
+              - unless answers_visible
                 - level.properties['answers'] = nil
               = render partial: 'levels/single_text_match', locals: {standalone: false, level: level, last_attempt: sublevel_last_attempt }
             - elsif level_class == "free_response"
               = render partial: 'levels/free_response', locals: {in_level_group: true, level: level, last_attempt: sublevel_last_attempt}
 
         - unless @script_level.nil?
-          = render partial: 'levels/dialog', locals: {app: app, previous_button: page.page_number > 1, next_button: page.page_number < @total_page_count}
+          = render partial: 'levels/dialog', locals: {app: app, previous_button: page.page_number > 1, next_button: page.page_number < @total_page_count, hide_unsubmit: answers_visible}
 
 - content_for(:head) do
   - level_data = data

@@ -15,7 +15,7 @@
     - else
       %a.btn.btn-large.btn-primary.next-stage.submitButton
         =t('submit')
-      - if @level.properties['submittable']
+      - if @level.properties['submittable'] && !hide_unsubmit
         %a.btn.btn-large.btn-primary.unsubmitButton{style: 'display: none'}
           =t('unsubmit')
 .clear
