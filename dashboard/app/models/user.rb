@@ -1482,6 +1482,10 @@ class User < ActiveRecord::Base
     assigned_courses.any? || any_visible_assigned_scripts?
   end
 
+  def most_recently_assigned_course_or_script
+    recent_courses_and_scripts(false)
+  end
+
   # Return a collection of courses and scripts for the user.
   # First in the list will be courses enrolled in by the user's sections.
   # Following that will be all scripts in which the user has made progress that # are not in any of the enrolled courses.
