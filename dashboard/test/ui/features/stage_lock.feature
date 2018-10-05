@@ -95,6 +95,5 @@ Scenario: Lock settings for students
   And I wait until element "h2:contains(Pre-survey)" is visible
   Then element "h3:contains(Answer)" is visible
   Then element ".previousPageButton" is visible
-  # in the future we will want the unsubmit button to be hidden instead.
-  Then element ".unsubmitButton" is visible
+  Then element ".unsubmitButton" is not visible
 
