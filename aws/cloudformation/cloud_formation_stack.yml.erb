@@ -179,6 +179,7 @@ Resources:
         SuspendProcesses: [ScheduledActions]
         WaitOnResourceSignals: true
     Properties:
+      AutoScalingGroupName: !Sub "Frontends-${AWS::StackName}"
       VPCZoneIdentifier: <%= subnets.to_json %>
       LaunchConfigurationName: !Ref FrontendLaunchConfig
       MinSize: !GetAtt [ASGCount, MinSize]
@@ -205,7 +206,8 @@ Resources:
       UserData:
         Fn::Base64: <%=file('bootstrap_frontend.sh.erb',
           resource_id: 'Frontends',
-          hook: 'WebServerHookNew',
+          hook: 'WebServerHook-${AWS::StackName}',
+          auto_scaling_group: 'Frontends-${AWS::StackName}',
           node_name: 'fe-$INSTANCE_ID',
           commit: commit)%>
   CPUScalingPolicy:
@@ -218,13 +220,14 @@ Resources:
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
         TargetValue: 50
-  WebServerHookNew:
+  WebServerHook:
     Type: AWS::AutoScaling::LifecycleHook
     Properties:
+      LifecycleHookName: "WebServerHook-${AWS::StackName}"
       AutoScalingGroupName: !Ref Frontends
       LifecycleTransition: 'autoscaling:EC2_INSTANCE_LAUNCHING'
       DefaultResult: ABANDON
-      HeartbeatTimeout: 3000 # seconds = 50 minutes
+      HeartbeatTimeout: 1200 # seconds = 20 minutes
       NotificationTargetARN: !Ref WebServerHookTopicNew
       RoleARN: !ImportValue IAM-LifecycleHookRoleARN
   WebServerHookEventRule:
