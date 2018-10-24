@@ -25,7 +25,7 @@ ami = commit[0..4]
 
 frontends = @frontends = rack_env?(:production) || ENV['FRONTENDS']
 database = @database = ENV['DATABASE']
-load_balancer = @load_balancer = !rack_env?(:adhoc)
+load_balancer = @load_balancer = !rack_env?(:adhoc) || ENV['FRONTENDS']
 
 unless dry_run
   update_certs.call unless load_balancer
