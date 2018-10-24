@@ -68,9 +68,12 @@ Parameters:
   DatabaseUsername:
     Type: String
     Default: master
+    MaxLength: 16
   DatabasePassword:
     Type: String
     NoEcho: true
+    MinLength: 8
+    MaxLength: 41
 <% end -%>
 Resources:
 <% if frontends -%>
