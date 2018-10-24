@@ -129,6 +129,7 @@ Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
+<% raise "LoadBalancer name [#{stack_name}] cannot be longer than 32 characters" if stack_name.length > 32 -%>
       LoadBalancerName: !Ref AWS::StackName
       CrossZone: true
       SecurityGroups: [!ImportValue VPC-ELBSecurityGroup]
