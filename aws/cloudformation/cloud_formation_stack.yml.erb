@@ -87,6 +87,7 @@ Resources:
         Count: 1
   WebServerAMI:
     Type: AWS::EC2::Instance
+    DependsOn: <%=[daemon].compact.to_json%>
     Properties:
       ImageId: <%=IMAGE_ID%>
       InstanceType: !Ref InstanceType
