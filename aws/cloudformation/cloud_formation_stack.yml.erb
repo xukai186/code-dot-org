@@ -228,7 +228,7 @@ Resources:
   WebServerHook:
     Type: AWS::AutoScaling::LifecycleHook
     Properties:
-      LifecycleHookName: "WebServerHook-${AWS::StackName}"
+      LifecycleHookName: !Sub "WebServerHook-${AWS::StackName}"
       AutoScalingGroupName: !Ref Frontends
       LifecycleTransition: 'autoscaling:EC2_INSTANCE_LAUNCHING'
       DefaultResult: ABANDON
