@@ -88,6 +88,9 @@ args=(
   # when this file is created, gh-ost will immediately terminate, without cleanup
   --panic-flag-file=/tmp/gh-ost.panic.flag
 
+  # replication lag at which to throttle operation
+  --max-lag-millis=7700000
+
   # actually execute the alter & migrate the table. Default is noop: do some tests and exit
   --execute
 

@@ -133,15 +133,15 @@ Resources:
         # Neighbor flushing reduces performance without any benefit on SSD.
         innodb_flush_neighbors: 0
         # IO capacity controls background flushing rate (IO/sec).
-        innodb_io_capacity: 1000
+        innodb_io_capacity: 4000
         # IO capacity max controls maximum background flushing rate when certain thresholds are reached.
-        innodb_io_capacity_max: 3000
+        innodb_io_capacity_max: 9000
         # Larger log buffer size allows larger transactions without writing to disk.
         innodb_log_buffer_size: <%=16.megabytes%>
         # Larger redo log file size allows write combining for better write I/O efficiency.
         innodb_log_file_size: <%=2.gigabytes%>
         # LRU scan depth controls LRU flushing rate (IO/sec).
-        innodb_lru_scan_depth: 1000
+        innodb_lru_scan_depth: 4000
         # Enable all InnoDB performance schema monitors for better debugging.
         innodb_monitor_enable: all
         # Random read ahead can improve overall read-query performance, important for reporting.
