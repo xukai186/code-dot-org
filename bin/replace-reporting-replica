@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+
+# Script to replace a failed/out-of-sync `reporting` DB instance with a new read replica.
+# This can happen if a MySQL instance crashes while low-durability writes are configured
+# (`innodb_flush_log_at_trx_commit` != 1 and/or `sync_binlog` != 1).
+# This occurs during a Multi-AZ failover, whether from 'reboot with failover' or network/instance failure.
+# Replication goes out of sync due to commits not flushed to disk, so a new read-replica must be created.
+
+require_relative '../deployment.rb'
+require 'aws-sdk-rds'
+
+# Creates a new `reporting-new` read-replica instance.
+rds = Aws::RDS::Client.new
+
+production = Aws::RDS::DBInstance.new(id: 'production', client: rds)
+old_reporting_db = Aws::RDS::DBInstance.new(id: 'reporting', client: rds)
+
+# @type [Aws::RDS::DBParameterGroup]
+production_parameter_group = production.parameter_groups.first
+
+# Ensure the production instance is configured for high durability.
+# Otherwise, read-replica creation will fail.
+production_parameter_group.modify(
+  parameters: {
+    sync_binlog: 1,
+    innodb_flush_log_at_trx_commit: 1
+  }.map {|k, v| {parameter_name: k.to_s, parameter_value: v.to_s, apply_type: 'immediate'}}
+)
+
+# All Read Replica DB instances are created with backups disabled. All
+# other DB instance attributes (including DB security groups and DB
+# parameter groups) are inherited from the source DB instance, except as
+# specified.
+
+new_reporting_db = production.create_read_replica(
+  db_instance_identifier: 'reporting-new',
+  db_instance_class: 'db.r4.xlarge',
+  db_subnet_group_name: old_reporting_db.subnet_group.name
+)
+
+rds.wait_until(:db_instance_available,
+  {db_instance_identifier: 'reporting-new'},
+  {max_attempts: 300, delay: 60}
+)
+
+# Rename the old `reporting` instance to `reporting-old`.
+old_reporting_db = old_reporting_db.modify(
+  new_db_instance_identifier: 'reporting-old',
+  apply_immediately: true
+)
+rds.wait_until(:db_instance_available,
+  {db_instance_identifier: 'reporting-old'}
+)
+
+# Read Replica instances are created with backups disabled, and
+# inherit their initial DB parameter group from the source, so apply
+# these changes.
+
+db_parameter_group_name = old_reporting_db.parameter_groups.first.name
+new_reporting_db.modify(
+  new_db_instance_identifier: 'reporting',
+  db_parameter_group_name: db_parameter_group_name,
+  backup_retention_period: 1,
+  apply_immediately: true
+)
+rds.wait_until(:db_instance_available,
+  {db_instance_identifier: 'reporting'}
+)
+
+# DMS replication tasks will now fall out of sync after the reporting-instance replacement.
+# Stop all replication tasks, and start with full table reload.
