@@ -1,10 +1,14 @@
 const LambdaTester = require( 'lambda-tester' );
 const AWS = require('aws-sdk');
 const sinon = require('sinon');
+process.env.ATHENA_DB = 'athena_db';
+process.env.ATHENA_TABLE = 'athena_table';
+process.env.ATHENA_OUTPUT = 'athena_output';
 
 describe( 'handler', ()=> {
   let sandbox;
   let s3;
+  let athena;
   let ok = {promise: () => Promise.resolve('OK')};
   beforeEach ((done) => {
     sandbox = sinon.createSandbox();
@@ -12,8 +16,13 @@ describe( 'handler', ()=> {
       copyObject: () => {},
       deleteObject: () => {}
     };
+    let athenaAPI = {
+      startQueryExecution: () => {}
+    };
     s3 = sandbox.mock(s3API);
+    athena = sandbox.mock(athenaAPI);
     sandbox.stub(AWS, 'S3').returns(s3API);
+    sandbox.stub(AWS, 'Athena').returns(athenaAPI);
     done();
   });
   afterEach((done) => {
@@ -47,6 +56,17 @@ describe( 'handler', ()=> {
     s3.expects('deleteObject').withArgs({
       Bucket: bucket,
       Key: `${prefix}/${filename}`
+    }).once().returns(ok);
+    const testPartition = "year = 'YYYY', month = 'MM', day = 'DD', hour = 'HH'";
+    const testLocation = `s3://${bucket}/cloudfront/${prefix}/year=YYYY/month=MM/day=DD/hour=HH`;
+    athena.expects('startQueryExecution').withArgs({
+      QueryString: `ALTER TABLE ${process.env.ATHENA_TABLE} ADD IF NOT EXISTS PARTITION (${testPartition}) LOCATION '${testLocation}'`,
+      ResultConfiguration: {
+        OutputLocation: process.env.ATHENA_OUTPUT
+      },
+      QueryExecutionContext: {
+        Database: process.env.ATHENA_DB
+      }
     }).once().returns(ok);
     return LambdaTester(myHandler)
       .event(event)

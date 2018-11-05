@@ -208,6 +208,11 @@ Resources:
     Properties:
       Description: 'Partition CloudFront Access Log stored on S3.'
       FunctionName: S3PartitionCloudFrontLog
+      Environment:
+        Variables:
+          ATHENA_OUTPUT: !Sub "s3://aws-athena-query-results-${AWS::AccountId}-${AWS::Region}"
+          ATHENA_DB: elb_logs
+          ATHENA_TABLE: cloudfront_logs
       Code:
         ZipFile: <%=js 's3PartitionCloudFrontLog.js'%>
       Handler: index.handler
@@ -226,6 +231,8 @@ Resources:
       Path: /
       ManagedPolicyArns:
       - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      # S3PartitionCloudFrontLog permission to add new partition to Glue table from Athena query.
+      - "arn:aws:iam::aws:policy/AmazonAthenaFullAccess"
       Policies:
       - PolicyName: cdo-logs-policy
         PolicyDocument:
