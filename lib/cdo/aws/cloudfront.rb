@@ -28,6 +28,10 @@ module AWS
     # - `log`: `log.bucket` and `log.prefix` specify where to store CloudFront access logs (or disable if `log` is not provided).
     # - `ssl_cert`: ACM domain name for an SSL certificate previously uploaded to AWS.
     #   If not provided, the default *.cloudfront.net SSL certificate is used.
+    log_config = {
+      bucket: 'cdo-logs',
+      prefix: "#{ENV['RACK_ENV']}-cdn"
+    }
     cloudfront_config = {
       pegasus: {
         # NOTE: Keep this list in sync with the call to AWS::CloudFront.distribution_config in cloud_formation_stack.yml.erb.
@@ -36,28 +40,19 @@ module AWS
         origin: "#{ENV['RACK_ENV']}-pegasus.code.org",
         # ACM domain name
         ssl_cert: 'code.org',
-        log: {
-          bucket: 'cdo-logs',
-          prefix: "#{ENV['RACK_ENV']}-pegasus-cdn"
-        }
+        log: log_config.dup
       },
       dashboard: {
         aliases: [CDO.dashboard_hostname],
         origin: "#{ENV['RACK_ENV']}-dashboard.code.org",
         ssl_cert: 'code.org',
-        log: {
-          bucket: 'cdo-logs',
-          prefix: "#{ENV['RACK_ENV']}-dashboard-cdn"
-        }
+        log: log_config.dup
       },
       hourofcode: {
         aliases: [CDO.hourofcode_hostname],
         origin: "#{ENV['RACK_ENV']}-origin.hourofcode.com",
         ssl_cert: 'hourofcode.com',
-        log: {
-          bucket: 'cdo-logs',
-          prefix: "#{ENV['RACK_ENV']}-hourofcode-cdn"
-        }
+        log: log_config.dup
       }
     }
 

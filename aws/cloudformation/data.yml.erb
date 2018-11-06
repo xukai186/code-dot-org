@@ -354,7 +354,7 @@ Resources:
         - {Name: day, Type: bigint}
         - {Name: hour, Type: bigint}
         StorageDescriptor:
-          Location: !Sub 's3://${LogsBucket}/cloudfront/<%=environment%>-dashboard-cdn/'
+          Location: !Sub 's3://${LogsBucket}/cloudfront/<%=environment%>-cdn/'
           Columns: <%=
             # Ref: https://docs.aws.amazon.com/athena/latest/ug/cloudfront-logs.html#create-cloudfront-table
             str = <<~HIVE
@@ -447,6 +447,6 @@ Resources:
             Key:
               FilterRules:
               - Name: prefix
-                Value: <%=environment%>-dashboard-cdn/
+                Value: <%=environment%>-cdn/
               - Name: suffix
                 Value: .gz
