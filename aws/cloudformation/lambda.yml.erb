@@ -240,11 +240,14 @@ Resources:
           Statement:
           - Effect: Allow
             Action:
-            - 's3:GetObject'
-            - 's3:PutObject'
-            - 's3:PutObjectAcl'
-            - 's3:DeleteObject'
-            Resource: "arn:aws:s3:::cdo-logs/*"
+            - 's3:*'
+#            - 's3:GetObject'
+#            - 's3:PutObject'
+#            - 's3:PutObjectAcl'
+#            - 's3:DeleteObject'
+            Resource:
+              - "arn:aws:s3:::cdo-logs*"
+              - !Sub "arn:aws:s3:::aws-athena-query-results-${AWS::AccountId}-${AWS::Region}*"
   S3BucketConfiguration:
     Type: AWS::Lambda::Function
     Properties:
