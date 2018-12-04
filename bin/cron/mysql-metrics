@@ -328,11 +328,16 @@ log_flushed = innodb_status.match(/Log flushed up to\s+(\d+)/)[1].to_i
 log_pages_flushed = innodb_status.match(/Pages flushed up to\s+(\d+)/)[1].to_i
 log_last_checkpoint = innodb_status.match(/Last checkpoint at\s+(\d+)/)[1].to_i
 
+innodb_active_threads = innodb_status.match(/(\d+) queries inside InnoDB/)[1].to_i
+innodb_waiting_threads = innodb_status.match(/(\d+) queries in queue/)[1].to_i
+
 innodb_stats = {
   Innodb_history_list_length: history_list_length,
   Innodb_log_flush_behind: log_sequence - log_flushed,
   Innodb_log_pages_flush_behind: log_sequence - log_pages_flushed,
-  Innodb_log_checkpoint_behind: log_sequence - log_last_checkpoint
+  Innodb_log_checkpoint_behind: log_sequence - log_last_checkpoint,
+  Innodb_active_threads: innodb_active_threads,
+  Innodb_waiting_threads: innodb_waiting_threads
 }
 
 metrics = (constants.merge(intervals).merge(innodb_stats)).map do |key, value|
