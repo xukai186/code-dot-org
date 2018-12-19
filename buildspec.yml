@@ -13,3 +13,5 @@ phases:
       - pwd
       - ls
       - env
+      - git status
+      - git log
