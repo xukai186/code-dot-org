@@ -1,0 +1,15 @@
+version: 0.2
+
+env:
+  variables:
+    RAILS_ENV: test
+    RACK_ENV: test
+    DISABLE_SPRING: 1
+    LD_LIBRARY_PATH: /usr/local/lib
+            
+phases:
+  debug_info:
+    commands:
+      - pwd
+      - ls
+      - env
