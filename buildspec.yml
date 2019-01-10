@@ -24,7 +24,6 @@ phases:
       - ls
       - env
       - git status
-      - git log
       # original circle step name: "taking these out of dockerfile to see if that fixes build issues"
       - sudo mv /usr/bin/parallel /usr/bin/gnu_parallel
       - sudo apt-get update
