@@ -15,6 +15,8 @@ export DISABLE_SPRING=1
 export LD_LIBRARY_PATH=/usr/local/lib
 export CIRCLE_BUILD_NUM=$RANDOM$RANDOM
 export CIRCLE_NODE_INDEX=1
+export CIRCLE_TEST_REPORTS=/home/circleci/test_reports
+export CIRCLE_ARTIFACTS=/home/circleci/artifacts
 
 # TODO: recreate git checkout logic more accurately; UI test seeding relies on git state being correct
 
