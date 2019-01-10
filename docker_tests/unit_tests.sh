@@ -34,16 +34,9 @@ sudo apt-get install yarn=1.6.0-1
 # Need to actually write all the commented out lines also
 echo "
 bundler_use_sudo: false
-#properties_encryption_key: $PROPERTIES_ENCRYPTION_KEY
-#applitools_eyes_api_key: $APPLITOOLS_KEY
-#cloudfront_key_pair_id: $CLOUDFRONT_KEY_PAIR_ID
-#cloudfront_private_key: \"$CLOUDFRONT_PRIVATE_KEY\"
-#saucelabs_username: $SAUCE_USERNAME
-#saucelabs_authkey: $SAUCE_ACCESS_KEY
+properties_encryption_key: $PROPERTIES_ENCRYPTION_KEY
 ignore_eyes_mismatches: true
 disable_all_eyesbundle : true
-#firebase_name: $FIREBASE_NAME
-#firebase_secret: $FIREBASE_SECRET
 use_my_apps: true
 use_my_shared_js: true
 build_blockly_core: true
