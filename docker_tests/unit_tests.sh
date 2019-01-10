@@ -36,7 +36,7 @@ echo "
 bundler_use_sudo: false
 properties_encryption_key: $PROPERTIES_ENCRYPTION_KEY
 ignore_eyes_mismatches: true
-disable_all_eyesbundle : true
+disable_all_eyes_running: true
 use_my_apps: true
 use_my_shared_js: true
 build_blockly_core: true

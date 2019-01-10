@@ -47,7 +47,7 @@ cloudfront_private_key: \"$CLOUDFRONT_PRIVATE_KEY\"
 saucelabs_username: $SAUCE_USERNAME
 saucelabs_authkey: $SAUCE_ACCESS_KEY
 ignore_eyes_mismatches: true
-disable_all_eyesbundle : true
+disable_all_eyes_running: true
 firebase_name: $FIREBASE_NAME
 firebase_secret: $FIREBASE_SECRET
 use_my_apps: true
