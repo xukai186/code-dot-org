@@ -18,6 +18,8 @@ export CIRCLE_NODE_INDEX=1
 export CIRCLE_TEST_REPORTS=/home/circleci/test_reports
 export CIRCLE_ARTIFACTS=/home/circleci/artifacts
 
+mkdir $CIRCLE_ARTIFACTS
+
 # TODO: recreate git checkout logic more accurately; UI test seeding relies on git state being correct
 
 # name: taking these out of dockerfile to see if that fixes build issues
