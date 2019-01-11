@@ -35,6 +35,8 @@ sudo apt-get install yarn=1.6.0-1
 echo "
 bundler_use_sudo: false
 properties_encryption_key: $PROPERTIES_ENCRYPTION_KEY
+cloudfront_key_pair_id: $CLOUDFRONT_KEY_PAIR_ID
+cloudfront_private_key: \"$CLOUDFRONT_PRIVATE_KEY\"
 ignore_eyes_mismatches: true
 disable_all_eyes_running: true
 use_my_apps: true
