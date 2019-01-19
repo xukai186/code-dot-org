@@ -1,7 +1,15 @@
 # Docker Compose file for running unit tests.
 #
-# To run:
+# To run, set the following env variables (values obtainable from Circle):
+# PROPERTIES_ENCRYPTION_KEY
+# CLOUDFRONT_KEY_PAIR_ID
+# CLOUDFRONT_PRIVATE_KEY
+# AWS_ACCESS_KEY_ID
+# AWS_SECRET_ACCESS_KEY
+#
+# then run:
 # docker-compose -f unit-tests-compose.yml up
+# 
 # To clean up:
 # docker-compose -f unit-tests-compose.yml down
 
