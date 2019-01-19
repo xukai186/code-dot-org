@@ -1,0 +1,15 @@
+FROM wjordan/code-dot-org:0.5
+
+USER root
+
+RUN mv /usr/bin/parallel /usr/bin/gnu_parallel
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN apt-get update
+RUN apt-get install -y libicu-dev enscript moreutils pdftk libmysqlclient-dev libsqlite3-dev
+RUN wget https://github.com/htacg/tidy-html5/releases/download/5.4.0/tidy-5.4.0-64bit.deb \
+	&& dpkg -i tidy-5.4.0-64bit.deb \
+	&& rm tidy-5.4.0-64bit.deb
+RUN mv /usr/bin/gnu_parallel /usr/bin/parallel
+RUN apt-get install yarn=1.6.0-1
+
+USER circleci
