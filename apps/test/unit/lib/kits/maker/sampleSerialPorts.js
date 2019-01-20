@@ -47,6 +47,18 @@ export const CIRCUIT_PLAYGROUND_EXPRESS_PORTS = [
   }
 ];
 
+export const MICROBIT_PORTS = [
+  // Reported by Brad's laptop, Ubuntu 18.04
+  {
+    comName: "/dev/ttyACM0",
+    manufacturer: "ARM",
+    serialNumber: "99redacted",
+    pnpId: "usb-ARM_DAPLink_CMSIS-DAP_99redacted-if01",
+    vendorId: "0d28",
+    productId: "0204"
+  }
+];
+
 export const FLORA_PORTS = [
   {
     "comName": "/dev/cu.usbmodem1411",

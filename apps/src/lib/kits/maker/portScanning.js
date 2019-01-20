@@ -23,6 +23,19 @@ export const CIRCUIT_PLAYGROUND_PID = 0x8011;
 /** @const {string} The Circuit Playground Express product id */
 export const CIRCUIT_PLAYGROUND_EXPRESS_PID = 0x8018;
 
+/** @const {string} The BBC micro:bit vendor id */
+export const MICROBIT_VID = 0x0d28;
+
+/** @const {string} The BBC micro:bit product id */
+export const MICROBIT_PID = 0x0204;
+
+/** @const {Array.<{vid: number, pid: number}>} List of supported device ID combinations */
+const SUPPORTED_DEVICES = [
+  {vid: ADAFRUIT_VID, pid: CIRCUIT_PLAYGROUND_PID},
+  {vid: ADAFRUIT_VID, pid: CIRCUIT_PLAYGROUND_EXPRESS_PID},
+  {vid: MICROBIT_VID, pid: MICROBIT_PID},
+];
+
 /**
  * Scan system serial ports for a device compatible with Maker Toolkit.
  * @returns {Promise.<string>} resolves to a serial port name for a viable
@@ -85,29 +98,23 @@ export function isNodeSerialAvailable() {
  * @return {SerialPortInfo|undefined} the best option, if one is found
  */
 export function getPreferredPort(portList) {
-  // 1. Best case: Correct vid and pid
-  const adafruitCircuitPlayground = portList.find(port =>
-    parseInt(port.vendorId, 16) === ADAFRUIT_VID &&
-    parseInt(port.productId, 16) === CIRCUIT_PLAYGROUND_PID);
-  if (adafruitCircuitPlayground) {
-    return adafruitCircuitPlayground;
+  // 1. Check for an exact device id match
+  for (const device of SUPPORTED_DEVICES) {
+    const matchedPort = portList.find(port =>
+      parseInt(port.vendorId, 16) === device.vid &&
+      parseInt(port.productId, 16) === device.pid);
+    if (matchedPort) {
+      return matchedPort;
+    }
   }
 
-  // 2. Next-best case: Circuit Playground Express
-  const adafruitExpress = portList.find(port =>
-    parseInt(port.vendorId, 16) === ADAFRUIT_VID &&
-    parseInt(port.productId, 16) === CIRCUIT_PLAYGROUND_EXPRESS_PID);
-  if (adafruitExpress) {
-    return adafruitExpress;
-  }
-
-  // 3. Next best case: Some other Adafruit product that might also work
+  // 2. Next best case: Some other Adafruit product that might also work
   const otherAdafruit = portList.find(port => parseInt(port.vendorId, 16) === ADAFRUIT_VID);
   if (otherAdafruit) {
     return otherAdafruit;
   }
 
-  // 4. Last-ditch effort: Anything with a probably-usable port name and
+  // 3. Last-ditch effort: Anything with a probably-usable port name and
   //    a valid vendor id and product id
   const comNameRegex = /usb|acm|^com/i;
   return portList.find(port => {

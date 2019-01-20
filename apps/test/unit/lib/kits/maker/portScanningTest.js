@@ -3,6 +3,7 @@ import {expect} from '../../../../util/configuredChai';
 import {
   CIRCUIT_PLAYGROUND_PORTS,
   CIRCUIT_PLAYGROUND_EXPRESS_PORTS,
+  MICROBIT_PORTS,
   REDBOARD_PORTS,
   FLORA_PORTS,
   OSX_DEFAULT_PORTS,
@@ -52,6 +53,12 @@ describe("maker/portScanning.js", function () {
         .then(port => {
           expect(port).to.equal('COM5');
         });
+    });
+
+    it(`allows the BBC micro:bit`, async () => {
+      ChromeSerialPort.stub.setDeviceList(MICROBIT_PORTS);
+      const port = await findPortWithViableDevice();
+      expect(port).to.equal('/dev/ttyACM0');
     });
   });
 
