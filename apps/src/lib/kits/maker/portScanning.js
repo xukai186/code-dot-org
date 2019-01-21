@@ -38,8 +38,8 @@ const SUPPORTED_DEVICES = [
 
 /**
  * Scan system serial ports for a device compatible with Maker Toolkit.
- * @returns {Promise.<string>} resolves to a serial port name for a viable
- *   device, or rejects if no such device can be found.
+ * @returns {Promise.<{comName: string, vid: string, pid: string}>} resolves to a serial port
+ *   name for a viable device, or rejects if no such device can be found.
  */
 export function findPortWithViableDevice() {
   return Promise.resolve()
@@ -48,7 +48,7 @@ export function findPortWithViableDevice() {
       .then(list => {
         const bestOption = getPreferredPort(list);
         if (bestOption) {
-          return bestOption.comName;
+          return bestOption;
         } else {
           return Promise.reject(new ConnectionFailedError(
               'Did not find a usable device on a serial port. ' +

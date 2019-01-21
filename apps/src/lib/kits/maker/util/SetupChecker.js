@@ -40,7 +40,7 @@ export default class SetupChecker {
    */
   detectBoardPluggedIn() {
     return findPortWithViableDevice()
-        .then(port => this.port = port);
+        .then(port => this.port = port.comName);
   }
 
   /**

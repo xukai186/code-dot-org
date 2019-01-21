@@ -124,7 +124,7 @@ function getBoard() {
     return Promise.resolve(new FakeBoard());
   } else {
     return findPortWithViableDevice()
-        .then(port => new CircuitPlaygroundBoard(port));
+        .then(port => new CircuitPlaygroundBoard(port.comName));
   }
 }
 

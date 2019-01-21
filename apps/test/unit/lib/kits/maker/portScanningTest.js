@@ -27,7 +27,7 @@ describe("maker/portScanning.js", function () {
       ChromeSerialPort.stub.setDeviceList(CIRCUIT_PLAYGROUND_PORTS);
       return findPortWithViableDevice()
           .then(port => {
-            expect(port).to.equal('COM5');
+            expect(port.comName).to.equal('COM5');
           });
     });
 
@@ -51,14 +51,14 @@ describe("maker/portScanning.js", function () {
       ChromeSerialPort.stub.setDeviceList(CIRCUIT_PLAYGROUND_EXPRESS_PORTS);
       return findPortWithViableDevice()
         .then(port => {
-          expect(port).to.equal('COM5');
+          expect(port.comName).to.equal('COM5');
         });
     });
 
     it(`allows the BBC micro:bit`, async () => {
       ChromeSerialPort.stub.setDeviceList(MICROBIT_PORTS);
       const port = await findPortWithViableDevice();
-      expect(port).to.equal('/dev/ttyACM0');
+      expect(port.comName).to.equal('/dev/ttyACM0');
     });
   });
 
