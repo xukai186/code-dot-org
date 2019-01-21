@@ -20,14 +20,20 @@ export CIRCLE_ARTIFACTS=/home/circleci/artifacts
 
 mkdir $CIRCLE_ARTIFACTS
 
-# TODO: recreate git checkout logic more accurately; UI test seeding relies on git state being correct
+user=$(whoami)
+sudo chmod 0777 .bundle \
+	locals.yml \
+	dashboard/log \
+	pegasus/log \
+	log \
+	dashboard/test/ui/log \
+	dashboard/tmp
 
-# name: taking these out of dockerfile to see if that fixes build issues
-sudo mv /usr/bin/parallel /usr/bin/gnu_parallel
-sudo apt-get update
-sudo apt-get install -y libicu-dev enscript moreutils pdftk libmysqlclient-dev libsqlite3-dev
-wget https://github.com/htacg/tidy-html5/releases/download/5.4.0/tidy-5.4.0-64bit.deb && sudo dpkg -i tidy-5.4.0-64bit.deb
-sudo mv /usr/bin/gnu_parallel /usr/bin/parallel
+sudo chmod -R 0777 dashboard/db \
+	dashboard/config
+
+sudo chown $user /home/circleci/project/vendor/bundle \
+	apps/node_modules
 
 # start mysql
 sudo service mysql start && mysql -V
@@ -35,12 +41,11 @@ sudo service mysql start && mysql -V
 # name: install dependencies
 bundle check --path=/home/circleci/project/vendor/bundle || bundle install --deployment --path=/home/circleci/project/vendor/bundle --jobs=4 --retry=3 --without ''
 
-# name: set yarn version
-sudo apt-get install yarn=1.6.0-1
-
 # set up locals.yml
 # Need to actually write all the commented out lines also
 echo "
+netsim_redis_groups:
+- master: redis://ui-tests-redis:6379
 bundler_use_sudo: false
 properties_encryption_key: $PROPERTIES_ENCRYPTION_KEY
 applitools_eyes_api_key: $APPLITOOLS_KEY
