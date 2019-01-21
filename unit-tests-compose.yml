@@ -16,7 +16,7 @@
 version: '3'
 services:
   site:
-    image: wjordan/code-dot-org:0.5
+    image: wintercdo/code-dot-org:0.6
     volumes:
       - .:/home/circleci/code-dot-org
       - bundleconfig:/home/circleci/code-dot-org/.bundle

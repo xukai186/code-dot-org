@@ -21,7 +21,7 @@
 version: '3'
 services:
   site:
-    image: wjordan/code-dot-org:0.6
+    image: wintercdo/code-dot-org:0.6
     volumes:
       - .:/home/circleci/code-dot-org
       - bundleconfig:/home/circleci/code-dot-org/.bundle
@@ -32,10 +32,9 @@ services:
     env_file:
       - docker_tests/env.list
     command: /bin/sh -c "cd /home/circleci/code-dot-org; docker_tests/ui_tests.sh"
-    links:
-      - "redis:localhost"
-  redis:
-    image: redis 
+
+  ui-tests-redis:
+    image: redis
 
 volumes:
   nodemodules:
@@ -43,3 +42,4 @@ volumes:
   bundleconfig:
   dashboardtmp:
   mysqldata:
+
