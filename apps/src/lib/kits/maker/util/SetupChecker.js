@@ -1,6 +1,7 @@
 /** @file Stubbable core setup check behavior for the setup page. */
 import CircuitPlaygroundBoard from '../CircuitPlaygroundBoard';
-import {ensureAppInstalled, findPortWithViableDevice} from '../portScanning';
+import MicroBitBoard from '../MicroBitBoard';
+import {ensureAppInstalled, findPortWithViableDevice, MICROBIT_PID, MICROBIT_VID} from '../portScanning';
 import {isCodeOrgBrowser, isChrome, gtChrome33, isChromeOS} from './browserChecks';
 
 export default class SetupChecker {
@@ -40,14 +41,19 @@ export default class SetupChecker {
    */
   detectBoardPluggedIn() {
     return findPortWithViableDevice()
-        .then(port => this.port = port.comName);
+        .then(port => this.port = port);
   }
 
   /**
-   * @return {Promise}
+   * @return {Promise}.
    */
   detectCorrectFirmware() {
-    this.boardController = new CircuitPlaygroundBoard(this.port);
+    if (this.port.vid === MICROBIT_VID && this.port.pid === MICROBIT_PID) {
+      this.boardController = new MicroBitBoard(this.port.comName);
+    } else {
+      this.boardController = new CircuitPlaygroundBoard(this.port.comName);
+    }
+
     return this.boardController.connectToFirmware();
   }
 

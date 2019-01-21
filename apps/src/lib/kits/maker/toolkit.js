@@ -5,6 +5,7 @@
 import {getStore} from '../../../redux';
 import trackEvent from '../../../util/trackEvent';
 import CircuitPlaygroundBoard from './CircuitPlaygroundBoard';
+import MicroBitBoard from './MicroBitBoard';
 import FakeBoard from './FakeBoard';
 import * as commands from './commands';
 import * as dropletConfig from './dropletConfig';
@@ -13,7 +14,11 @@ import MakerError, {
   UnsupportedBrowserError,
   wrapKnownMakerErrors,
 } from './MakerError';
-import {findPortWithViableDevice} from './portScanning';
+import {
+  findPortWithViableDevice,
+  MICROBIT_VID,
+  MICROBIT_PID,
+} from './portScanning';
 import * as redux from './redux';
 import {isChrome, gtChrome33, isCodeOrgBrowser} from './util/browserChecks';
 
@@ -119,13 +124,19 @@ function confirmSupportedBrowser() {
  * appropriate).
  * @returns {Promise.<MakerBoard>}
  */
-function getBoard() {
+async function getBoard() {
   if (shouldRunWithFakeBoard()) {
-    return Promise.resolve(new FakeBoard());
-  } else {
-    return findPortWithViableDevice()
-        .then(port => new CircuitPlaygroundBoard(port.comName));
+    return new FakeBoard();
   }
+
+  const port = await findPortWithViableDevice();
+
+  // If we detected a BBC micro:bit, create its controller.
+  if (port.vid === MICROBIT_VID && port.pid === MICROBIT_PID) {
+    return new MicroBitBoard(port.comName);
+  }
+
+  return new CircuitPlaygroundBoard(port.comName);
 }
 
 function isConnecting() {

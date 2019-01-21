@@ -48,7 +48,11 @@ export function findPortWithViableDevice() {
       .then(list => {
         const bestOption = getPreferredPort(list);
         if (bestOption) {
-          return bestOption;
+          return {
+            ...bestOption,
+            vid: parseInt(bestOption.vendorId, 16),
+            pid: parseInt(bestOption.productId, 16)
+          };
         } else {
           return Promise.reject(new ConnectionFailedError(
               'Did not find a usable device on a serial port. ' +
