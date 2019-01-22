@@ -32,14 +32,13 @@ sudo chmod 0777 .bundle \
 sudo chmod -R 0777 dashboard/db \
 	dashboard/config
 
-sudo chown $user /home/circleci/project/vendor/bundle \
-	apps/node_modules
+sudo chown $user apps/node_modules
 
 # start mysql
 sudo service mysql start && mysql -V
 
-# name: install dependencies
-bundle check --path=/home/circleci/project/vendor/bundle || bundle install --deployment --path=/home/circleci/project/vendor/bundle --jobs=4 --retry=3 --without ''
+eval "$(rbenv init -)"
+bundle install --verbose
 
 # set up locals.yml
 # Need to actually write all the commented out lines also
