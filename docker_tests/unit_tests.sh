@@ -12,20 +12,6 @@ export RACK_ENV=test
 export DISABLE_SPRING=1
 export LD_LIBRARY_PATH=/usr/local/lib
 
-user=$(whoami)
-sudo chmod 0777 .bundle \
-	locals.yml \
-	dashboard/log \
-	pegasus/log \
-	log \
-	dashboard/test/ui/log \
-	dashboard/tmp
-
-sudo chmod -R 0777 dashboard/db \
-	dashboard/config/shared_functions
-
-sudo chown $user apps/node_modules
-
 # start mysql
 sudo service mysql start && mysql -V
 

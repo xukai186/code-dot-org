@@ -124,9 +124,6 @@ RUN mv /usr/bin/gnu_parallel /usr/bin/parallel
 
 RUN apt-get install -y rbenv
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
 USER circleci
 
 # Install ruby-build: https://github.com/rbenv/ruby-build#readme
@@ -136,5 +133,8 @@ RUN git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ru
 RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
 RUN rbenv install 2.5.0
 RUN eval "$(rbenv init -)" && rbenv global 2.5.0 && rbenv rehash && gem install bundler -v 1.17
+
+COPY entrypoint.sh /entrypoint.sh
+RUN sudo chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
