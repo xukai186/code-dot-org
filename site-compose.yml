@@ -26,7 +26,9 @@ services:
       - mysqldata:/var/lib/mysql
     env_file:
       - docker_tests/env.list
-    command: /bin/sh -c "cd /home/circleci/code-dot-org; docker_tests/unit_tests.sh"
+    ports:
+      - "3000:3000"
+    command: bash -c "cd /home/circleci/code-dot-org; eval \"$$(rbenv init -)\"; bin/dashboard-server"
 
 volumes:
   nodemodules:
