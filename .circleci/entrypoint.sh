@@ -4,17 +4,9 @@ cd /home/circleci/code-dot-org
 
 # Changing permissions inside the docker container.
 user=$(whoami)
-sudo chmod o+w .bundle \
-        locals.yml \
-        dashboard/log \
-        pegasus/log \
-	pegasus \
-        log \
-        dashboard/test/ui/log \
-        dashboard/tmp
 
-sudo chmod -R o+w dashboard/db \
-	dashboard/config/shared_functions
+# TODO: hopefully find a better solution than making the whole directory writeable by other users
+sudo chmod -R o+w .
 
 sudo chown $user /home/circleci/.bundle \
         apps/node_modules
