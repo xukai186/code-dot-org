@@ -140,7 +140,6 @@ USER circleci
 RUN mkdir -p "$(rbenv root)"/plugins
 RUN git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build
 
-RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
 RUN rbenv install 2.5.0
 RUN eval "$(rbenv init -)" && rbenv global 2.5.0 && rbenv rehash && gem install bundler -v 1.17
 

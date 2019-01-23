@@ -20,18 +20,14 @@ services:
     user: ${FIXUID:-1000}:${FIXGID:-1000}
     volumes:
       - ../:/home/circleci/code-dot-org:delegated
-      - bundleconfig:/home/circleci/code-dot-org/.bundle
-      - dashboardtmp:/home/circleci/code-dot-org/dashboard/tmp
       - nodemodules:/home/circleci/code-dot-org/apps/node_modules
       - rbenv:/home/circleci/.rbenv
       - mysqldata:/var/lib/mysql
     env_file:
       - env.list
-    command: /bin/sh -c "cd /home/circleci/code-dot-org; docker_tests/unit_tests.sh"
+    command: /bin/sh -c "docker/unit_tests.sh"
 
 volumes:
   nodemodules:
-  bundleconfig:
-  dashboardtmp:
   mysqldata:
   rbenv:
