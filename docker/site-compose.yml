@@ -1,11 +1,8 @@
-# Docker Compose file for running unit tests.
+# Docker Compose file for running the site locally.
 #
-# To run, set the following env variables (values obtainable from Circle):
-# PROPERTIES_ENCRYPTION_KEY
-# CLOUDFRONT_KEY_PAIR_ID
-# CLOUDFRONT_PRIVATE_KEY
-# AWS_ACCESS_KEY_ID
-# AWS_SECRET_ACCESS_KEY
+# Set the FIXUID and FIXGID env variables with these commands (or put them in your .bash_profile / .bashrc):
+# export FIXUID=$(id -u)
+# export FIXGID=$(id -g)
 #
 # then run:
 # docker-compose -f unit-tests-compose.yml up
@@ -20,8 +17,6 @@ services:
     user: ${FIXUID:-1000}:${FIXGID:-1000}
     volumes:
       - ../:/home/circleci/code-dot-org:delegated
-      - bundleconfig:/home/circleci/code-dot-org/.bundle
-      - dashboardtmp:/home/circleci/code-dot-org/dashboard/tmp
       - nodemodules:/home/circleci/code-dot-org/apps/node_modules
       - rbenv:/home/circleci/.rbenv
       - mysqldata:/var/lib/mysql
@@ -29,11 +24,9 @@ services:
       - env.list
     ports:
       - "3000:3000"
-    command: bash -c "cd /home/circleci/code-dot-org; eval \"$$(rbenv init -)\"; bin/dashboard-server"
+    command: bash -c "bin/dashboard-server"
 
 volumes:
   nodemodules:
-  bundleconfig:
-  dashboardtmp:
   mysqldata:
   rbenv:

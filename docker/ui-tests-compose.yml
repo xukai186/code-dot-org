@@ -12,6 +12,10 @@
 # SAUCE_USERNAME
 # SAUCE_ACCESS_KEY
 #
+# Also set the FIXUID and FIXGID env variables with these commands (or put them in your .bash_profile / .bashrc):
+# export FIXUID=$(id -u)
+# export FIXGID=$(id -g)
+#
 # then run:
 # docker-compose -f ui-tests-compose.yml up
 # 
