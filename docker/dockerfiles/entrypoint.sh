@@ -2,14 +2,8 @@
 
 cd /home/circleci/code-dot-org
 
-# Changing permissions inside the docker container.
-user=$(whoami)
-
-# TODO: hopefully find a better solution than making the whole directory writeable by other users
-sudo chmod -R o+w .
-
-sudo chown $user /home/circleci/.bundle \
-        apps/node_modules
+# Run https://github.com/boxboat/fixuid allow writes to bind-mounted code-dot-org directory
+eval $( fixuid )
 
 # start mysql
 sudo service mysql start && mysql -V
