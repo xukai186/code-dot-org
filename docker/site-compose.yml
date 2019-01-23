@@ -18,15 +18,17 @@ services:
   site:
     image: wintercdo/code-dot-org:0.7
     volumes:
-      - .:/home/circleci/code-dot-org:delegated
+      - ../:/home/circleci/code-dot-org:delegated
       - bundleconfig:/home/circleci/code-dot-org/.bundle
       - dashboardtmp:/home/circleci/code-dot-org/dashboard/tmp
       - nodemodules:/home/circleci/code-dot-org/apps/node_modules
       - rbenv:/home/circleci/.rbenv
       - mysqldata:/var/lib/mysql
     env_file:
-      - docker_tests/env.list
-    command: /bin/sh -c "cd /home/circleci/code-dot-org; docker_tests/unit_tests.sh"
+      - env.list
+    ports:
+      - "3000:3000"
+    command: bash -c "cd /home/circleci/code-dot-org; eval \"$$(rbenv init -)\"; bin/dashboard-server"
 
 volumes:
   nodemodules:
