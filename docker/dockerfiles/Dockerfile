@@ -142,6 +142,10 @@ RUN git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ru
 
 RUN rbenv install 2.5.0
 RUN eval "$(rbenv init -)" && rbenv global 2.5.0 && rbenv rehash && gem install bundler -v 1.17
+# This bashrc file will be used whenever someone runs bash in interactive mode.
+# This is mostly intended for the use case where you want to start a shell into a running container with
+# docker exec -it <container_name> bash, which bypasses the entrypoint script.
+RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
 
 COPY entrypoint.sh /entrypoint.sh
 RUN sudo chmod +x /entrypoint.sh
