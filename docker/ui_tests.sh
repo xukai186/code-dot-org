@@ -20,10 +20,11 @@ export CIRCLE_ARTIFACTS=/home/circleci/artifacts
 
 mkdir $CIRCLE_ARTIFACTS
 
-# start mysql
-sudo service mysql start && mysql -V
+mysql -V
 
-eval "$(rbenv init -)"
+# rbenv-doctor https://github.com/rbenv/rbenv-installer#readme
+curl -fsSL https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-doctor | bash
+
 bundle install --verbose
 
 # set up locals.yml
