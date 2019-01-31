@@ -10666,3 +10666,13 @@ en:
           description_audience: ''
           description_short: ''
           description: ''
+        microbit-demo:
+          stages:
+            Micro:bit demo:
+              name: Micro:bit demo
+            new stage:
+              name: new stage
+          title: Micro:bit demo
+          description_audience: ''
+          description_short: A short set of example experiences demonstrating micro:bit working with Code.org's Maker Toolkit
+          description: A short set of example experiences demonstrating micro:bit working with Code.org's Maker Toolkit.

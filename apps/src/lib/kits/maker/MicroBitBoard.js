@@ -92,13 +92,17 @@ export default class MicroBitBoard extends EventEmitter {
 
   }
 
+  installOnInterpreter(jsInterpreter) {
+
+  }
+
   async celebrateSuccessfulConnection() {
     await new Promise(r => setTimeout(r, 300));
 
     this.displayShow(false, [
       [0, 1, 0, 1, 0],
       [1, 0, 1, 0, 1],
-      [1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 1],
       [0, 1, 0, 1, 0],
       [0, 0, 1, 0, 0],
     ]);

@@ -115,3 +115,13 @@ export function createButton(opts) {
   apiValidateType(opts, 'createButton', 'pin', opts.pin, 'pinid');
   return board.createButton(opts.pin);
 }
+
+/**
+ * Micro:bit-specific command
+ * Display a string on the LED matrix.
+ * @param {string} opts.string
+ */
+export function scrollString(opts) {
+  apiValidateType(opts, 'scrolLString', 'string', opts.string, 'string');
+  return board.scrollString(opts.string);
+}

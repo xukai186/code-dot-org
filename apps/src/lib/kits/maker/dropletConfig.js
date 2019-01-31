@@ -12,6 +12,7 @@ import {
 
 export const MAKER_CATEGORY = 'Maker';
 const CIRCUIT_CATEGORY = 'Circuit';
+const MICROBIT_CATEGORY = 'Micro:bit';
 
 const pixelType = '[ColorLed].';
 const colorPixelVariables = _.range(N_COLOR_LEDS).map(index => `colorLeds[${index}]`);
@@ -145,6 +146,11 @@ export const blocks = [
   {func: 'tempSensor.C', category: CIRCUIT_CATEGORY, type: 'readonlyproperty' },
 
   {func: 'toggleSwitch.isOpen', category: CIRCUIT_CATEGORY, type: 'readonlyproperty' },
+
+  /**
+   * Micro:bit-specific blocks
+   */
+  {func: 'scrollString', parent: api, category: MICROBIT_CATEGORY, paletteParams: ['text'], params: ['Hello world']},
 ];
 
 export const categories = {

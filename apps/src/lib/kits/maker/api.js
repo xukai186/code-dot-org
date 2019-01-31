@@ -42,3 +42,7 @@ export function createButton(pin) {
 export function onBoardEvent(component, event, callback) {
   return executeCmd(null, 'onBoardEvent', {component, event, callback});
 }
+
+export function scrollString(string) {
+  return executeCmd(null, 'scrollString', {string});
+}
