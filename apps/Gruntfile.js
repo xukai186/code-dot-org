@@ -10,10 +10,6 @@ var envConstants = require('./envConstants');
 var checkEntryPoints = require('./script/checkEntryPoints');
 var {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 var {StatsWriterPlugin} = require('webpack-stats-plugin');
-var Adapter = require('enzyme-adapter-react-15.4');
-var enzyme = require('enzyme');
-enzyme.configure({adapter: new Adapter()});
-module.exports = enzyme;
 
 module.exports = function(grunt) {
   // Decorate grunt to record and report build durations.
@@ -43,6 +39,9 @@ module.exports = function(grunt) {
 import 'babel-polyfill';
 import 'whatwg-fetch';
 import { throwOnConsoleErrorsEverywhere, throwOnConsoleWarningsEverywhere } from './util/testUtils';
+var Adapter = require('enzyme-adapter-react-15.4');
+var enzyme = require('enzyme');
+enzyme.configure({adapter: new Adapter()});
 ${loadContext}
 describe('entry tests', () => {
   throwOnConsoleErrorsEverywhere();
