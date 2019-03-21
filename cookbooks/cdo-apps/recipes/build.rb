@@ -18,6 +18,7 @@ execute 'build-cdo' do
   user user
   group user
   action :nothing
+  timeout 10800
 
   # Rebuild when Ruby is upgraded.
   subscribes :run, "apt_package[ruby#{node['cdo-ruby']['version']}]", :delayed if node['cdo-ruby']
