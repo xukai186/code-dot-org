@@ -1,6 +1,6 @@
 class BlocksController < ApplicationController
-  before_action :require_levelbuilder_mode, except: :index
-  load_and_authorize_resource find_by: :name
+  before_action :require_levelbuilder_mode, except: [:index, :embed]
+  load_and_authorize_resource find_by: :name, except: :embed
 
   def index
     @blocks = Block.load_and_cache_by_pool(params[:pool])
@@ -41,6 +41,11 @@ class BlocksController < ApplicationController
   def destroy
     @block.destroy
     redirect_to(blocks_path, notice: "Block Deleted")
+  end
+
+  def embed
+    xml = '<xml><block type="math_number"><field name="NUM">123</field></block></xml>'
+    render locals: {xml: xml}
   end
 
   private

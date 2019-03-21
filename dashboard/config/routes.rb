@@ -217,6 +217,7 @@ Dashboard::Application.routes.draw do
   scope 'pools/:pool' do
     resources :blocks, constraints: {id: /[^\/]+/}
   end
+  get '/dashboardapi/embed_blocks', to: 'blocks#embed'
   resources :shared_blockly_functions, path: '/functions'
   resources :libraries
 
