@@ -6,11 +6,12 @@ import {shrinkBlockSpaceContainer} from '@cdo/apps/templates/instructions/utils'
 import {installCustomBlocks} from '@cdo/apps/block_utils';
 import {install, customInputTypes} from '@cdo/apps/gamelab/blocks';
 
+const containerId = 'blockly-container';
 const script = document.querySelector('script[data-xml]');
 const xmlStr = script.dataset.xml;
 
 $(document).ready(() => {
-  const container = document.getElementById('blockly-container');
+  const container = document.getElementById(containerId);
   // investigate why default is always displayed from blocksDom.
   const blocksDom = parseElement(xmlStr);
 
@@ -36,4 +37,6 @@ $(document).ready(() => {
     blockDefinitions: [],
     customInputTypes
   });
+
+  $('body').html($(`#${containerId}`).html());
 });
