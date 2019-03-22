@@ -25,7 +25,7 @@
         <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
           <collectionProp name="Arguments.arguments"/>
         </elementProp>
-        <stringProp name="HTTPSampler.domain">${__property(servername,serverName, adhoc-performance.cdn-code.org)}</stringProp>
+        <stringProp name="HTTPSampler.domain">${__property(servername,serverName, adhoc-performance-studio.cdn-code.org)}</stringProp>
         <stringProp name="HTTPSampler.port"></stringProp>
         <stringProp name="HTTPSampler.protocol">${__property(protocol,protocol, https)}</stringProp>
         <stringProp name="HTTPSampler.contentEncoding"></stringProp>
