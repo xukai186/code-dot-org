@@ -44,6 +44,9 @@ class BlocksController < ApplicationController
   end
 
   def embed
+    response.headers['X-Frame-Options'] = 'ALLOWALL'
+    response.headers['Content-Security-Policy'] = ''
+
     xml = '<xml><block type="math_number"><field name="NUM">123</field></block></xml>'
     render locals: {xml: xml}
   end
