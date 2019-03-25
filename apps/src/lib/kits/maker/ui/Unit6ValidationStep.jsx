@@ -91,17 +91,38 @@ export default class Unit6ValidationStep extends Component {
                 {i18n.eligibilityReqYearConfirmInstructions()}
               </strong>
               {[
-                [Unit6Intention.NO, i18n.eligibilityYearNo()],
-                [Unit6Intention.YES_18_19, i18n.eligibilityYearYes1819()],
-                [Unit6Intention.YES_19_20, i18n.eligibilityYearYes1920()],
-                [Unit6Intention.YES_AFTER, i18n.eligibilityYearAfter()],
-                [Unit6Intention.UNSURE, i18n.eligibilityYearUnknown()]
-              ].map(([value, description]) => (
+                [
+                  Unit6Intention.NO,
+                  i18n.eligibilityYearNo(),
+                  'ui-test-id-yearNo'
+                ],
+                [
+                  Unit6Intention.YES_18_19,
+                  i18n.eligibilityYearYes1819(),
+                  'ui-test-id-1819'
+                ],
+                [
+                  Unit6Intention.YES_19_20,
+                  i18n.eligibilityYearYes1920(),
+                  'ui-test-id-1920'
+                ],
+                [
+                  Unit6Intention.YES_AFTER,
+                  i18n.eligibilityYearAfter(),
+                  'ui-test-id-after'
+                ],
+                [
+                  Unit6Intention.UNSURE,
+                  i18n.eligibilityYearUnknown(),
+                  'ui-test-id-unsure'
+                ]
+              ].map(([value, description, uiTestId]) => (
                 <label key={value}>
                   <input
                     style={styles.radio}
                     type="radio"
                     name="year"
+                    id={uiTestId}
                     value={value}
                     checked={this.state.choice === value}
                     onChange={this.handleChangeIntention}
