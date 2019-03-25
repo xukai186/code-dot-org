@@ -14,6 +14,7 @@
     "browserName": "chrome",
     "version": "44.0",
     "platform": "Windows 7"
+    "extendedDebugging": true,
   },
   {
     "name": "SafariYosemite",
