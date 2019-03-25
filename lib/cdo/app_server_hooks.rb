@@ -3,6 +3,9 @@ module Cdo
   # (e.g., dashboard and pegasus).
   module AppServerHooks
     def self.before_fork
+      # Eager-load all application secrets before fork.
+      CDO.secrets.required!
+
       PEGASUS_DB.disconnect
       DASHBOARD_DB.disconnect
       Cdo::AppServerMetrics.instance&.spawn_reporting_task if defined?(Cdo::AppServerMetrics)

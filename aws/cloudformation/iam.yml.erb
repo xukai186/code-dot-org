@@ -80,6 +80,7 @@ Resources:
             NotAction:
               - iam:*
               - organizations:*
+              - secretsmanager:*
             Resource: '*'
           - Sid: IAMReadOnlyAccess
             Effect: Allow
@@ -105,7 +106,19 @@ Resources:
             Condition:
               StringNotEquals:
                 cloudformation:RoleARN: !Sub "arn:aws:iam::${AWS::AccountId}:role/admin/CloudFormationService"
-
+          - Effect: Allow
+            Action:
+              # Developers can `ListSecrets`/`ListSecretVersionIds`, `DescribeSecret`, `CreateSecret`, `RotateSecret`.
+              - secretsmanager:ListSecrets
+              - secretsmanager:ListSecretVersionIds
+              - secretsmanager:DescribeSecret
+              - secretsmanager:CreateSecret
+              - secretsmanager:RotateSecret
+              # [TODO] For best security, deny `GetSecretValue` (secrets are create-only),
+              # and `PutSecretValue` (existing secrets can’t be updated directly, only rotated).
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+            Resource: '*'
   # Deprecated: use FrontendRole in application stack
   FrontendRole:
     Type: AWS::IAM::Role

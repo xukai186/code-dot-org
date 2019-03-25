@@ -12,6 +12,7 @@ require 'cdo/slog'
 require 'os'
 require 'cdo/git_utils'
 require 'uri'
+require 'cdo/secret'
 
 def load_languages(path)
   [].tap do |results|
@@ -158,6 +159,9 @@ def load_configuration
     config['pegasus_reporting_db_writer'] ||= config['reporting_db_writer'] + config['pegasus_db_name']
 
     config['image_optim'] = config['chef_managed'] && !ci_test if config['image_optim'].nil?
+
+    # Paths used to fetch secrets, in priority order.
+    config['secrets_paths'] ||= [rack_env, 'shared'].map {|name| "#{name}/cdo/"}
 
     # Set AWS SDK environment variables from provided config and standardize on aws_* attributres
     ENV['AWS_ACCESS_KEY_ID'] ||= config['aws_access_key'] ||= config['s3_access_key_id']
@@ -388,6 +392,10 @@ end
 CDO ||= CDOImpl.new
 
 require 'cdo/aws/cdo_google_credentials'
+
+require 'cdo/secrets'
+CDO.secrets = Cdo::Secrets.new(paths: CDO.secrets_paths)
+Cdo::Secret.resolve!(CDO, CDO.secrets)
 
 ####################################################################################################
 ##
