@@ -6,6 +6,8 @@ import Courses from '@cdo/apps/templates/studioHomepages/Courses';
 import {initCourseExplorer} from '@cdo/apps/courseExplorer/courseExplorer';
 import {getStore} from '@cdo/apps/code-studio/redux';
 
+console.log('courses/index loaded');
+  
 $(document).ready(showCourses);
 
 function showCourses() {
