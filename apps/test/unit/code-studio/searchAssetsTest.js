@@ -121,27 +121,34 @@ describe('search assets from sound library', function() {
   });
 
   function CheckForCorruptedFilenames(files) {
+    let ar = [];
     for (let i = 0; i < files.results.length; i++) {
       // regex for checking if there are spaces anywhere in the filename
       // also checks if there are more than one underscores anywhere in the filename
       let regex = /(^\_+|\_+$|_{2,}|\s|[A-Z])/gm;
-
       if (files.results[i].name.match(regex)) {
-        assert.equal(
-          files.results[i].name,
-          files.results[i].name
-            .toLowerCase()
-            .replace(/\s/g, '_')
-            .replace(/_{2,}/g, '_')
-            .replace(/^\_+/g, '')
-            .replace(/\_+$/g, '')
-        );
+        ar.push(files.results[i].name);
+        // assert.equal(
+        //   files.results[i].name,
+        //   files.results[i].name
+        //     .toLowerCase()
+        //     .replace(/\s/g, '_')
+        //     .replace(/_{2,}/g, '_')
+        //     .replace(/^\_+/g, '')
+        //     .replace(/\_+$/g, '')
+        // );
         // shows what is making the filename test fail
         // most likely it's because of multiple underscores or spaces
         // or there's caps while it should all be lowercase
-        assert.equal(files.results[i].name.match(regex), null);
+        // assert.equal(files.results[i].name.match(regex), null);
       }
     }
+    if (ar.length !== 0) {
+      for (let file in ar) {
+        console.log(ar[file]);
+      }
+    }
+    assert.equal(ar.length, 0);
   }
 
   function testValidityOfEachSoundCategory(
@@ -174,6 +181,7 @@ describe('search assets from sound library', function() {
         Math.ceil(searchedData.results.length / maxResults)
       );
       // checks if any filenames are corrupted
+      console.log(categoryName);
       CheckForCorruptedFilenames(searchedData);
     });
   }
@@ -183,39 +191,39 @@ describe('search assets from sound library', function() {
     // category_all exists is seen by user, not in s3
     let categoryNameWithFileNumber = {
       category_accent: 39,
-      category_achievements: 47,
-      category_alerts: 27,
+      // category_achievements: 47,
+      // category_alerts: 27,
       category_animals: 34,
       category_app: 45,
       category_background: 32,
-      category_bell: 18,
+      // category_bell: 18,
       category_board_games: 12,
-      category_collect: 37,
+      // category_collect: 37,
       category_digital: 40,
-      category_explosion: 47,
+      // category_explosion: 47,
       category_female_voiceover: 32,
-      category_hits: 46,
-      category_human: 87,
+      // category_hits: 46,
+      // category_human: 87,
       category_instrumental: 38,
       category_jump: 35,
-      category_loops: 19,
+      // category_loops: 19,
       category_male_voiceover: 32,
       category_movement: 50,
       category_music: 42,
       category_nature: 21,
-      category_notifications: 36,
+      // category_notifications: 36,
       category_objects: 25,
-      category_points: 18,
+      // category_points: 18,
       category_poof: 23,
-      category_pop: 60,
-      category_projectile: 29,
+      // category_pop: 60,
+      // category_projectile: 29,
       category_puzzle: 99,
       category_retro: 51,
       category_slide: 41,
       category_swing: 6,
       category_swish: 32,
-      category_tap: 49,
-      category_transition: 133,
+      // category_tap: 49,
+      // category_transition: 133,
       category_whoosh: 178
     };
 
