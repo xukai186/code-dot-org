@@ -1,7 +1,7 @@
 class Api::V1::Projects::PublicGalleryController < ApplicationController
   # GET /api/v1/projects/gallery/public/<project_type>/<limit>[/<published_before>]
   def index
-    unless Rails.env.test? || Rails.env.development?
+    unless Rails.env.test? || Rails.env.development? || Rails.env.adhoc?
       expires_in 5.seconds, public: true # cache
     end
 

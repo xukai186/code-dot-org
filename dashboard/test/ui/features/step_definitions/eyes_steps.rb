@@ -29,7 +29,8 @@ When(/^I open my eyes to test "([^"]*)"( except in circle)?$/) do |test_name, ex
     puts "Branch is #{pr_base}"
     @eyes.parent_branch_name = pr_base
   else
-    fallback_branch = GitUtils.current_branch_base_no_origin
+    #fallback_branch = GitUtils.current_branch_base_no_origin
+    fallback_branch = 'test'
     puts "No PR for eyes branch: #{GitUtils.current_branch}, using fallback parent branch #{fallback_branch}"
     @eyes.parent_branch_name = fallback_branch
   end

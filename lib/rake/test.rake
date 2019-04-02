@@ -145,6 +145,10 @@ namespace :test do
         seed_file = Tempfile.new(['db_seed', '.sql'])
         auto_inc = 's/ AUTO_INCREMENT=[0-9]*\b//'
         writer = URI.parse(CDO.dashboard_db_writer || 'mysql://root@localhost')
+#	puts writer
+#	puts writer.user
+#	puts writer.password
+#	puts writer.host
 
         if seed_data
           File.write(seed_file, seed_data)
@@ -182,9 +186,9 @@ namespace :test do
           databases = procs.times.map {|i| "dashboard_test#{i + 1}"}
           databases.each do |db|
             recreate_db = "DROP DATABASE IF EXISTS #{db}; CREATE DATABASE IF NOT EXISTS #{db};"
-            RakeUtils.system_stream_output "echo '#{recreate_db}' | mysql -u#{writer.user}"
+            RakeUtils.system_stream_output "echo '#{recreate_db}' | mysql -u#{writer.user} -p#{writer.password} -h#{writer.host}"
           end
-          pipes = databases.map {|db| ">(mysql -u#{writer.user} #{db})"}.join(' ')
+          pipes = databases.map {|db| ">(mysql -u#{writer.user} -p#{writer.password} -h#{writer.host} #{db})"}.join(' ')
           RakeUtils.system_stream_output "/bin/bash -c 'tee <#{seed_file.path} #{pipes} >/dev/null'"
         end
 
