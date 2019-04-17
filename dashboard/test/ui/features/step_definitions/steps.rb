@@ -10,7 +10,10 @@ def wait_until(timeout = DEFAULT_WAIT_TIMEOUT)
   rescue Selenium::WebDriver::Error::UnknownError => e
     puts "Unknown error: #{e}"
     false
-  rescue  Selenium::WebDriver::Error::StaleElementReferenceError
+  rescue Selenium::WebDriver::Error::WebDriverError => e
+    raise unless e.message.include?('no such element')
+    false
+  rescue Selenium::WebDriver::Error::StaleElementReferenceError
     false
   end
 end
@@ -29,9 +32,14 @@ rescue Selenium::WebDriver::Error::UnknownError => e
   true
 rescue Selenium::WebDriver::Error::StaleElementReferenceError
   true
+rescue Selenium::WebDriver::Error::WebDriverError => e
+  return true if e.message.include?('stale element reference') ||
+    e.message.include?('no such element')
+  puts "Unknown error: #{e}"
+  true
 end
 
-def page_load(wait = true, blank_tab: false)
+def page_load(wait = true, wait_proc: nil, blank_tab: false)
   if wait
     root = @browser.find_element(css: ':root')
     tabs = @browser.window_handles if wait == 'tab'
@@ -40,7 +48,10 @@ def page_load(wait = true, blank_tab: false)
       new_tab = wait_until {(@browser.window_handles - tabs).first}
       @browser.switch_to.window(new_tab)
     end
-    wait_until {element_stale?(root)}
+    wait_until do
+      wait_proc&.call
+      element_stale?(root)
+    end
     unless blank_tab
       wait_until do
         (url = @browser.current_url) != '' &&
@@ -76,6 +87,9 @@ def navigate_to(url)
   Retryable.retryable(on: RSpec::Expectations::ExpectationNotMetError, sleep: 10, tries: 3) do
     with_read_timeout(DEFAULT_WAIT_TIMEOUT + 5.seconds) do
       @browser.navigate.to url
+      wait_until do
+        @browser.execute_script('return document.readyState;') == 'complete'
+      end
     end
     refute_bad_gateway_or_site_unreachable
   end
@@ -168,6 +182,7 @@ end
 
 Then /^I see "([.#])([^"]*)"$/ do |selector_symbol, name|
   selection_criteria = selector_symbol == '#' ? {id: name} : {class: name}
+  selection_criteria = {css: "#{selector_symbol}#{name}"} if name.include?('#')
   @browser.find_element(selection_criteria)
 end
 
@@ -277,7 +292,9 @@ When /^I press "([^"]*)"(?: to load a new (page|tab))?$/ do |button, load|
   wait_short_until do
     @button = @browser.find_element(id: button)
   end
-  page_load(load) {@button.click}
+  page_load(load) do
+    @button.click
+  end
 end
 
 When /^I press the child number (.*) of class "([^"]*)"( to load a new page)?$/ do |number, selector, load|
@@ -378,11 +395,24 @@ When /^I press the SVG text "([^"]*)"$/ do |name|
   @browser.execute_script("$('" + name_selector + "').simulate('drag', function(){});")
 end
 
-When /^I select the "([^"]*)" option in dropdown "([^"]*)"( to load a new page)?$/ do |option_text, element_id, load|
+And(/^I scroll to "([^"]*)"$/) do |selector|
+  @browser.find_element(:css, selector).location_once_scrolled_into_view
+end
+
+def select_dropdown(element, option_text, load)
+  element.location_once_scrolled_into_view
+  select = Selenium::WebDriver::Support::Select.new(element)
   page_load(load) do
-    select = Selenium::WebDriver::Support::Select.new(@browser.find_element(:id, element_id))
     select.select_by(:text, option_text)
   end
+end
+
+When /^I select the "([^"]*)" option in dropdown "([^"]*)"( to load a new page)?$/ do |option_text, element_id, load|
+  select_dropdown(@browser.find_element(:id, element_id), option_text, load)
+end
+
+When /^I select the "([^"]*)" option in dropdown named "([^"]*)"( to load a new page)?$/ do |option_text, element_name, load|
+  select_dropdown(@browser.find_element(:css, "select[name=#{element_name}]"), option_text, load)
 end
 
 When /^I open the topmost blockly category "([^"]*)"$/ do |name|
@@ -447,6 +477,10 @@ When /^I click "([^"]*)"( once it exists)?(?: to load a new (page|tab))?$/ do |s
   find = -> {@browser.find_element(:css, selector)}
   element = wait ? wait_until(&find) : find.call
   page_load(load) {element.click}
+end
+
+When /^I select the end of "([^"]*)"$/ do |selector|
+  @browser.execute_script("document.querySelector(\"#{selector}\").setSelectionRange(9999, 9999);")
 end
 
 When /^I click selector "([^"]*)"(?: to load a new (page|tab))?$/ do |jquery_selector, load|
@@ -764,6 +798,15 @@ end
 
 Then /^element "([^"]*)" is (?:enabled|not disabled)$/ do |selector|
   expect(disabled?(selector)).to eq(false)
+end
+
+Then /^I wait (?:up to (\d+) second[s]? )?until "([^"]*)" is (not )?disabled$/ do |wait, selector, negation|
+  wait_until(wait || DEFAULT_WAIT_TIMEOUT) do
+    disabled?(selector) == negation.nil?
+  end
+rescue
+  # If 'up to x seconds' is specified continue without error after time has elapsed.
+  raise if wait.nil?
 end
 
 Then /^element "([^"]*)" is disabled$/ do |selector|
@@ -1260,41 +1303,26 @@ And(/^I ctrl-([^"]*)$/) do |key|
   @browser.action.key_down(:control).send_keys(key).key_up(:control).perform
 end
 
+def convert_keys(keys)
+  return keys[1..-1].to_sym if keys.start_with?(':')
+  keys.gsub!(/([^\\])\\n/, "\\1\n") # Cucumber does not convert captured \n to newline.
+  keys.gsub!(/\\\\n/, "\\n") # Fix up escaped newline
+  # Convert newlines to :enter keys.
+  keys.chars.map {|k| k == "\n" ? :enter : k}
+end
+
 def press_keys(element, key)
-  if key.start_with?(':')
-    element.send_keys(make_symbol_if_colon(key))
-  else
-    # Workaround for Firefox, see https://code.google.com/p/selenium/issues/detail?id=6822
-    key.gsub!(/([^\\])\\n/, "\\1\n") # Cucumber does not convert captured \n to newline.
-    key.gsub!(/\\\\n/, "\\n") # Fix up escaped newline
-    key.split('').each do |k|
-      if k == '('
-        element.send_keys :shift, 9
-      elsif k == ')'
-        element.send_keys :shift, 0
-      else
-        element.send_keys k
-      end
-    end
-  end
+  element.send_keys(*convert_keys(key))
 end
 
 # Known issue: IE does not register the key presses in this step.
 # Add @no_ie tag to your scenario to skip IE when using this step.
-And(/^I press keys "([^"]*)" for element "([^"]*)"$/) do |key, selector|
-  element = @browser.find_element(:css, selector)
-  press_keys(element, key)
-end
-
-def make_symbol_if_colon(key)
-  # Available symbol keys:
-  # https://code.google.com/p/selenium/source/browse/rb/lib/selenium/webdriver/common/keys.rb?name=selenium-2.26.0
-  key.start_with?(':') ? key[1..-1].to_sym : key
+And(/^I press keys "([^"]*)" for element "([^"]*)"$/) do |keys, selector|
+  press_keys(@browser.find_element(:css, selector), keys)
 end
 
 When /^I press keys "([^"]*)"$/ do |keys|
-  # Note: Safari webdriver does not support actions API
-  @browser.action.send_keys(make_symbol_if_colon(keys)).perform
+  @browser.action.send_keys(*convert_keys(keys)).perform
 end
 
 # Press backspace repeatedly to clear an element.  Handy for React.
@@ -1313,6 +1341,10 @@ end
 
 When /^I press double-quote key$/ do
   @browser.action.send_keys('"').perform
+end
+
+When /^I press double-quote key for element "([^"]*)"$/ do |selector|
+  press_keys(@browser.find_element(:css, selector), '"')
 end
 
 When /^I disable onBeforeUnload$/ do
@@ -1365,6 +1397,7 @@ end
 When /^I navigate to the shared version of my project$/ do
   steps <<-STEPS
     When I open the share dialog
+    And I wait for 3 seconds
     And I navigate to the share URL
   STEPS
 end
@@ -1609,7 +1642,7 @@ Then /^I hide unit "([^"]+)"$/ do |unit_name|
   selector = ".uitest-CourseScript:contains(#{unit_name}) .fa-eye-slash"
   @browser.execute_script("$(#{selector.inspect}).click();")
   wait_short_until do
-    @browser.execute_script("return window.__TestInterface.toggleHiddenUnitComplete;")
+    @browser.execute_script("return window.__TestInterface && window.__TestInterface.toggleHiddenUnitComplete;")
   end
 end
 
@@ -1676,6 +1709,6 @@ Then /^I open the Manage Assets dialog$/ do
 end
 
 Then /^page text does (not )?contain "([^"]*)"$/ do |negation, text|
-  body_text = @browser.execute_script('return document.body.textContent;')
+  body_text = @browser.execute_script('return document.body && document.body.textContent;').to_s
   expect(body_text.include?(text)).to eq(negation.nil?)
 end

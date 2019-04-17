@@ -10,7 +10,16 @@ $browser_config = JSON.load(open("browsers.json")).detect {|b| b['name'] == ENV[
 
 MAX_CONNECT_RETRIES = 3
 
-def slow_browser?
+def w3c?
+  ['Firefox', 'Safari'].include? ENV['BROWSER_CONFIG']
+end
+
+# Run all tests in a single session.
+def single_session?
+  mobile_browser? || @single_session
+end
+
+def mobile_browser?
   ['iPhone', 'iPad'].include? ENV['BROWSER_CONFIG']
 end
 
@@ -22,13 +31,34 @@ def saucelabs_browser(test_run_name)
   url = "http://#{CDO.saucelabs_username}:#{CDO.saucelabs_authkey}@#{is_tunnel ? 'localhost:4445' : 'ondemand.saucelabs.com:80'}/wd/hub"
 
   capabilities = Selenium::WebDriver::Remote::Capabilities.new($browser_config)
-
   capabilities[:javascript_enabled] = 'true'
-  capabilities[:tunnelIdentifier] = CDO.circle_run_identifier if CDO.circle_run_identifier
-  capabilities[:name] = test_run_name
-  capabilities[:tags] = [ENV['GIT_BRANCH']]
-  capabilities[:build] = CDO.circle_run_identifier || ENV['BUILD']
-  capabilities[:idleTimeout] = 600
+
+  if ENV['BROWSER_CONFIG'] == 'Firefox'
+    # Firefox >= 66 has an issue with its content blocker causing page loads to block indefinitely.
+    # Set content blocking to 'strict' as a workaround.
+    profile = Selenium::WebDriver::Firefox::Profile.new
+    profile['browser.contentblocking.category'] = 'strict'
+    capabilities[:firefox_profile] = profile
+  end
+
+  sauce_capabilities = {
+    name: test_run_name,
+    tags: [ENV['GIT_BRANCH']],
+    build: CDO.circle_run_identifier || ENV['BUILD'],
+    idleTimeout: 30
+  }
+  sauce_capabilities[:tunnelIdentifier] = CDO.circle_run_identifier if CDO.circle_run_identifier
+
+  # Use w3c-compatible sauce:options capabilities format for compatible browsers.
+  # Ref: https://wiki.saucelabs.com/display/DOCS/Selenium+W3C+Capabilities+Support+-+Beta
+  if w3c?
+    sauce_capabilities['seleniumVersion'] = Selenium::WebDriver::VERSION
+    capabilities['sauce:options'] = sauce_capabilities
+    capabilities['platformName'] = capabilities['platform']
+  else
+    capabilities.merge!(sauce_capabilities)
+  end
+
   very_verbose "DEBUG: Capabilities: #{CGI.escapeHTML capabilities.inspect}"
 
   $http_client = SeleniumBrowser::Client.new(read_timeout: 2.minutes)
@@ -84,14 +114,16 @@ Before('@dashboard_db_access') do
 end
 
 Before do |scenario|
+  @tags = scenario.source_tag_names
+  @single_session = true if @tags.include?('@single_session')
+
   very_verbose "DEBUG: @browser == #{CGI.escapeHTML @browser.inspect}"
 
-  if slow_browser?
+  if single_session?
+    very_verbose('Single session, using existing browser') if $browser
     $browser ||= get_browser ENV['TEST_RUN_NAME']
-    very_verbose 'slow browser, using existing'
     @browser ||= $browser
   else
-    very_verbose 'fast browser, getting a new one'
     $browser = @browser = get_browser "#{ENV['TEST_RUN_NAME']}_#{scenario.name}"
   end
 
@@ -107,12 +139,18 @@ def log_result(result)
     body: {"passed" => result}.to_json,
     headers: {'Content-Type' => 'application/json'}
   )
+rescue => e
+  puts "Error logging result: #{e}"
 end
 
 # Quit current browser session.
-def quit_browser
+def quit_browser(breakpoint = false)
   with_read_timeout(5.seconds) do
-    $browser&.quit
+    if ENV['BREAKPOINT'] && breakpoint
+      $browser&.execute_script('sauce: break')
+    else
+      $browser&.quit
+    end
   rescue => e
     puts "Error quitting browser session: #{e}"
   end
@@ -122,17 +160,17 @@ end
 $all_passed = true
 
 After do |scenario|
-  if slow_browser?
+  if single_session?
     $all_passed &&= scenario.passed?
     # clear session state
     with_read_timeout(10) do
       steps 'Then I sign out' if $browser
     rescue => e
-      puts "Session reset error: #{e}"
+      puts "Single-session reset error: #{e}"
     end
   else
     log_result scenario.passed?
-    quit_browser
+    quit_browser(scenario.failed?)
   end
 end
 
@@ -168,8 +206,8 @@ AfterConfiguration do |config|
 end
 
 at_exit do
-  log_result $all_passed if slow_browser?
-  quit_browser
+  log_result $all_passed if single_session?
+  quit_browser(!$all_passed)
 end
 
 def very_verbose(msg)

@@ -219,6 +219,11 @@ def parse_options
       end
       opts.on("--dry-run", "Process features without running any actual steps.") do
         options.dry_run = true
+      opts.on("--parallel-scenarios", "Run scenarios in parallel. Note: Experimental, logs aren't aggregated correctly.") do
+        options.parallel_scenarios = true
+      end
+      opts.on("--breakpoint", "Send breakpoint to Sauce Labs for failing scenarios") do
+        options.breakpoint = true
       end
       opts.on_tail("-h", "--help", "Show this message") do
         puts opts
@@ -322,7 +327,11 @@ end
 
 def run_tests(env, feature, arguments, log_prefix)
   start_time = Time.now
-  cmd = "cucumber #{feature} #{arguments}"
+  cmd = if $options.parallel_scenarios
+          "parallel_cucumber --group-by scenarios -- #{arguments} -- #{feature}"
+        else
+          "cucumber #{feature} #{arguments}"
+        end
   puts "#{log_prefix}#{cmd}"
   Open3.popen3(env, cmd) do |stdin, stdout, stderr, wait_thr|
     stdin.close
@@ -644,10 +653,8 @@ def cucumber_arguments_for_browser(browser, options)
   arguments += skip_tag('@no_circle') if options.is_circle
   arguments += skip_tag('@no_ie') if browser['browserName'] == 'Internet Explorer'
 
-  # Only run in IE during a DTT. always run locally or during circle runs.
-  # Note that you may end up running in more than one browser if you use flags
-  # like [test safari], [test ie] or [test firefox] during a circle run.
-  arguments += skip_tag('@only_one_browser') if browser['browserName'] != 'Internet Explorer' && !options.local && !options.is_circle
+  # Run @only_one_browser tests in IE if running tests in multiple browsers.
+  arguments += skip_tag('@only_one_browser') if !$browsers.one? && browser['browserName'] != 'Internet Explorer'
 
   arguments += skip_tag('@chrome') if browser['browserName'] != 'chrome' && !options.local
   arguments += skip_tag('@no_chrome') if browser['browserName'] == 'chrome'
@@ -715,6 +722,7 @@ def run_feature(browser, feature, options)
   run_environment['MOBILE'] = browser['mobile'] ? "true" : "false"
   run_environment['TEST_RUN_NAME'] = test_run_string
   run_environment['IS_CIRCLE'] = options.is_circle ? "true" : "false"
+  run_environment['BREAKPOINT'] = '1' if options.breakpoint
 
   # disable some stuff to make require_rails_env run faster within cucumber.
   # These things won't be disabled in the dashboard instance we're testing against.
