@@ -16,6 +16,7 @@ import TooltipOverlay, {coordinatesProvider} from '../templates/TooltipOverlay';
 import i18n from '@cdo/locale';
 import {toggleGridOverlay} from './actions';
 import GridOverlay from './GridOverlay';
+import TextConsole from './TextConsole';
 import {
   cancelLocationSelection,
   selectLocation,
@@ -146,6 +147,12 @@ class GameLabVisualizationColumn extends React.Component {
 
     return (
       <span>
+        <TextConsole
+          show={true}
+          showWhileRunning={true}
+          width={GAME_WIDTH}
+          height={GAME_HEIGHT}
+        />
         <ProtectedVisualizationDiv>
           <Pointable
             id="divGameLab"
