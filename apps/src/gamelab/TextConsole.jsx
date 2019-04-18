@@ -24,7 +24,7 @@ export const styles = {
   consoleOpen: {
     display: '',
     background: 'rgba(128,128,128,0.3)',
-    maxHeight: '19%',
+    maxHeight: '108px',
     position: 'absolute',
     top: 0,
     left: 0,
