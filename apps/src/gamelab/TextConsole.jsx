@@ -96,19 +96,38 @@ export default class TextConsole extends React.Component {
   }
 
   toggleStyle() {
+    this.state.closed? this.expandConsole() : this.closeConsole();
+  }
+
+  closeConsole() {
     this.setState((state) => {
-      return {closed: !state.closed};
+      return {closed: true};
     });
   }
 
+  expandConsole() {
+    this.setState((state) => {
+      return {closed: false};
+    });
+    setTimeout(() => {
+      this.closeConsole();
+    }, 2000);
+  }
+
+/*
   getButtonText() {
     return this.state.closed? '+' : '-';
+  }
+*/
+
+  getButtonStyle() {
+    return this.state.closed? styles.expandButton : styles.hide;
   }
 
   render() {
     return (
       <div>
-        <span id="text-console" className="text-console" style={this.getConsoleStyle()} >
+        <span id="text-console" className="text-console" style={this.getConsoleStyle()} onClick={() => this.toggleStyle()}>
           <p style={styles.paragraphStyle}>
             <b>Lorem</b> ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
           </p>
@@ -122,7 +141,7 @@ export default class TextConsole extends React.Component {
             <b>Lorem</b> ipsum dolor sit amet, consectetur
           </p>
         </span>
-        <button type="button" id="expand-collapse" style={styles.expandButton} onClick={() => this.toggleStyle()}>{this.getButtonText()}</button>
+        <button type="button" id="expand-collapse" style={this.getButtonStyle()} onClick={() => this.expandConsole()}>+</button>
       </div>
     );
   }
