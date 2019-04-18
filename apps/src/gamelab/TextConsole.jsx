@@ -42,6 +42,7 @@ export const styles = {
     width: '100%',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
+    maxHeight: '18px'
   },
   expandButton: {
     position: 'absolute',
@@ -67,6 +68,9 @@ export const styles = {
     fontSize: 'inherit',
     lineHeight: 'inherit',
     borderRadius: '0px'
+  },
+  paragraphStyle: {
+    margin: '0px'
   }
 };
 
@@ -105,9 +109,18 @@ export default class TextConsole extends React.Component {
     return (
       <div>
         <span id="text-console" className="text-console" style={this.getConsoleStyle()} >
-          <text x={5} y={15}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </text>
+          <p style={styles.paragraphStyle}>
+            <b>Lorem</b> ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          </p>
+          <p style={styles.paragraphStyle}>
+            <b>Lorem</b> ipsum
+          </p>
+          <p style={styles.paragraphStyle}>
+            <b>Lorem</b> ipsum dolor
+          </p>
+          <p style={styles.paragraphStyle}>
+            <b>Lorem</b> ipsum dolor sit amet, consectetur
+          </p>
         </span>
         <button type="button" id="expand-collapse" style={styles.expandButton} onClick={() => this.toggleStyle()}>{this.getButtonText()}</button>
       </div>
