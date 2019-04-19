@@ -1,5 +1,7 @@
 class UserSchoolInfosController < ApplicationController
-  #before_action :authenticate_user!
+  # before_action :authenticate_user!
+  skip_before_action :verify_authenticity_token
+  # CSRF Token POST
 
   # PATCH /api/v1/users_school_infos/<id>/update_last_confirmation_date
   def update_last_confirmation_date
