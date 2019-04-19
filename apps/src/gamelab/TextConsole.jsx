@@ -1,6 +1,7 @@
 /** @file Grid over visualization */
 import PropTypes from 'prop-types';
 import React from 'react';
+import Transition from 'react-transition-group/Transition';
 
 export const styles = {
   show: {
@@ -44,6 +45,27 @@ export const styles = {
   },
   paragraphStyle: {
     margin: '0px'
+  },
+
+};
+
+export const transitionStyles = {
+  entering: {
+    overflow: 'auto',
+    maxHeight: '108px'
+  },
+  entered: {
+    overflow: 'auto',
+    maxHeight: '108px'
+  },
+  exiting: {
+    overflow: 'auto',
+    maxHeight: '18px'
+  },
+  exited: {
+    maxHeight: '18px',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap'
   }
 };
 
@@ -61,7 +83,8 @@ export default class TextConsole extends React.Component {
   };
 
   state = {
-    closed: true
+    closed: true,
+    inProp: false
   };
 
   getConsoleStyle() {
@@ -97,15 +120,25 @@ export default class TextConsole extends React.Component {
     return this.state.closed? styles.expandButton : styles.hide;
   }
 
+  setInProp() {
+    this.setState((state) => {
+      return {inProp: !this.state.inProp};
+    });
+  }
+
   render() {
     return (
       <div>
+       <Transition in={this.state.inProp} timeout={1000}>
+       {(state) => (
         <span
           id="text-console"
           className="text-console"
-          style={this.getConsoleStyle()}
-          onClick={() => this.toggleStyle()}
-          onMouseLeave={() => this.delayCloseConsole()}
+          onClick={() => this.setInProp()}
+          style={{
+            ...styles.console,
+            ...transitionStyles[state]
+          }}
         >
           <p style={styles.paragraphStyle}>
             <b>Lorem</b> ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
@@ -120,11 +153,13 @@ export default class TextConsole extends React.Component {
             <b>Lorem</b> ipsum dolor sit amet, consectetur
           </p>
         </span>
+       )}
+        </Transition>
         <button
           type="button"
           id="expand-collapse"
           style={this.getButtonStyle()}
-          onClick={() => this.expandConsole()}
+          onClick={() => this.setInProp()}
         >
           +
         </button>
@@ -132,7 +167,10 @@ export default class TextConsole extends React.Component {
     );
   }
 }
-
+//     <Transition in={this.state.inProp} timeout={1000}>
+    //   </Transition>
+          //onClick={() => this.toggleStyle()}
+          //onMouseLeave={() => this.delayCloseConsole()}
 
     // setTimeout(() => {
     //   this.closeConsole();
