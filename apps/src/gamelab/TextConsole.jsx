@@ -84,82 +84,59 @@ export default class TextConsole extends React.Component {
 
   state = {
     closed: true,
-    inProp: false
+    inProp: false,
+    duration: 1000,
+    spokenLines: []
   };
 
-  getConsoleStyle() {
-    return this.state.closed?
-      {...styles.console, ...styles.consoleClosed} :
-      {...styles.console, ...styles.consoleOpen};
-    //return this.state.closed? styles.consoleClosed : styles.consoleOpen;
-  }
-
-  toggleStyle() {
-    this.state.closed? this.expandConsole() : this.closeConsole();
-  }
-
-  delayCloseConsole() {
-    this.closeConsole('2s');
-  }
-
-  closeConsole(delay = '0s') {
-    styles.console.transitionDelay = delay;
-    this.setState((state) => {
-      return {closed: true};
-    });
-  }
-
-  expandConsole() {
+  toggleConsole() {
+    // refs.elt.scrollTop = text_console.elt.scrollHeight;
     styles.console.transitionDelay = '0s';
     this.setState((state) => {
-      return {closed: false};
+      return {inProp: !this.state.inProp, duration: 1000};
     });
   }
 
   getButtonStyle() {
-    return this.state.closed? styles.expandButton : styles.hide;
+    return this.state.inProp? styles.hide : styles.expandButton;
   }
 
-  setInProp() {
-    this.setState((state) => {
-      return {inProp: !this.state.inProp};
-    });
+  getLines() {
+    // For testing
+    // this.state.spokenLines = ["Hi", "My name is", "jessie", "what's your name?", "I like dogs", "and cats", "what do you like?", "very long string very long string very long string very long string very long string very long string"];
+    //
+    return this.state.spokenLines.map(line => (
+      <p style={styles.paragraphStyle}>
+        <b>Jessie</b> {line}
+      </p>
+    ));
   }
 
   render() {
     return (
       <div>
-       <Transition in={this.state.inProp} timeout={1000}>
-       {(state) => (
-        <span
-          id="text-console"
-          className="text-console"
-          onClick={() => this.setInProp()}
-          style={{
-            ...styles.console,
-            ...transitionStyles[state]
-          }}
-        >
-          <p style={styles.paragraphStyle}>
-            <b>Lorem</b> ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </p>
-          <p style={styles.paragraphStyle}>
-            <b>Lorem</b> ipsum
-          </p>
-          <p style={styles.paragraphStyle}>
-            <b>Lorem</b> ipsum dolor
-          </p>
-          <p style={styles.paragraphStyle}>
-            <b>Lorem</b> ipsum dolor sit amet, consectetur
-          </p>
-        </span>
-       )}
+       <Transition in={this.state.inProp} timeout={this.state.duration}>
+         {(state) => (
+            <span
+              id="text-console"
+              className="text-console"
+              onClick={() => this.toggleConsole()}
+              // onMouseLeave={() => this.mouseLeave()}
+              // onMouseEnter={() => this.mouseEnter()}
+              style={{
+                ...styles.console,
+                ...transitionStyles[state]
+              }}
+            >
+              {this.getLines()}
+            </span>
+          )}
         </Transition>
         <button
           type="button"
           id="expand-collapse"
           style={this.getButtonStyle()}
-          onClick={() => this.setInProp()}
+          onClick={() => this.toggleConsole()}
         >
           +
         </button>
@@ -167,6 +144,69 @@ export default class TextConsole extends React.Component {
     );
   }
 }
+
+
+// <p style={styles.paragraphStyle}>
+//                 <b>Lorem</b> ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+//               </p>
+//               <p style={styles.paragraphStyle}>
+//                 <b>Lorem</b> ipsum
+//               </p>
+//               <p style={styles.paragraphStyle}>
+//                 <b>Lorem</b> ipsum dolor
+//               </p>
+//               <p style={styles.paragraphStyle}>
+//                 <b>Lorem</b> ipsum dolor sit amet, consectetur
+//               </p>
+
+  // getConsoleStyle() {
+  //   return this.state.closed?
+  //     {...styles.console, ...styles.consoleClosed} :
+  //     {...styles.console, ...styles.consoleOpen};
+  //   //return this.state.closed? styles.consoleClosed : styles.consoleOpen;
+  // }
+
+  // toggleStyle() {
+  //   this.state.closed? this.expandConsole() : this.closeConsole();
+  // }
+
+  // delayCloseConsole() {
+  //   this.closeConsole('2s');
+  // }
+
+  // closeConsole(delay = '0s') {
+  //   styles.console.transitionDelay = delay;
+  //   this.setState((state) => {
+  //     return {closed: true};
+  //   });
+  // }
+
+  // expandConsole() {
+  //   styles.console.transitionDelay = '0s';
+  //   this.setState((state) => {
+  //     return {closed: false};
+  //   });
+  // }
+
+  // getButtonStyle() {
+  //   return this.state.closed? styles.expandButton : styles.hide;
+  // }
+
+  // mouseLeave() {
+  //   styles.console.transitionDelay = '0s';
+  //   this.setState((state) => {
+  //     return {inProp: false, duration: 1000};
+  //   })
+  // }
+
+  // mouseEnter() {
+  //   styles.console.transitionDelay = '0s';
+  //   this.setState((state) => {
+  //     return {inProp: true, duration: 1000};
+  //   });
+  // }
+
+
 //     <Transition in={this.state.inProp} timeout={1000}>
     //   </Transition>
           //onClick={() => this.toggleStyle()}
