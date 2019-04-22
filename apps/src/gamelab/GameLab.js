@@ -153,6 +153,15 @@ var GameLab = function() {
       getStore().getState().pageConstants.isShareView
     );
   };
+
+  this.appendSpriteConsole = (spriteMessage) => {
+    var message = "\nText: " + spriteMessage.text;
+    if (spriteMessage.sprite) {
+      message += "\nSprite: " + spriteMessage.sprite;
+    }
+
+    console.log("Appending sprite console!" + message);
+  };
 };
 
 module.exports = GameLab;
@@ -943,6 +952,12 @@ GameLab.prototype.initInterpreter = function(attachDebugger = true) {
     this.JSInterpreter.createGlobalProperty(
       'showMobileControls',
       this.showMobileControls,
+      null
+    );
+
+    this.JSInterpreter.createGlobalProperty(
+      'appendSpriteConsole',
+      this.appendSpriteConsole,
       null
     );
   };
