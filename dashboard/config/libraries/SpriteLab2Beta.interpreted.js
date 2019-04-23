@@ -523,7 +523,7 @@ function makeNewSprite(animation, x, y) {
     return sprite.scale / sprite.baseScale;
   };
   sprite.say = function (text) {
-    appendSpriteConsole({sprite: sprite.name, text: text});
+    appendSpriteConsole({name: sprite.getAnimationLabel(), text: text});
   };
   sprite.stop_say = function () {
     sprite.things_to_say = [];

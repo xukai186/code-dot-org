@@ -49,6 +49,7 @@ import {
 } from '../containedLevels';
 import {hasValidContainedLevelResult} from '../code-studio/levels/codeStudioLevels';
 import {actions as jsDebugger} from '../lib/tools/jsdebugger/redux';
+import {addConsoleMessage, clearConsole} from './textConsoleModule';
 import {captureThumbnailFromCanvas} from '../util/thumbnail';
 import Sounds from '../Sounds';
 import {TestResults, ResultType} from '../constants';
@@ -156,10 +157,11 @@ var GameLab = function() {
 
   this.appendSpriteConsole = (spriteMessage) => {
     var message = "\nText: " + spriteMessage.text;
-    if (spriteMessage.sprite) {
-      message += "\nSprite: " + spriteMessage.sprite;
+    if (spriteMessage.name) {
+      message += "\nSprite: " + spriteMessage.name;
     }
 
+    getStore().dispatch(addConsoleMessage(spriteMessage));
     console.log("Appending sprite console!" + message);
   };
 };
@@ -741,6 +743,8 @@ GameLab.prototype.reset = function() {
     defaultMobileControlsConfig,
     getStore().getState().pageConstants.isShareView
   );
+
+  getStore().dispatch(clearConsole());
 };
 
 GameLab.prototype.rerunSetupCode = function() {

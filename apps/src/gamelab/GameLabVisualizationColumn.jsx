@@ -49,7 +49,8 @@ class GameLabVisualizationColumn extends React.Component {
     toggleShowGrid: PropTypes.func.isRequired,
     cancelPicker: PropTypes.func.isRequired,
     selectPicker: PropTypes.func.isRequired,
-    updatePicker: PropTypes.func.isRequired
+    updatePicker: PropTypes.func.isRequired,
+    consoleMessages: PropTypes.array.isRequired
   };
 
   // Cache app-space mouse coordinates, which we get from the
@@ -148,10 +149,7 @@ class GameLabVisualizationColumn extends React.Component {
     return (
       <span>
         <TextConsole
-          show={true}
-          showWhileRunning={true}
-          width={GAME_WIDTH}
-          height={GAME_HEIGHT}
+          consoleMessages={this.props.consoleMessages}
         />
         <ProtectedVisualizationDiv>
           <Pointable
@@ -209,7 +207,8 @@ export default connect(
     spriteLab: state.pageConstants.isBlockly,
     awaitingContainedResponse: state.runState.awaitingContainedResponse,
     showGrid: state.gridOverlay,
-    pickingLocation: isPickingLocation(state.locationPicker)
+    pickingLocation: isPickingLocation(state.locationPicker),
+    consoleMessages: state.textConsole
   }),
   dispatch => ({
     toggleShowGrid: mode => dispatch(toggleGridOverlay(mode)),

@@ -4,9 +4,6 @@ import React from 'react';
 import Transition from 'react-transition-group/Transition';
 
 export const styles = {
-  show: {
-    display: ''
-  },
   hide: {
     display: 'none'
   },
@@ -76,10 +73,7 @@ export const transitionStyles = {
  */
 export default class TextConsole extends React.Component {
   static propTypes = {
-    // width, height, mouseX and mouseY are given in app-space, not screen-space
-    width: PropTypes.number,
-    height: PropTypes.number,
-    show: PropTypes.bool.isRequired
+    consoleMessages: PropTypes.array.isRequired
   };
 
   state = {
@@ -98,17 +92,35 @@ export default class TextConsole extends React.Component {
   }
 
   getButtonStyle() {
-    return this.state.inProp? styles.hide : styles.expandButton;
+    if (this.state.inProp || !(this.props.consoleMessages.length)) {
+      return styles.hide;
+    } else {
+      return styles.expandButton;
+    }
   }
 
-  getLines() {
+  renderLine(message) {
+    return (
+      <p style={styles.paragraphStyle}>
+        {message.name &&
+          <b>{message.name}: </b>
+        }
+        {message.text}
+      </p>
+    );
+  }
+
+  getLines(state) {
+    //debugger;
     // For testing
     // this.state.spokenLines = ["Hi", "My name is", "jessie", "what's your name?", "I like dogs", "and cats", "what do you like?", "very long string very long string very long string very long string very long string very long string"];
     //
-    return this.state.spokenLines.map(line => (
-      <p style={styles.paragraphStyle}>
-        <b>Jessie</b> {line}
-      </p>
+    if (state === 'exited' && this.props.consoleMessages.length > 0) {
+      return this.renderLine(this.props.consoleMessages[this.props.consoleMessages.length - 1]);
+    }
+
+    return this.props.consoleMessages.map(message => (
+      this.renderLine(message)
     ));
   }
 
@@ -128,7 +140,7 @@ export default class TextConsole extends React.Component {
                 ...transitionStyles[state]
               }}
             >
-              {this.getLines()}
+              {this.getLines(state)}
             </span>
           )}
         </Transition>
