@@ -51,4 +51,53 @@ describe('SubmissionStatusAssessmentsTable', () => {
     const checkMarkIcons = wrapper.find('#checkmark');
     assert.equal(checkMarkIcons.length, 4);
   });
+
+  it('sorts submissions by date accurately', () => {
+    const wrapper = mount(
+      <SubmissionStatusAssessmentsTable
+        studentOverviewData={studentOverviewData}
+      />
+    );
+    const timeStampCells = wrapper.find('#timestampCell');
+    assert.equal(timeStampCells.length, 6);
+
+    const timestampHeaderCell = wrapper.find('#timestampHeaderCell')
+
+    timestampHeaderCell.simulate('click');
+
+    console.log(" 1st timestamp cell after 1st click", wrapper.find('#timestampCell').at(0).text())
+    console.log(" 2nd timestamp cell after 1st click", wrapper.find('#timestampCell').at(1).text())
+    console.log(" 3rd timestamp cell after 1st click", wrapper.find('#timestampCell').at(2).text())
+    console.log(" 4th timestamp cell after 1st click", wrapper.find('#timestampCell').at(3).text())
+    console.log(" 5th timestamp cell after 1st click", wrapper.find('#timestampCell').at(4).text())
+    console.log(" 6th timestamp cell after 1st click", wrapper.find('#timestampCell').at(5).text())
+
+    console.log('...........................')
+    console.log('...........................')
+    console.log('...........................')
+
+    timestampHeaderCell.simulate('click');
+    console.log(" 1st timestamp cell after 2nd click", wrapper.find('#timestampCell').at(0).text())
+    console.log(" 2nd timestamp cell after 2nd click", wrapper.find('#timestampCell').at(1).text())
+    console.log(" 3rd timestamp cell after 2nd click", wrapper.find('#timestampCell').at(2).text())
+    console.log(" 4th timestamp cell after 2nd click", wrapper.find('#timestampCell').at(3).text())
+    console.log(" 5th timestamp cell after 2nd click", wrapper.find('#timestampCell').at(4).text())
+    console.log(" 6th timestamp cell after 2nd click", wrapper.find('#timestampCell').at(5).text())
+
+    console.log('...........................')
+    console.log('...........................')
+    console.log('...........................')
+
+    timestampHeaderCell.simulate('click');
+    console.log(" 1st timestamp cell after 3rd click", wrapper.find('#timestampCell').at(0).text())
+    console.log(" 2nd timestamp cell after 3rd click", wrapper.find('#timestampCell').at(1).text())
+    console.log(" 3rd timestamp cell after 3rd click", wrapper.find('#timestampCell').at(2).text())
+    console.log(" 4th timestamp cell after 3rd click", wrapper.find('#timestampCell').at(3).text())
+    console.log(" 5th timestamp cell after 3rd click", wrapper.find('#timestampCell').at(4).text())
+    console.log(" 6th timestamp cell after 3rd click", wrapper.find('#timestampCell').at(5).text())
+    //
+    // timestampHeaderCell.simulate('click');
+
+
+  });
 });

@@ -8,7 +8,7 @@ export const studentOverviewData = [
     numMultipleChoiceCorrect: 7,
     numMultipleChoice: 10,
     isSubmitted: true,
-    submissionTimeStamp: '2/16/18 - 7:41 AM'
+    submissionTimeStamp: new Date('Jan 22 2019 13:12:06 GMT-0700 (Pacific Daylight Time')
   },
   {
     id: 2,
@@ -16,7 +16,7 @@ export const studentOverviewData = [
     numMultipleChoiceCorrect: 3,
     numMultipleChoice: 10,
     isSubmitted: false,
-    submissionTimeStamp: ''
+    submissionTimeStamp: new Date('Jan 22 2019 13:12:06 GMT-0700 (Pacific Daylight Time')
   },
   {
     id: 3,
@@ -24,7 +24,7 @@ export const studentOverviewData = [
     numMultipleChoiceCorrect: 8,
     numMultipleChoice: 10,
     isSubmitted: true,
-    submissionTimeStamp: '5/29/18 - 7:41 AM'
+    submissionTimeStamp: new Date('Oct 22 2019 13:12:06 GMT-0700 (Pacific Daylight Time')
   },
   {
     id: 4,
@@ -32,7 +32,7 @@ export const studentOverviewData = [
     numMultipleChoiceCorrect: 10,
     numMultipleChoice: 10,
     isSubmitted: true,
-    submissionTimeStamp: '5/29/18 - 8:00 AM'
+    submissionTimeStamp: new Date('Nov 22 2019 13:12:06 GMT-0700 (Pacific Daylight Time')
   },
   {
     id: 5,
@@ -48,7 +48,7 @@ export const studentOverviewData = [
     numMultipleChoiceCorrect: 0,
     numMultipleChoice: 10,
     isSubmitted: true,
-    submissionTimeStamp: '5/29/18 - 8:05 AM'
+    submissionTimeStamp: new Date('Jan 10 2019 13:12:06 GMT-0700 (Pacific Daylight Time')
   }
 ];
 

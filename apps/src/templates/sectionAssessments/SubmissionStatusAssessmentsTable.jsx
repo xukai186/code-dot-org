@@ -54,11 +54,20 @@ export const studentOverviewDataPropType = PropTypes.shape({
   name: PropTypes.string.isRequired,
   numMultipleChoiceCorrect: PropTypes.number,
   numMultipleChoice: PropTypes.number,
-  submissionTimeStamp: PropTypes.string.isRequired,
+  submissionTimeStamp: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.instanceOf(Date)
+  ]).isRequired,
   isSubmitted: PropTypes.bool.isRequired,
   url: PropTypes.string
 });
 
+export const sortRows = (data, columnIndexList, orderList) => {
+   console.log("data in sortRows", data)
+   console.log("columnIndexList",
+   columnIndexList)
+   console.log("orderList", orderList)
+};
 /**
  * A table that shows the summary data for each student in a section.
  * Each row is a single student, the number of questions the student
@@ -112,10 +121,21 @@ class SubmissionStatusAssessmentsTable extends Component {
 
   submissionTimestampColumnFormatter = (submissionTimeStamp, {rowData}) => {
     const isSubmitted = rowData.isSubmitted;
+    var submissionTimeStampText;
+    switch (true) {
+      case isSubmitted :
+        submissionTimeStampText = rowData.submissionTimeStamp.toLocaleString();
+        break;
+      case rowData.submissionTimeStamp != '':
+        submissionTimeStampText = i18n.inProgress();
+        break;
+      default:
+        submissionTimeStampText = i18n.notStarted();
+    }
 
     return (
-      <div style={styles.main}>
-        <div style={styles.text}>{submissionTimeStamp}</div>
+      <div style={styles.main} id="timestampCell">
+        <div style={styles.text}>{submissionTimeStampText }</div>
         {isSubmitted && (
           <div style={styles.icon}>
             <FontAwesome id="checkmark" icon="check-circle" />
@@ -187,13 +207,14 @@ class SubmissionStatusAssessmentsTable extends Component {
             style: {
               ...tableLayoutStyles.headerCell,
               ...{width: TABLE_COLUMN_WIDTHS.timeStamp}
-            }
+            },
+            id: "timestampHeaderCell"
           },
           transforms: [sortable]
         },
         cell: {
           format: this.submissionTimestampColumnFormatter,
-          props: {style: tableLayoutStyles.cell}
+          props: {style: tableLayoutStyles.cell},
         }
       }
     ];
@@ -213,7 +234,7 @@ class SubmissionStatusAssessmentsTable extends Component {
     const sortedRows = sort.sorter({
       columns,
       sortingColumns,
-      sort: orderBy
+      sort: sortRows
     })(this.props.studentOverviewData);
 
     return (
