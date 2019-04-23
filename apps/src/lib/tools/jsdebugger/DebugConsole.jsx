@@ -16,6 +16,8 @@ import {
 import CommandHistory from './CommandHistory';
 import {actions, selectors} from './redux';
 import color from '../../../util/color';
+import experiments from '../../../util/experiments';
+import Inspector from 'react-inspector';
 
 const DEBUG_INPUT_HEIGHT = 16;
 const DEBUG_CONSOLE_LEFT_PADDING = 3;
@@ -90,6 +92,14 @@ function moveCaretToEndOfDiv(element) {
   selection.addRange(range);
 }
 
+function flagOnLogOutputPropType() {
+  if (experiments.isEnabled('react-inspector')) {
+    return PropTypes.array.isRequired;
+  } else {
+    return PropTypes.string.isRequired;
+  }
+}
+
 /**
  * The console for our debugger UI
  */
@@ -114,7 +124,7 @@ export default connect(
     static propTypes = {
       // from redux
       commandHistory: PropTypes.instanceOf(CommandHistory),
-      logOutput: PropTypes.string.isRequired,
+      logOutput: flagOnLogOutputPropType(),
       maxLogLevel: PropTypes.string.isRequired,
       isAttached: PropTypes.bool.isRequired,
       addWatchExpression: PropTypes.func.isRequired,
@@ -205,6 +215,29 @@ export default connect(
       }
     }
 
+    displayErrorMsgs() {
+      if (this.props.logOutput.size > 0) {
+        return this.props.logOutput.map(errorMsg => {
+          if (typeof errorMsg === 'object') {
+            errorMsg = errorMsg.toJS();
+          }
+          return (
+            <div>
+              <Inspector data={errorMsg} />
+            </div>
+          );
+        });
+      }
+    }
+
+    flagOnMsg() {
+      if (experiments.isEnabled('react-inspector')) {
+        return this.displayErrorMsgs();
+      } else {
+        return this.props.logOutput;
+      }
+    }
+
     render() {
       let classes = 'debug-console';
       if (!this.props.debugButtons) {
@@ -242,7 +275,7 @@ export default connect(
               ...this.getDebugOutputBackgroundStyle()
             }}
           >
-            {this.props.logOutput}
+            {this.flagOnMsg()}
           </div>
           <div style={style.debugInputWrapper}>
             <span style={style.debugInputPrompt} onClick={this.focus}>

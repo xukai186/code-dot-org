@@ -5,6 +5,7 @@ import CommandHistory from './CommandHistory';
 import JSInterpreter from '../jsinterpreter/JSInterpreter';
 import watchedExpressions from '@cdo/apps/redux/watchedExpressions';
 import runState from '@cdo/apps/redux/runState';
+import experiments from '../../../util/experiments';
 
 const WATCH_TIMER_PERIOD = 250;
 const INITIALIZE = 'jsdebugger/INITIALIZE';
@@ -15,6 +16,14 @@ const CLEAR_LOG = 'jsdebugger/CLEAR_LOG';
 const OPEN = 'jsdebugger/OPEN';
 const CLOSE = 'jsdebugger/CLOSE';
 
+function flagOnState() {
+  if (experiments.isEnabled('react-inspector')) {
+    return [];
+  } else {
+    return '';
+  }
+}
+
 // State model
 const JSDebuggerState = Immutable.Record({
   jsInterpreter: null,
@@ -22,7 +31,7 @@ const JSDebuggerState = Immutable.Record({
   observer: null,
   watchIntervalId: null,
   commandHistory: null,
-  logOutput: '',
+  logOutput: flagOnState(),
   maxLogLevel: '',
   isOpen: false
 });
@@ -241,16 +250,27 @@ export const actions = {
 
 // reducer
 
-function appendLogOutput(logOutput, output) {
-  if (logOutput.length > 0) {
-    logOutput += '\n';
-  }
-  if (typeof output !== 'string' && !(output instanceof String)) {
-    output = JSON.stringify(output);
-  }
+function appendLogOutput(logOutput, output, type) {
+  if (experiments.isEnabled('react-inspector')) {
+    logOutput = logOutput || [];
+    switch (type) {
+      case APPEND_LOG:
+        return [...logOutput, output];
 
-  logOutput += output;
-  return logOutput;
+      default:
+        return logOutput;
+    }
+  } else {
+    if (logOutput.length > 0) {
+      logOutput += '\n';
+    }
+    if (typeof output !== 'string' && !(output instanceof String)) {
+      output = JSON.stringify(output);
+    }
+
+    logOutput += output;
+    return logOutput;
+  }
 }
 
 function computeNewMaxLogLevel(prevMaxLogLevel, newLogLevel) {
@@ -282,11 +302,11 @@ export function reducer(state, action) {
     });
   } else if (action.type === APPEND_LOG) {
     return state.merge({
-      logOutput: appendLogOutput(state.logOutput, action.output),
+      logOutput: appendLogOutput(state.logOutput, action.output, action.type),
       maxLogLevel: computeNewMaxLogLevel(state.maxLogLevel, action.logLevel)
     });
   } else if (action.type === CLEAR_LOG) {
-    return state.merge({logOutput: '', maxLogLevel: ''});
+    return state.merge({logOutput: flagOnState(), maxLogLevel: ''});
   } else if (action.type === DETACH) {
     return state.merge({
       jsInterpreter: null,
