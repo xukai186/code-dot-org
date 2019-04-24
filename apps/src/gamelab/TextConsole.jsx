@@ -18,15 +18,6 @@ export const styles = {
     transitionProperty: 'max-height',
     transitionDuration: '1s'
   },
-  consoleOpen: {
-    maxHeight: '108px',
-    overflow: 'auto'
-  },
-  consoleClosed: {
-    maxHeight: '18px',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap'
-  },
   expandButton: {
     position: 'absolute',
     right: '0',
@@ -43,7 +34,6 @@ export const styles = {
   paragraphStyle: {
     margin: '0px'
   },
-
 };
 
 export const transitionStyles = {
@@ -66,42 +56,59 @@ export const transitionStyles = {
   }
 };
 
-/**
- * Grid layered over the play space.
- * Should be rendered inside a VisualizationOverlay.
- * @constructor
- */
 export default class TextConsole extends React.Component {
   static propTypes = {
     consoleMessages: PropTypes.array.isRequired
   };
 
   state = {
-    closed: true,
-    inProp: false,
+    open: false,
     duration: 1000,
-    spokenLines: []
+    spokenLines: [],
+    timeout: 0
   };
 
+  timeout = 0;
+
   toggleConsole() {
-    // refs.elt.scrollTop = text_console.elt.scrollHeight;
-    styles.console.transitionDelay = '0s';
-    this.setState((state) => {
-      return {inProp: !this.state.inProp, duration: 1000};
-    });
+    this.state.open ? this.closeConsole() : this.openThenClose();
+  }
+
+  openThenClose() {
+    clearTimeout(this.timeout);
+    this.openConsole();
+    this.timeout = setTimeout(() => {this.closeConsole();}, 4000);
+  }
+
+  openConsole() {
+    this.setState({open: true}, () => {this.scrollToBottom();});
+  }
+
+  closeConsole() {
+    this.setState({open: false});
   }
 
   getButtonStyle() {
-    if (this.state.inProp || !(this.props.consoleMessages.length)) {
+    if (this.state.open || !(this.props.consoleMessages.length)) {
       return styles.hide;
     } else {
       return styles.expandButton;
     }
   }
 
-  renderLine(message) {
+  getLines(state) {
+    if (state === 'exited' && this.props.consoleMessages.length > 0) {
+      return this.renderLine(this.props.consoleMessages[this.props.consoleMessages.length - 1]);
+    }
+
+    return this.props.consoleMessages.map((message, index) => (
+      this.renderLine(message, index)
+    ));
+  }
+
+  renderLine(message, index = 0) {
     return (
-      <p style={styles.paragraphStyle}>
+      <p style={styles.paragraphStyle} key={index}>
         {message.name &&
           <b>{message.name}: </b>
         }
@@ -110,31 +117,28 @@ export default class TextConsole extends React.Component {
     );
   }
 
-  getLines(state) {
-    //debugger;
-    // For testing
-    // this.state.spokenLines = ["Hi", "My name is", "jessie", "what's your name?", "I like dogs", "and cats", "what do you like?", "very long string very long string very long string very long string very long string very long string"];
-    //
-    if (state === 'exited' && this.props.consoleMessages.length > 0) {
-      return this.renderLine(this.props.consoleMessages[this.props.consoleMessages.length - 1]);
-    }
+  scrollToBottom() {
+    this.messageList.scrollTop = this.messageList.scrollHeight;
+  }
 
-    return this.props.consoleMessages.map(message => (
-      this.renderLine(message)
-    ));
+  componentDidUpdate(previousProp) {
+    if (this.props.consoleMessages.length !== previousProp.consoleMessages.length) {
+      this.openThenClose();
+    }
   }
 
   render() {
     return (
       <div>
-       <Transition in={this.state.inProp} timeout={this.state.duration}>
+       <Transition in={this.state.open} timeout={1000}>
          {(state) => (
             <span
               id="text-console"
               className="text-console"
               onClick={() => this.toggleConsole()}
-              // onMouseLeave={() => this.mouseLeave()}
-              // onMouseEnter={() => this.mouseEnter()}
+              ref={(span) => {
+                this.messageList = span;
+              }}
               style={{
                 ...styles.console,
                 ...transitionStyles[state]
@@ -148,7 +152,7 @@ export default class TextConsole extends React.Component {
           type="button"
           id="expand-collapse"
           style={this.getButtonStyle()}
-          onClick={() => this.toggleConsole()}
+          onClick={() => this.openThenClose()}
         >
           +
         </button>
@@ -156,93 +160,3 @@ export default class TextConsole extends React.Component {
     );
   }
 }
-
-
-// <p style={styles.paragraphStyle}>
-//                 <b>Lorem</b> ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-//               </p>
-//               <p style={styles.paragraphStyle}>
-//                 <b>Lorem</b> ipsum
-//               </p>
-//               <p style={styles.paragraphStyle}>
-//                 <b>Lorem</b> ipsum dolor
-//               </p>
-//               <p style={styles.paragraphStyle}>
-//                 <b>Lorem</b> ipsum dolor sit amet, consectetur
-//               </p>
-
-  // getConsoleStyle() {
-  //   return this.state.closed?
-  //     {...styles.console, ...styles.consoleClosed} :
-  //     {...styles.console, ...styles.consoleOpen};
-  //   //return this.state.closed? styles.consoleClosed : styles.consoleOpen;
-  // }
-
-  // toggleStyle() {
-  //   this.state.closed? this.expandConsole() : this.closeConsole();
-  // }
-
-  // delayCloseConsole() {
-  //   this.closeConsole('2s');
-  // }
-
-  // closeConsole(delay = '0s') {
-  //   styles.console.transitionDelay = delay;
-  //   this.setState((state) => {
-  //     return {closed: true};
-  //   });
-  // }
-
-  // expandConsole() {
-  //   styles.console.transitionDelay = '0s';
-  //   this.setState((state) => {
-  //     return {closed: false};
-  //   });
-  // }
-
-  // getButtonStyle() {
-  //   return this.state.closed? styles.expandButton : styles.hide;
-  // }
-
-  // mouseLeave() {
-  //   styles.console.transitionDelay = '0s';
-  //   this.setState((state) => {
-  //     return {inProp: false, duration: 1000};
-  //   })
-  // }
-
-  // mouseEnter() {
-  //   styles.console.transitionDelay = '0s';
-  //   this.setState((state) => {
-  //     return {inProp: true, duration: 1000};
-  //   });
-  // }
-
-
-//     <Transition in={this.state.inProp} timeout={1000}>
-    //   </Transition>
-          //onClick={() => this.toggleStyle()}
-          //onMouseLeave={() => this.delayCloseConsole()}
-
-    // setTimeout(() => {
-    //   this.closeConsole();
-    // }, 2000);
-
-/*
-  getButtonText() {
-    return this.state.closed? '+' : '-';
-  }
-*/
-
-  // collapseButton: {
-  //   position: 'absolute',
-  //   right: '0',
-  //   zIndex: 3,
-  //   minWidth: '30px',
-  //   margin: '0px',
-  //   border: '0px',
-  //   padding: '0px',
-  //   fontSize: 'inherit',
-  //   lineHeight: 'inherit',
-  //   borderRadius: '0px'
-  // },

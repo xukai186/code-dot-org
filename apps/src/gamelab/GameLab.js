@@ -156,13 +156,7 @@ var GameLab = function() {
   };
 
   this.appendSpriteConsole = (spriteMessage) => {
-    var message = "\nText: " + spriteMessage.text;
-    if (spriteMessage.name) {
-      message += "\nSprite: " + spriteMessage.name;
-    }
-
     getStore().dispatch(addConsoleMessage(spriteMessage));
-    console.log("Appending sprite console!" + message);
   };
 };
 
