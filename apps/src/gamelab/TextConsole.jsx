@@ -1,7 +1,7 @@
 /** @file Grid over visualization */
 import PropTypes from 'prop-types';
 import React from 'react';
-import Transition from 'react-transition-group/Transition';
+import {Transition} from 'react-transition-group';
 
 export const styles = {
   hide: {
