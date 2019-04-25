@@ -502,7 +502,7 @@ And(/^I create a workshop for course "([^"]*)" ([a-z]+) by "([^"]*)" with (\d+) 
       )
     end
 
-  workshop = Retryable.retryable(on: ActiveRecord::RecordNotUnique, tries: 5) do
+  workshop = Retryable.retryable(on: [ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid], tries: 5) do
     FactoryGirl.create(:pd_workshop, :funded,
       on_map: true,
       course: course,
