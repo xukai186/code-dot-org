@@ -14,9 +14,9 @@ def w3c?
   ['Firefox', 'Safari'].include? ENV['BROWSER_CONFIG']
 end
 
-# Run all tests in a single session.
+# Run all feature scenarios in a single session.
 def single_session?
-  mobile_browser? || @single_session
+  mobile_browser? || $single_session
 end
 
 def mobile_browser?
@@ -115,7 +115,7 @@ end
 
 Before do |scenario|
   @tags = scenario.source_tag_names
-  @single_session = true if @tags.include?('@single_session')
+  $single_session = true if @tags.include?('@single_session')
 
   very_verbose "DEBUG: @browser == #{CGI.escapeHTML @browser.inspect}"
 
