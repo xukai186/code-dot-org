@@ -54,8 +54,8 @@ def page_load(wait = true, wait_proc: nil, blank_tab: false)
     end
     unless blank_tab
       wait_until do
-        (url = @browser.current_url) != '' &&
-           url != 'about:blank' &&
+        (@current_url = @browser.current_url) != '' &&
+          @current_url != 'about:blank' &&
           @browser.execute_script('return document.readyState;') == 'complete'
       end
     end
@@ -93,6 +93,7 @@ def navigate_to(url)
     end
     refute_bad_gateway_or_site_unreachable
   end
+  @current_url = url
   install_js_error_recorder
 end
 
@@ -1268,7 +1269,7 @@ And(/I type the section code into "([^"]*)"$/) do |selector|
 end
 
 When(/^I sign out$/) do
-  if @browser.current_url.include?('studio')
+  if @current_url.include?('studio')
     browser_request(url: replace_hostname('/users/sign_out.json'), code: 204)
     @browser.execute_script("sessionStorage.clear(); localStorage.clear();")
   else

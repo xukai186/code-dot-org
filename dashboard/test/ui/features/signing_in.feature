@@ -1,4 +1,5 @@
 # @no_mobile
+@single_session
 
 Feature: Signing in and signing out
 
@@ -82,7 +83,7 @@ Scenario: Join existing section from sign in page goes to section join page
 Scenario: Sign in and out
   Given I create a student named "Alice"
   And I create a student named "Bob"
-  And I sign in as "Alice"
+  And I sign in as "Alice" and go home
   Then I see ".user_menu"
   And element ".display_name" is visible
   And element ".display_name" contains text "Alice"
