@@ -4,7 +4,7 @@ import i18n from '@cdo/locale';
 export const studentOverviewData = [
   {
     id: 1,
-    name: 'Caley',
+    name: 'Abby - Jan 22',
     numMultipleChoiceCorrect: 7,
     numMultipleChoice: 10,
     isSubmitted: true,
@@ -12,7 +12,7 @@ export const studentOverviewData = [
   },
   {
     id: 2,
-    name: 'Maddie',
+    name: 'Brad - in progress',
     numMultipleChoiceCorrect: 3,
     numMultipleChoice: 10,
     isSubmitted: false,
@@ -20,7 +20,7 @@ export const studentOverviewData = [
   },
   {
     id: 3,
-    name: 'Erin',
+    name: 'Caley - Oct 22',
     numMultipleChoiceCorrect: 8,
     numMultipleChoice: 10,
     isSubmitted: true,
@@ -28,7 +28,7 @@ export const studentOverviewData = [
   },
   {
     id: 4,
-    name: 'Dave',
+    name: 'Dave - Nov 22',
     numMultipleChoiceCorrect: 10,
     numMultipleChoice: 10,
     isSubmitted: true,
@@ -36,7 +36,7 @@ export const studentOverviewData = [
   },
   {
     id: 5,
-    name: 'Brad',
+    name: 'Erin - no started',
     numMultipleChoiceCorrect: 0,
     numMultipleChoice: 10,
     isSubmitted: false,
@@ -44,7 +44,7 @@ export const studentOverviewData = [
   },
   {
     id: 6,
-    name: 'Mike',
+    name: 'Frank - Jan 10',
     numMultipleChoiceCorrect: 0,
     numMultipleChoice: 10,
     isSubmitted: true,

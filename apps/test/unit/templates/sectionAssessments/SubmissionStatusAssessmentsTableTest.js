@@ -63,8 +63,6 @@ describe('SubmissionStatusAssessmentsTable', () => {
 
     const timestampHeaderCell = wrapper.find('#timestampHeaderCell')
 
-    timestampHeaderCell.simulate('click');
-
     console.log(" 1st timestamp cell after 1st click", wrapper.find('#timestampCell').at(0).text())
     console.log(" 2nd timestamp cell after 1st click", wrapper.find('#timestampCell').at(1).text())
     console.log(" 3rd timestamp cell after 1st click", wrapper.find('#timestampCell').at(2).text())
@@ -95,8 +93,6 @@ describe('SubmissionStatusAssessmentsTable', () => {
     console.log(" 4th timestamp cell after 3rd click", wrapper.find('#timestampCell').at(3).text())
     console.log(" 5th timestamp cell after 3rd click", wrapper.find('#timestampCell').at(4).text())
     console.log(" 6th timestamp cell after 3rd click", wrapper.find('#timestampCell').at(5).text())
-    //
-    // timestampHeaderCell.simulate('click');
 
 
   });

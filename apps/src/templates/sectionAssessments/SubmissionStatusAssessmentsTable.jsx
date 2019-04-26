@@ -63,10 +63,8 @@ export const studentOverviewDataPropType = PropTypes.shape({
 });
 
 export const sortRows = (data, columnIndexList, orderList) => {
-   console.log("data in sortRows", data)
-   console.log("columnIndexList",
-   columnIndexList)
-   console.log("orderList", orderList)
+  console.log(orderBy(data, columnIndexList, orderList))
+  return orderBy(data, columnIndexList, orderList);
 };
 /**
  * A table that shows the summary data for each student in a section.
@@ -82,9 +80,11 @@ class SubmissionStatusAssessmentsTable extends Component {
   };
 
   state = {
-    [COLUMNS.NAME]: {
-      direction: 'desc',
-      position: 0
+    sortingColumns: {
+      [COLUMNS.NAME]: {
+        direction: 'asc',
+        position: 0
+      }
     }
   };
 
@@ -145,7 +145,7 @@ class SubmissionStatusAssessmentsTable extends Component {
     );
   };
 
-  getColumns = sortable => {
+  getColumns = (sortable) => {
     let dataColumns = [
       {
         property: 'name',
