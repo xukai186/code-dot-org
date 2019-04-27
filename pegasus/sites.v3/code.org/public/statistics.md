@@ -230,6 +230,38 @@ Teachers shouldn’t have to teach computer science alone—professional learnin
 
 </div>
 
+<div class="col-33" style="padding-right: 20px; margin-bottom: 20px;">
+
+<a href="https://twitter.com/codeorg/status/1116737248899293185" target="_blank"><img src="/images/statistics/fit-250/classroom-diversity.png"></a>
+
+<br>
+
+Schools with diverse student bodies are less likely to offer computer science courses, but when they do, the students sign up! Black, Latino and other underrepresented minorities want to take computer science. <a href="https://code.org/educate/professional-learning">Let’s give them that opportunity.</a>
+
+</div>
+
+<div class="col-33" style="padding-right: 20px; margin-bottom: 20px;">
+
+<a href="https://twitter.com/codeorg/status/1120358082549149696" target="_blank"><img src="/images/statistics/fit-250/title-i-schools.png"></a>
+
+<br>
+
+Title 1 schools—which receive extra funding based on the number of students from low-income backgrounds—are less likely to teach computer science than schools not receiving additional funding. Help us change that by <a href="https://code.org/educate/professional-learning">applying to teach computer science in your school.</a>
+
+</div>
+
+<div style="clear: both;"></div>
+
+<div class="col-33" style="padding-right: 20px; margin-bottom: 20px;">
+
+<a href="" target="_blank"><img src="/images/statistics/fit-250/CSF-teachers-70.png"></a>
+
+<br>
+
+Our CS teachers are everywhere! More than 70% of counties in the US have trained CS Fundamentals teachers. Does your school teach CS? <a href="https://code.org/yourschool">Tell us here!</a> And if not, encourage a teacher to <a href="https://code.org/apply">apply for our professional development</a> to bring CS to your area. </a>
+
+</div>
+
 <div style="clear: both;"></div>
 
 <br>
