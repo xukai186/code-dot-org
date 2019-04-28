@@ -220,14 +220,12 @@ def parse_options
       end
       opts.on("--dry-run", "Process features without running any actual steps.") do
         options.dry_run = true
+      end
       opts.on("--parallel-scenarios", "Run scenarios in parallel. Note: Experimental, logs aren't aggregated correctly.") do
         options.parallel_scenarios = true
       end
       opts.on("--breakpoint", "Send breakpoint to Sauce Labs for failing scenarios") do
         options.breakpoint = true
-      end
-      opts.on("--dry-run", "Invokes formatters without executing the steps.") do
-        options.dry_run = true
       end
       opts.on("--priority priority", "Set priority level for Sauce Labs jobs.") do |priority|
         options.priority = priority
@@ -497,32 +495,6 @@ def estimate_for_test(test_run_identifier)
 rescue Exception => e
   puts "Error calculating estimate: #{e.full_message}. Will stop calculating test flakiness for this run."
   $stop_calculating_flakiness = true
-  nil
-end
-
-$test_estimate = {}
-
-# Retrieves / calculates estimated duration for given test run identifier, giving up for
-# the rest of this script execution if an error occurs during calculation.
-def estimate_for_test(test_run_identifier)
-  return nil if $stop_calculating_estimate
-  return $test_estimate[test_run_identifier] if $test_estimate[test_run_identifier]
-
-  # Add all scenario-specific identifiers together
-  scenario_estimates = TestFlakiness.test_estimate.select {|name, _| name =~ /#{test_run_identifier}.+/}
-  feature_estimate = TestFlakiness.test_estimate[test_run_identifier]
-
-  $test_estimate[test_run_identifier] =
-    if scenario_estimates.empty?
-      feature_estimate
-    elsif feature_estimate.nil?
-      scenario_estimates.values.sum
-    else
-      (scenario_estimates.values.sum + feature_estimate) / 2.0
-    end
-rescue Exception => e
-  puts "Error calculating estimate: #{e.full_message}. Will stop calculating test estimate for this run."
-  $stop_calculating_estimate = true
   nil
 end
 
