@@ -220,6 +220,9 @@ def parse_options
       opts.on("--dry-run", "Process features without running any actual steps.") do
         options.dry_run = true
       end
+      opts.on("--breakpoint", "Send breakpoint to Sauce Labs for failing scenarios") do
+        options.breakpoint = true
+      end
       opts.on_tail("-h", "--help", "Show this message") do
         puts opts
         exit
@@ -715,6 +718,7 @@ def run_feature(browser, feature, options)
   run_environment['MOBILE'] = browser['mobile'] ? "true" : "false"
   run_environment['TEST_RUN_NAME'] = test_run_string
   run_environment['IS_CIRCLE'] = options.is_circle ? "true" : "false"
+  run_environment['BREAKPOINT'] = '1' if options.breakpoint
 
   # disable some stuff to make require_rails_env run faster within cucumber.
   # These things won't be disabled in the dashboard instance we're testing against.

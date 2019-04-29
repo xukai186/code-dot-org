@@ -113,9 +113,13 @@ def log_result(result)
 end
 
 # Quit current browser session.
-def quit_browser
+def quit_browser(failed = false)
   with_read_timeout(5.seconds) do
-    $browser&.quit
+    if ENV['BREAKPOINT'] && failed
+      $browser&.execute_script('sauce: break')
+    else
+      $browser&.quit
+    end
   rescue => e
     puts "Error quitting browser session: #{e}"
   end
@@ -135,7 +139,7 @@ After do |scenario|
     end
   else
     log_result scenario.passed?
-    quit_browser
+    quit_browser scenario.failed?
   end
 end
 
@@ -172,7 +176,7 @@ end
 
 at_exit do
   log_result $all_passed if single_session?
-  quit_browser
+  quit_browser !$all_passed
 end
 
 def very_verbose(msg)
