@@ -220,6 +220,9 @@ def parse_options
       opts.on("--dry-run", "Process features without running any actual steps.") do
         options.dry_run = true
       end
+      opts.on("--parallel-scenarios", "Run scenarios in parallel. Note: Experimental, logs aren't aggregated correctly.") do
+        options.parallel_scenarios = true
+      end
       opts.on_tail("-h", "--help", "Show this message") do
         puts opts
         exit
@@ -322,7 +325,9 @@ end
 
 def run_tests(env, feature, arguments, log_prefix)
   start_time = Time.now
-  cmd = "cucumber #{feature} #{arguments}"
+  cmd = $options.parallel_scenarios ?
+    "parallel_cucumber --group-by scenarios -- #{arguments} -- #{feature}" :
+    "cucumber #{feature} #{arguments}"
   puts "#{log_prefix}#{cmd}"
   Open3.popen3(env, cmd) do |stdin, stdout, stderr, wait_thr|
     stdin.close
