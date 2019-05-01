@@ -43,7 +43,7 @@ module SchoolInfoInterstitialHelper
 
     school_info = user.school_info
 
-    check_school_type = school_info.public_school? || school_info.private_school? || school_info.charter_school?
+    check_school_type = (school_info.public_school? || school_info.private_school? || school_info.charter_school?) && school_info.completely_filled_out?
     check_last_seen_school_info_interstitial = user.last_seen_school_info_interstitial.to_datetime < 1.year.ago
 
     check_school_type && check_last_seen_school_info_interstitial
