@@ -510,6 +510,8 @@ describe('entry tests', () => {
     schoolInfo: './src/sites/studio/pages/schoolInfo.js',
     schoolInfoInterstitial:
       './src/sites/studio/pages/schoolInfoInterstitial.js',
+    schoolInfoConfirmationDialog:
+      './src/sites/studio/pages/schoolInfoConfirmationDialog.js',
     'scripts/stage_extras': './src/sites/studio/pages/scripts/stage_extras.js',
     signup: './src/sites/studio/pages/signup.js',
     raceInterstitial: './src/sites/studio/pages/raceInterstitial.js',

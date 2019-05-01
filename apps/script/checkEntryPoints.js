@@ -78,6 +78,7 @@ const SILENCED = [
   'publicKeyCryptography',
   'raceInterstitial',
   'schoolInfo',
+  'schoolInfoConfirmationDialog',
   'schoolInfoInterstitial',
   'scratch',
   'scriptOverview',
