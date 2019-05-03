@@ -14,7 +14,7 @@ namespace :package do
     desc 'Update apps static asset package.'
     task 'update' do
       # never download if we build our own and we're not building a package ourselves.
-      next if CDO.use_my_apps && !BUILD_PACKAGE
+      next if CDO.use_my_apps
 
       unless apps_packager.update_from_s3
         if BUILD_PACKAGE
