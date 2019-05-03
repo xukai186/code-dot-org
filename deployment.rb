@@ -144,7 +144,8 @@ def load_configuration
     config['bundler_use_sudo']    ||= config['chef_managed']
     config['channels_api_secret'] ||= config['poste_secret']
     config['daemon']              ||= [:development, :levelbuilder, :staging, :test].include?(rack_env) || config['name'] == 'production-daemon'
-    config['cdn_enabled']         ||= config['chef_managed']
+
+    config['cdn_enabled'] = config['chef_managed'] if !config.has_key?('cdn_enabled')
 
     config['db_reader']           ||= config['db_writer']
     config['reporting_db_reader'] ||= config['reporting_db_writer']
