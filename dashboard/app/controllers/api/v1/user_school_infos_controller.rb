@@ -1,32 +1,28 @@
 class Api::V1::UserSchoolInfosController < ApplicationController
   before_action :authenticate_user!
-  before_action :load_user_school_info
-
+  #before_action :load_user_school_info
+  load_and_authorize_resource only: [:update_last_confirmation_date]
   skip_before_action :verify_authenticity_token
 
   # PATCH /api/v1/users_school_infos/<id>/update_last_confirmation_date
   def update_last_confirmation_date
+    require 'pry'; binding.pry
     if @user_school_info.user.id == current_user.id
       if @user_school_info.update(last_confirmation_date: DateTime.now)
         head :no_content
       else
         render json: @user_school_info.errors, status: :unprocessable_entity
       end
-    else
-      head :forbidden
     end
   end
 
   # PATCH /api/v1/users_school_infos/<id>/update_end_date
   def update_end_date
     if @user_school_info.user.id == current_user.id
-      if @user_school_info.update!(end_date: DateTime.now)
-        if @user_school_info.user.update!(properties: {last_seen_school_info_interstitial: DateTime.now})
-          head :no_content
-        else
-          render json: @user_school_info.errors, status: :unprocessable_entity
-        end
-      end
+      @user_school_info.update!(end_date: DateTime.now, last_confirmation_date: DateTime.now)
+      @user_school_info.user.update!(properties: {last_seen_school_info_interstitial: DateTime.now})
+
+      head :no_content
     else
       head :forbidden
     end
@@ -62,6 +58,7 @@ class Api::V1::UserSchoolInfosController < ApplicationController
   private
 
   def load_user_school_info
+    require 'pry'; binding.pry
     @user_school_info = UserSchoolInfo.find(params[:id])
   end
 
