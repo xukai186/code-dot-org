@@ -120,7 +120,7 @@ class SchoolInfoConfirmationDialog extends Component {
   }
 
   render() {
-    const {showSchoolInterstitial, isOpen} = this.state;
+    const {showSchoolInterstitial, isOpen} = this.state
     return (
       <Dialog isOpen={isOpen}>
         {!showSchoolInterstitial

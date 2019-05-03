@@ -10,7 +10,9 @@ import SchoolInfoConfirmationDialog from '@cdo/apps/lib/ui/SchoolInfoConfirmatio
 import getScriptData from '@cdo/apps/util/getScriptData';
 
 document.addEventListener('DOMContentLoaded', () => {
+
   const scriptData = getScriptData('schoolinfoconfirmationdialog');
+  console.log('got hereeeeeee', scriptData)
 
   const mountPoint = document.createElement('div');
   document.body.appendChild(mountPoint);
