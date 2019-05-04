@@ -24,13 +24,6 @@ class UserSchoolInfosController < ApplicationController
     head :no_content
   end
 
-  # solution 2
-  # def update_end_date
-  #   user_school_info = UserSchoolInfo.find(params[:id])
-
-  #   user_school_info.update!(end_date: DateTime.now)
-  # end
-
   # PATCH /api/v1/users_school_infos/<id>/update_school_info_id
   def update_school_info_id
     ActiveRecord::Base.transaction do
