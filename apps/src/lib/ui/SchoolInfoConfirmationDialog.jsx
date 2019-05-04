@@ -12,6 +12,11 @@ export const styles = {
   }
 };
 
+/**
+ * Include a helpful descritpion
+ *
+ */
+
 class SchoolInfoConfirmationDialog extends Component {
   static propTypes = {
     schoolName: PropTypes.string,
