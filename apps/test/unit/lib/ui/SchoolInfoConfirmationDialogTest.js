@@ -41,6 +41,7 @@ describe('SchoolInfoConfirmationDialog', () => {
   // });
 
   it('simulates click events', () => {
+    debugger;
     const onButtonClick = sinon.spy();
     const wrapper = shallow(
           <SchoolInfoConfirmationDialog
