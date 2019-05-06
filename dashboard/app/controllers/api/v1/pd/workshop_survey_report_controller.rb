@@ -1,3 +1,7 @@
+require_relative '../../../../../lib/pd/jot_form/retriever.rb'
+require_relative '../../../../../lib/pd/jot_form/transformer.rb'
+require_relative '../../../../../lib/pd/jot_form/map_reducer.rb'
+
 module Api::V1::Pd
   class WorkshopSurveyReportController < ReportControllerBase
     include WorkshopScoreSummarizer
@@ -122,6 +126,136 @@ module Api::V1::Pd
       end
     end
 
+    def fake_json_response
+      JSON.parse('{
+        "course_name": "CS Fundamentals",
+        "questions": {
+          "Pre Workshop": {
+            "general": {
+              "iBelieve_1": {
+                "parent": "iBelieve",
+                "max_value": 7,
+                "text": "I believe a successful computer science teacher… creates a classroom culture in which students regularly get feedback on their work from their peers.",
+                "answer_type": "singleSelect",
+                "options": [
+                  "Strongly Disagree",
+                  "Disagree",
+                  "Slightly Disagree",
+                  "Neutral",
+                  "Slightly Agree",
+                  "Agree",
+                  "Strongly Agree"
+                ],
+                "option_map": {
+                  "Strongly Disagree": 1,
+                  "Disagree": 2,
+                  "Slightly Disagree": 3,
+                  "Neutral": 4,
+                  "Slightly Agree": 5,
+                  "Agree": 6,
+                  "Strongly Agree": 7
+                }
+              }
+            }
+          },
+          "Post Workshop": {
+            "general": {
+              "iFeel18": {
+                "text": "I feel more prepared to teach CS Principles than I did at the beginning of the day.",
+                "answer_type": "scale",
+                "min_value": 1,
+                "max_value": 7,
+                "options": [
+                  "1 - Strongly Disagree",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7 - Strongly Agree"
+                ]
+              }
+            }
+          }
+        },
+        "this_workshop": {
+          "Pre Workshop": {
+            "response_count": 11,
+            "general": {
+              "iBelieve_1": {
+                "Agree": 7,
+                "Neutral": 1,
+                "Strongly Agree": 2,
+                "Slightly Agree": 1
+              }
+            }
+          },
+          "Post Workshop": {
+            "response_count": 12,
+            "general": {
+              "iFeel18": {
+                "5": 2,
+                "7": 6,
+                "4": 2,
+                "3": 1,
+                "6": 1
+              }
+            },
+            "facilitator": {
+            }
+          }
+        },
+        "all_my_workshops": {
+        },
+        "facilitators": {
+        },
+        "facilitator_averages": {
+        },
+        "facilitator_response_counts": {
+        }
+      }'
+      )
+    end
+
+    def create_generic_survey_report(retriever:, transformer:)
+      # retrive data from current db
+      retrieved_data = retriever.retrieve_data(filters: {workshop_ids: [@workshop.id]})
+
+      # transform data so they are aggregatable
+      transformer.transform_data(data: retrieved_data)
+
+      # map-reduce configuration: number type -> histogram
+      # decorator compile input from current db and summary results into format for the current LSW presentor
+
+      render json: fake_json_response.merge({version: 1.1})
+    end
+
+    def csf_201_survey_report
+      # retriver reads from current db
+      # transformer for data from current db
+      # map-reduce: number type -> histogram
+      # decorator compile input from current db and summary results into format for the current LSW presentor
+
+      return create_generic_survey_report(
+        retriever: ::Pd::SurveyPipeline::WorkshopDailySurveyRetriever,
+        transformer: ::Pd::SurveyPipeline::WorkshopDailySurveyTransformer
+      )
+    end
+
+    # GET /api/v1/pd/workshops/:id/generic_survey_report
+    def generic_survey_report
+      return local_workshop_daily_survey_report if @workshop.local_summer? || @workshop.teachercon? ||
+      ([COURSE_CSP, COURSE_CSD].include?(@workshop.course) && @workshop.workshop_starting_date > Date.new(2018, 8, 1))
+
+      return csf_201_survey_report if @workshop.csf? && @workshop.subject = SUBJECT_CSF_201
+
+      # return default summarization + presentation pipeline
+
+      return render status: :bad_request, json: {
+        error: "Do not know how to process survey results for this workshop #{@workshop.course} #{@workshop.subject}"
+      }
+    end
+
     private
 
     # We want to filter facilitator-specific responses if the user is a facilitator and
@@ -134,3 +268,22 @@ module Api::V1::Pd
     end
   end
 end
+
+__END__
+
+=begin
+  summary = {
+    this_workshop: {},
+    course_name: @workshop.course,
+    all_my_workshops: {},
+    facilitators: {},
+    facilitator_averages: {},
+    facilitator_response_counts: {}
+  }
+
+  respond_to do |format|
+    format.json do
+      render json: summary
+    end
+  end
+=end
