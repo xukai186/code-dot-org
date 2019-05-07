@@ -1,0 +1,14 @@
+{
+  "name": "adhoc",
+  "description": "Adhoc Chef environment",
+  "cookbook_versions": {},
+  "json_class": "Chef::Environment",
+  "chef_type": "environment",
+  "default_attributes": {
+    "cdo-repository": {
+      "branch": "chef-docker-build"
+    }
+  },
+  "override_attributes": {}
+}
+

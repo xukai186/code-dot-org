@@ -1,0 +1,19 @@
+{
+  "cdo-repository": {
+    "branch": "chef-docker-build",
+    "sync": true
+  },
+  "cdo-secrets": {
+    "cdn_enabled": false,
+    "image_optim": false,
+    "build_apps": true,
+    "use_my_apps": true
+  },
+  "omnibus_updater": {
+    "version": "12.7.2"
+  },
+  "cdo-apps": {
+    "daemon": true
+  },
+  "run_list": ["recipe[cdo-apps]"]
+}
