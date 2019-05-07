@@ -1,6 +1,4 @@
-#require_relative '../../../config/environment'
-#test from console:
-#load 'lib/pd/jot_form/retriever.rb'
+#load 'lib/api/v1/pd/retriever.rb'
 
 module Pd
   module SurveyPipeline
@@ -55,50 +53,3 @@ def test_retriever(debug: false)
 end
 
 test_retriever(debug: false)
-
-__END__
-
-class AnswerCollection
-  attr_reader :question_name, :question_type
-
-  def initialize(qname, qtype)
-    @question_name = qname
-    @question_type = qtype
-  end
-end
-
-# logger = Logger.new(STDOUT)
-# logger.level = 0
-# logger.info "Starting..."
-# logger.info "done"
-
-#https://github.com/code-dot-org/code-dot-org/pull/28139/files
-#survey.summarize.each do |key, value|
-  # row = {
-  #   form_id: survey.form_id,
-  #   question_id: key.to_s,
-  #   preamble: (value.key?(:parent) ? sanitize_string_for_db(survey[value[:parent]].text) : nil),
-  #   question_text: sanitize_string_for_db(value[:text]),
-  #   answer_type: value[:answer_type],
-  #   answer_options: sanitize_string_for_db(value[:options].to_s),
-  #   min_value: value[:min_value].to_i,
-  #   max_value: value[:max_value].to_i
-  # }
-#  survey_questions << row
-#end
-
-
-require File.expand_path('../../../../config/application', __FILE__)
-require File.expand_path('../../../../app/models/pd/survey_question.rb', __FILE__)
-require_all('../../../app/models/pd/')
-require File.expand_path('../../../app/models/pd/',__dir__)
-require_relative('../../../app/models/application_record.rb')
-require_relative('../../../app/models/pd/survey_question.rb')
-require 'active_record/connection_adapters/abstract_mysql_adapter'
-
-require 'require_all'
-require 'active_record'
-require 'active_record/connection_adapters/abstract_mysql_adapter'
-autoload_all File.expand_path('../../../app/', File.dirname(__FILE__))
-autoload_all File.expand_path('../', File.dirname(__FILE__))
-autoload_all File.expand_path('../../lib/cdo/shared_constants/pd', File.dirname(__FILE__))

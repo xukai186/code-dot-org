@@ -1,6 +1,7 @@
-require_relative '../../../../../lib/pd/jot_form/retriever.rb'
-require_relative '../../../../../lib/pd/jot_form/transformer.rb'
-require_relative '../../../../../lib/pd/jot_form/map_reducer.rb'
+# require_relative '../../../../../lib/api/v1/pd/retriever.rb'
+# require_relative '../../../../../lib/api/v1/pd/transformer.rb'
+# require_relative '../../../../../lib/api/v1/pd/map_reducer.rb'
+require_relative '../../../../../lib/api/v1/pd/decorator.rb'
 
 module Api::V1::Pd
   class WorkshopSurveyReportController < ReportControllerBase
@@ -205,51 +206,68 @@ module Api::V1::Pd
             }
           }
         },
-        "all_my_workshops": {
-        },
-        "facilitators": {
-        },
-        "facilitator_averages": {
-        },
-        "facilitator_response_counts": {
-        }
+        "all_my_workshops": {},
+        "facilitators": {},
+        "facilitator_averages": {},
+        "facilitator_response_counts": {}
       }'
       )
     end
 
-    def create_generic_survey_report(retriever:, transformer:)
+    def create_generic_survey_report(retriever:, transformer:, mapreducers:, decorator:)
       # retrive data from current db
       retrieved_data = retriever.retrieve_data(filters: {workshop_ids: [@workshop.id]})
 
       # transform data so they are aggregatable
-      transformer.transform_data(data: retrieved_data)
+      transformed_data = transformer.transform_data(data: retrieved_data)
 
       # map-reduce configuration: number type -> histogram
-      # decorator compile input from current db and summary results into format for the current LSW presentor
+      summaries = []
+      mapreducers.each do |mr|
+        summaries += mr.mapreduce(data: transformed_data)
+      end
 
-      render json: fake_json_response.merge({version: 1.1})
+      # decorator compile input from current db and summary results into format for the current LSW presentor
+      decorated_result = decorator.decorate(summaries: summaries, raw_data: retrieved_data)
+      p "decorated_result = #{decorated_result}"
+      render json: decorated_result.merge({created_time: Time.now})
+      #render json: fake_json_response.merge({created_time: Time.now})
     end
 
     def csf_201_survey_report
-      # retriver reads from current db
-      # transformer for data from current db
-      # map-reduce: number type -> histogram
-      # decorator compile input from current db and summary results into format for the current LSW presentor
+      # MapReducer 1
+      group_fields1 = [:workshop_id, :form_id, :qid, :type]
+      is_type_number_cond = lambda {|hash| hash.dig(:type) == 'number'}
+      map_config1 = [{condition: is_type_number_cond, field: :answer, reducers: [::Pd::SurveyPipeline::AvgReducer, ::Pd::SurveyPipeline::HistogramReducer]}]
+      mapreducer1 = ::Pd::SurveyPipeline::GenericMapReducer.new(group_fields1, map_config1)
+
+      # MapReducer 2
+      group_fields2 = [:workshop_id, :form_id]
+      no_cond = lambda {|_| true}
+      map_config2 = [{condition: no_cond, field: :answer, reducers: [::Pd::SurveyPipeline::CountReducer]}]
+      mapreducer2 = ::Pd::SurveyPipeline::GenericMapReducer.new(group_fields2, map_config2)
+
+      decorator = ::Pd::SurveyPipeline::WorkshopDailySurveyReportDecorator.new(
+        form_names: {1 => "Pre workshop", 9 => "Post workshop"}
+      )
 
       return create_generic_survey_report(
         retriever: ::Pd::SurveyPipeline::WorkshopDailySurveyRetriever,
-        transformer: ::Pd::SurveyPipeline::WorkshopDailySurveyTransformer
+        transformer: ::Pd::SurveyPipeline::WorkshopDailySurveyFlattenTransformer,
+        mapreducers: [mapreducer1, mapreducer2],
+        decorator: decorator
       )
     end
 
     # GET /api/v1/pd/workshops/:id/generic_survey_report
     def generic_survey_report
       return local_workshop_daily_survey_report if @workshop.local_summer? || @workshop.teachercon? ||
-      ([COURSE_CSP, COURSE_CSD].include?(@workshop.course) && @workshop.workshop_starting_date > Date.new(2018, 8, 1))
+        ([COURSE_CSP, COURSE_CSD].include?(@workshop.course) &&
+        @workshop.workshop_starting_date > Date.new(2018, 8, 1))
 
       return csf_201_survey_report if @workshop.csf? && @workshop.subject = SUBJECT_CSF_201
 
-      # return default summarization + presentation pipeline
+      # TODO: return default summarization + presentation pipeline
 
       return render status: :bad_request, json: {
         error: "Do not know how to process survey results for this workshop #{@workshop.course} #{@workshop.subject}"
