@@ -1,4 +1,4 @@
-#load 'lib/api/v1/pd/retriever.rb'
+#load 'lib/pd/survey_pipeline/retriever.rb'
 
 module Pd
   module SurveyPipeline
@@ -43,6 +43,8 @@ module Pd
     end
   end
 end
+
+__END__
 
 def test_retriever(debug: false)
   res = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data(filters: {form_ids: [1], workshop_ids: [6547]}, debug: debug)

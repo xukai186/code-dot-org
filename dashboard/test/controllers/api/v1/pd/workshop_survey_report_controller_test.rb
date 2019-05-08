@@ -244,6 +244,21 @@ module Api::V1::Pd
       )
     end
 
+    test 'generic_survey_report' do
+      ended_ws = create :pd_ended_workshop, course: Pd::SharedWorkshopConstants::COURSE_CSF, subject: Pd::SharedWorkshopConstants::SUBJECT_CSF_201
+      ended_ws.update(id: 6547)
+
+      admin = create :workshop_admin
+      sign_in(admin)
+      get :generic_survey_report, params: {workshop_id: ended_ws.id}
+      p "response = #{@response}"
+      p "response.status = #{@response.status}"
+
+      response_hash = JSON.parse(@response.body)
+      p "response_hash = #{response_hash}"
+      # assert_response :success
+    end
+
     private
 
     def assert_workshop_survey_report_facilitator_query(user:, expected_facilitator_name_filter:)

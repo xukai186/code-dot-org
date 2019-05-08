@@ -1,6 +1,6 @@
-#load 'lib/api/v1/pd/decorator.rb'
+#load 'lib/pd/survey_pipeline/decorator.rb'
 
-require_relative 'map_reducer.rb'
+# require_relative 'map_reducer.rb'
 
 module Pd
   module SurveyPipeline
@@ -94,6 +94,8 @@ module Pd
     end
   end
 end
+
+__END__
 
 def test_mapreducer(debug: false)
   retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data

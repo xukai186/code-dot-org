@@ -1,6 +1,6 @@
-#load 'lib/api/v1/pd/transformer.rb'
+#load 'lib/pd/survey_pipeline/transformer.rb'
 
-require_relative 'retriever.rb'
+#require_relative 'retriever.rb'
 
 module Pd
   module SurveyPipeline
@@ -92,6 +92,8 @@ module Pd
     end
   end
 end
+
+__END__
 
 def test_transformer(debug: false)
   #retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data(filters: {form_ids: [1], workshop_ids: [6547]})
