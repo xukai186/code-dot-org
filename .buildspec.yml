@@ -1,0 +1,8 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "foo"
+      - docker ps
+      - docker images
