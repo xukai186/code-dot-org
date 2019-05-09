@@ -1,14 +1,13 @@
-require_relative '../../../../../lib/pd/survey_pipeline/retriever.rb'
-require_relative '../../../../../lib/pd/survey_pipeline/transformer.rb'
-require_relative '../../../../../lib/pd/survey_pipeline/map_reducer.rb'
-require_relative '../../../../../lib/pd/survey_pipeline/decorator.rb'
+require_relative '../../../../../app/helpers/pd/survey_pipeline/retriever.rb'
+require_relative '../../../../../app/helpers/pd/survey_pipeline/transformer.rb'
+require_relative '../../../../../app/helpers/pd/survey_pipeline/map_reducer.rb'
+require_relative '../../../../../app/helpers/pd/survey_pipeline/decorator.rb'
 
 module Api::V1::Pd
   class WorkshopSurveyReportController < ReportControllerBase
     include WorkshopScoreSummarizer
     include ::Pd::WorkshopSurveyReportCsvConverter
     include Pd::WorkshopSurveyResultsHelper
-    #include ::Pd::SurveyPipeline
 
     load_and_authorize_resource :workshop, class: 'Pd::Workshop'
 
@@ -312,43 +311,51 @@ module Api::V1::Pd
 
       #p "decorated_result = #{decorated_result}"
 
-      render json: decorated_result.merge({created_time: Time.now})
+      render json: decorated_result.merge({created_time: Time.now, new: true})
       #render json: fake_json_response.merge({created_time: Time.now})
     end
 
     def csf_201_survey_report
-      # MapReducer 1 configs
       p "Creating mapreducer 1 config"
-      group_fields1 = [:workshop_id, :form_id, :qid, :type]
+      group_config1 = [:workshop_id, :form_id, :qid, :type]
       is_type_number_cond = lambda {|hash| hash.dig(:type) == 'number'}
+      map_config1 = [{
+        condition: is_type_number_cond,
+        field: :answer,
+        reducers: [Pd::SurveyPipeline::AvgReducer.new, Pd::SurveyPipeline::HistogramReducer.new]
+      }]
+      map_reducer1 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config1, map_config: map_config1)
 
-      map_config1 = [{condition: is_type_number_cond, field: :answer, reducers: [::Pd::SurveyPipeline::AvgReducer, ::Pd::SurveyPipeline::HistogramReducer]}]
-      map_reducer1 = ::Pd::SurveyPipeline::GenericMapReducer.new(group_fields1, map_config1)
-
-      # MapReducer 2 configs
       p "Creating mapreducer 2 config"
-      group_fields2 = [:workshop_id, :form_id]
+      group_config2 = [:workshop_id, :form_id]
       no_cond = lambda {|_| true}
-      map_config2 = [{condition: no_cond, field: :answer, reducers: [::Pd::SurveyPipeline::CountReducer]}]
-      map_reducer2 = ::Pd::SurveyPipeline::GenericMapReducer.new(group_fields2, map_config2)
+      map_config2 = [{
+        condition: no_cond,
+        field: :submission_id,
+        reducers: [Pd::SurveyPipeline::CountReducer.new(distinct: true)]
+      }]
+      map_reducer2 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config2, map_config: map_config2)
 
       p "Creating decorator config"
-      # Decorator config
       decorator = ::Pd::SurveyPipeline::WorkshopDailySurveyReportDecorator.new(
         form_names: {1 => "Pre workshop", 9 => "Post workshop"}
       )
 
+      p "Execute generic survey pipeline"
       create_generic_survey_report(
         retriever: ::Pd::SurveyPipeline::WorkshopDailySurveyRetriever,
         transformer: ::Pd::SurveyPipeline::WorkshopDailySurveyFlattenTransformer,
         map_reducers: [map_reducer1, map_reducer2],
         decorator: decorator
       )
+
+      p "Done!"
     end
 
     # GET /api/v1/pd/workshops/:id/generic_survey_report
     def generic_survey_report
-      p "workshop = #{@workshop}"
+      p "Hello workshop = #{@workshop}"
+      p "Test module name #{Pd::SurveyPipeline::WorkshopDailySurveyRetriever}"
 
       return local_workshop_daily_survey_report if @workshop.local_summer? || @workshop.teachercon? ||
         ([COURSE_CSP, COURSE_CSD].include?(@workshop.course) &&

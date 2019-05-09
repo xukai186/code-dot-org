@@ -1,20 +1,15 @@
-#load 'lib/pd/survey_pipeline/map_reducer.rb'
-
-#require_relative 'transformer.rb'
-
 module Pd::SurveyPipeline
-  # module SurveyPipeline
   class MapReducerBase
-    def self.mapreduce(*)
+    def mapreduce(*)
       raise 'Child class must override this method'
     end
   end
 
   class GenericMapReducer < MapReducerBase
-    attr_reader :group_fields, :map_config
+    attr_reader :group_config, :map_config
 
-    def initialize(group_fields, map_config)
-      @group_fields = group_fields
+    def initialize(group_config:, map_config:)
+      @group_config = group_config
       @map_config = map_config
     end
 
@@ -23,39 +18,37 @@ module Pd::SurveyPipeline
     # @param group_config Array<string/symbol>
     # @param map_config Array<Hash{}>
     # @return Array<Hash>
-    def mapreduce(data:, debug: false)
-      p "group_fields = #{group_fields}" if debug
-      p "map_config = #{map_config}" if debug
+    def mapreduce(data:, logger: nil)
+      logger&.info "MP: set group_config = #{group_config}"
+      logger&.info "MP: set map_config = #{map_config}"
 
       # split data into groups
       groups = {}
       data.each do |row|
-        #gkey = row.values_at(*group_fields)  # array
-        gkey = Hash[group_fields.map {|field| [field, row[field]]}]
+        gkey = Hash[group_config.map {|field| [field, row[field]]}]
 
         groups[gkey] ||= []
         groups[gkey] << row
       end
 
-      p "groups.count = #{groups.count}" if debug
-      #p "groups = #{groups}" if debug
+      logger&.info "MP: groups.count = #{groups.count}"
+      logger&.debug "MP: groups = #{groups}"
 
       # Apply reducers on each group
       summaries = []
       groups.each do |gkey, gvalue|
-        map_config.each do |condition:, field:, reducers:|
-          p "gkey = #{gkey}" if debug
-          p "gvalue.count = #{gvalue.count}" if debug
+        logger&.debug "MP: gkey = #{gkey}"
+        logger&.debug "MP: gvalue.count = #{gvalue.count}"
 
+        map_config.each do |condition:, field:, reducers:|
+          logger&.debug "Match condition = #{condition.call(gkey)}"
           next unless condition.call(gkey)
 
-          p "reducers.count = #{reducers.count}" if debug
+          logger&.debug "MP: reducers.count = #{reducers.count}"
 
           reducers.each do |reducer|
             reducer_result = reducer.reduce(gvalue.map {|record| record[field]})
-
-            p "reducer.name = #{reducer.name}, result = #{reducer_result}" if debug
-
+            logger&.debug "MP: reducer.name = #{reducer.name}, result = #{reducer_result}"
             summaries << gkey.merge({reducer: reducer.name, reducer_result: reducer_result})
           end
         end
@@ -66,82 +59,63 @@ module Pd::SurveyPipeline
   end
 
   class ReducerBase
-    def self.name(*)
+    def name(*)
       raise 'Child class must override this method'
     end
 
-    def self.reduce(*)
+    def reduce(*)
       raise 'Child class must override this method'
     end
   end
 
   class AvgReducer < ReducerBase
-    def self.name
+    def name
       'average'
     end
 
     # @param values Array<number/string>
     # @return [float] average of the input values
-    def self.reduce(values)
+    def reduce(values)
       # TODO: enforce value type or just ignore it?
-      #p "values = #{values}"
       return unless values
       values.inject(0.0) {|sum, elem| sum + elem.to_f} / values.size
     end
   end
 
   class CountReducer < ReducerBase
-    def self.name
-      'count'
+    attr_reader :distinct
+    def initialize(distinct: false)
+      @distinct = distinct
     end
 
-    def self.reduce(values)
-      return values&.count || 0
+    def name
+      distinct ? 'count_distinct' : 'count'
+    end
+
+    def reduce(values)
+      (distinct ? values&.uniq&.count : values&.count) || 0
     end
   end
 
   class HistogramReducer < ReducerBase
-    def self.name
+    def name
       'histogram'
     end
 
-    def self.reduce(values)
+    def reduce(values)
       # TODO: enforce input is array
       values&.group_by {|v| v}&.transform_values(&:size)
     end
   end
-  # end
+
+  class MatrixHistogramReducer < ReducerBase
+    def name
+      'matrix_histogram'
+    end
+
+    def reduce(values)
+      #p "MatrixHistogram values&.count = #{values&.count}"
+      values&.count
+    end
+  end
 end
-
-__END__
-
-def test_mapreducer(debug: false)
-  print_key_count = lambda {|hash| hash.each_key {|key| p key, hash[key].count}}
-
-  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data
-  print_key_count.call(retrieved_data)
-
-  transformed_data = Pd::SurveyPipeline::WorkshopDailySurveyFlattenTransformer.transform_data data: retrieved_data
-  #p transformed_data.count
-
-  # 1st groupping
-  group_fields1 = [:workshop_id, :form_id, :qid, :type]
-  is_type_number_cond = lambda {|hash| hash.dig(:type) == 'number'}
-  map_config1 = [{condition: is_type_number_cond, field: :answer, reducers: [Pd::SurveyPipeline::AvgReducer, Pd::SurveyPipeline::HistogramReducer]}]
-  mapreducer1 = Pd::SurveyPipeline::GenericMapReducer.new(group_fields1, map_config1)
-
-  res = mapreducer1.mapreduce(data: transformed_data, debug: debug)
-
-  # 2nd groupping
-  group_fields2 = [:workshop_id, :form_id]
-  no_cond = lambda {|_| true}
-  map_config2 = [{condition: no_cond, field: :answer, reducers: [Pd::SurveyPipeline::CountReducer]}]
-  mapreducer2 = Pd::SurveyPipeline::GenericMapReducer.new(group_fields2, map_config2)
-
-  res += mapreducer2.mapreduce(data: transformed_data, debug: debug)
-
-  p "Final result count = #{res.count}"
-  p "Final result = #{res}"
-end
-
-test_mapreducer(debug: true) if $0 == 'rails_console'
