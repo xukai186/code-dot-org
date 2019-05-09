@@ -13,7 +13,7 @@ include_recipe 'apt'
 include_recipe 'sudo-user'
 include_recipe 'cdo-networking'
 
-include_recipe 'cdo-apps::hostname'
+#include_recipe 'cdo-apps::hostname'
 
 # These packages are used by Gems we install via Bundler.
 

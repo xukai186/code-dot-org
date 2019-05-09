@@ -80,5 +80,5 @@ end
 
 service "varnish" do
   supports restart: true, reload: true, status: true
-  action [:enable, :start]
+  action [:enable]
 end
