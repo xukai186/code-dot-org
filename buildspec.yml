@@ -3,6 +3,18 @@ version: 0.2
 phases:
   install:
     commands:
-      - echo "foo"
-      - docker ps
-      - docker images
+      # Start docker daemon: https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html
+      - nohup /usr/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375 --storage-driver=overlay&
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+
+  build:
+    commands:
+      - pwd
+      - ls
+      - cd cookbooks
+      - bundle exec berks package berks-package.tar.gz
+      - mv berks-package.tar.gz ..
+      - cd ..
+      - $(aws ecr get-login --no-include-email --region us-east-1)
+      - docker build -t 165336972514.dkr.ecr.us-east-1.amazonaws.com/cdo-site:latest -f docker/production-build/Dockerfile .
+      - docker push 165336972514.dkr.ecr.us-east-1.amazonaws.com/cdo-site:latest
