@@ -30,3 +30,12 @@ USER root
 RUN cp -r /home/ubuntu/adhoc/berks-package.tar.gz /var/chef && \
     cd /var/chef && \
     tar -xzf berks-package.tar.gz
+
+USER ubuntu
+RUN export USER=ubuntu && \
+    sudo /opt/chef/bin/chef-client -c /etc/chef/client.rb -j /etc/chef/first-boot.json
+
+COPY docker/production-build/entrypoint.sh /entrypoint.sh
+
+USER root
+CMD /entrypoint.sh
