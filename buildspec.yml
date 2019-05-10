@@ -12,6 +12,7 @@ phases:
       - pwd
       - ls
       - cd cookbooks
+      - bundle install
       - bundle exec berks package berks-package.tar.gz
       - mv berks-package.tar.gz ..
       - cd ..
