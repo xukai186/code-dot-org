@@ -16,6 +16,6 @@ phases:
       - bundle exec berks package berks-package.tar.gz
       - mv berks-package.tar.gz ..
       - cd ..
-      - $(aws ecr get-login --no-include-email --region us-east-1)
       - docker build -t 165336972514.dkr.ecr.us-east-1.amazonaws.com/cdo-site:latest -f docker/production-build/Dockerfile .
+      - $(aws ecr get-login --no-include-email --region us-east-1)
       - docker push 165336972514.dkr.ecr.us-east-1.amazonaws.com/cdo-site:latest
