@@ -33,6 +33,10 @@ module Pd::SurveyPipeline
       questions = []
       Pd::SurveyQuestion.find_each do |question|
         next unless selected_form_ids.blank? || selected_form_ids.include?(question.form_id)
+
+        # summary = question&.summarize
+        # logger&.info summary
+
         questions << question
       end
 

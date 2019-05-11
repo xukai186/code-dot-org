@@ -5,8 +5,6 @@ load 'app/helpers/pd/survey_pipeline/map_reducer.rb'
 load 'app/helpers/pd/survey_pipeline/transformer.rb'
 load 'app/helpers/pd/survey_pipeline/retriever.rb'
 
-require 'logger'
-
 def test_mapreducer(logger = nil)
   filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
   retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data filters: filters, logger: logger
@@ -16,6 +14,7 @@ def test_mapreducer(logger = nil)
   transformed_data = Pd::SurveyPipeline::WorkshopDailySurveyFlattenTransformer.transform_data data: retrieved_data, logger: logger
 
   # 1st groupping
+  # TODO: use answer_type instead of question type
   group_config1 = [:workshop_id, :form_id, :qid, :type]
   is_number_type = lambda {|hash| hash.dig(:type) == 'number'}
   is_matrix_type = lambda {|hash| hash.dig(:type) == 'matrix'}
@@ -55,8 +54,5 @@ end
 log_file = File.new("#{File.dirname(__FILE__)}/log_mapreducer.txt", 'w')
 log_file.sync = true
 logger = Logger.new(log_file, level: Logger::DEBUG)
-
-#logger = Logger.new(STDOUT, level: Logger::DEBUG)
-#STDOUT.sync = true
 
 test_mapreducer(logger) if $0 == 'rails_console'

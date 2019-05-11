@@ -49,6 +49,7 @@ module Pd::SurveyPipeline
           reducers.each do |reducer|
             reducer_result = reducer.reduce(gvalue.map {|record| record[field]})
             logger&.debug "MP: reducer.name = #{reducer.name}, result = #{reducer_result}"
+            next unless reducer_result.present?
             summaries << gkey.merge({reducer: reducer.name, reducer_result: reducer_result})
           end
         end
@@ -113,9 +114,23 @@ module Pd::SurveyPipeline
       'matrix_histogram'
     end
 
+    # @param values Array<Hash{sub_q => ans}>
+    # @return Hash{sub_q => Hash{ans => count}}
     def reduce(values)
-      #p "MatrixHistogram values&.count = #{values&.count}"
-      values&.count
+      # TODO: enforce value type as array? `values.is_a? Array`
+      # TODO: how to return warning/errors. strict? let the caller decide what to do it
+      return unless values.present?
+
+      {}.tap do |res|
+        values.each do |answers|
+          answers.each do |ques, ans|
+            next unless ans.present?
+            res[ques] ||= {}
+            res[ques][ans] ||= 0
+            res[ques][ans] += 1
+          end
+        end
+      end
     end
   end
 end

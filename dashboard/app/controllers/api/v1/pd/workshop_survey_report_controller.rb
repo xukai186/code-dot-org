@@ -128,6 +128,7 @@ module Api::V1::Pd
       end
     end
 
+    # TODO: remove this function
     def fake_json_response
       JSON.parse('{
         "course_name": "CS Fundamentals",
@@ -215,101 +216,24 @@ module Api::V1::Pd
       )
     end
 
-    def fake_json_response_csf
-      JSON.parse('{
-        "course_name": "CS Fundamentals",
-        "questions": {
-          "Pre Workshop": {
-            "general": {
-              "iBelieve_1": {
-                "text": "I believe a successful computer science teacher… creates a classroom culture in which students regularly get feedback on their work from their peers.",
-                "answer_type": "singleSelect"
-              }
-            }
-          },
-          "Post Workshop": {
-            "general": {
-              "iFeel18": {
-                "text": "I feel more prepared to teach CS Principles than I did at the beginning of the day.",
-                "answer_type": "scale",
-                "min_value": 1,
-                "max_value": 7,
-                "options": [
-                  "1 - Strongly Disagree",
-                  "2",
-                  "3",
-                  "4",
-                  "5",
-                  "6",
-                  "7 - Strongly Agree"
-                ]
-              }
-            }
-          }
-        },
-        "this_workshop": {
-          "Pre Workshop": {
-            "response_count": 11,
-            "general": {
-              "iBelieve_1": {
-                "Agree": 7,
-                "Neutral": 1,
-                "Strongly Agree": 2,
-                "Slightly Agree": 1
-              }
-            }
-          },
-          "Post Workshop": {
-            "response_count": 12,
-            "general": {
-              "iFeel18": {
-                "5": 2,
-                "7": 6,
-                "4": 2,
-                "3": 1,
-                "6": 1
-              }
-            },
-            "facilitator": {
-            }
-          }
-        },
-        "all_my_workshops": {},
-        "facilitators": {},
-        "facilitator_averages": {},
-        "facilitator_response_counts": {}
-      }'
-      )
-    end
-
     def create_generic_survey_report(retriever:, transformer:, map_reducers:, decorator:)
-      # Retrieve data from current db
-      #p "Retrieving data"
-
+      # 1. Retrieve data from current db
       retrieved_data = retriever.retrieve_data(filters: {workshop_ids: [@workshop.id]})
 
-      #p "retrieved_data = #{retrieved_data}"
-      # transform data so they are aggregatable
-      #p "Transforming data"
-
+      # 2. Transform data so they are aggregatable
       transformed_data = transformer.transform_data(data: retrieved_data)
 
-      #p "transformed_data = #{transformed_data}"
-      # map-reduce configuration: number type -> histogram
-      #p "Summarizing data"
-
+      # 3. Summarizing data
       summaries = []
       map_reducers.each do |mr|
         summaries += mr.mapreduce(data: transformed_data)
       end
 
-      #p "summaries = #{summaries}"
-      # decorator compile input from current db and summary results into format for the current LSW presentor
-      #p "Decorating data"
-
+      # 4. Decorating data
       decorated_result = decorator.decorate(summaries: summaries, raw_data: retrieved_data)
 
-      #p "decorated_result = #{decorated_result}"
+      # TODO: remove fake result
+      # decorated_result[:this_workshop] = fake_summary
 
       render json: decorated_result.merge({created_time: Time.now, new: true})
       #render json: fake_json_response.merge({created_time: Time.now})
@@ -318,19 +242,28 @@ module Api::V1::Pd
     def csf_201_survey_report
       p "Creating mapreducer 1 config"
       group_config1 = [:workshop_id, :form_id, :qid, :type]
-      is_type_number_cond = lambda {|hash| hash.dig(:type) == 'number'}
-      map_config1 = [{
-        condition: is_type_number_cond,
-        field: :answer,
-        reducers: [Pd::SurveyPipeline::AvgReducer.new, Pd::SurveyPipeline::HistogramReducer.new]
-      }]
+      is_number_type = lambda {|hash| hash.dig(:answer_type) == 'number'}
+      is_matrix_type = lambda {|hash| hash.dig(:type) == 'matrix'}
+      map_config1 = [
+        {
+          condition: is_number_type,
+          field: :answer,
+          reducers: [Pd::SurveyPipeline::AvgReducer.new, Pd::SurveyPipeline::HistogramReducer.new]
+        },
+        {
+          condition: is_matrix_type,
+          field: :answer,
+          reducers: [Pd::SurveyPipeline::MatrixHistogramReducer.new]
+        }
+      ]
       map_reducer1 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config1, map_config: map_config1)
 
+      # TODO: don't even need the 2nd mapreducer
       p "Creating mapreducer 2 config"
       group_config2 = [:workshop_id, :form_id]
       no_cond = lambda {|_| true}
       map_config2 = [{
-        condition: no_cond,
+        condition: no_cond,   # TODO: assign no condition, nil
         field: :submission_id,
         reducers: [Pd::SurveyPipeline::CountReducer.new(distinct: true)]
       }]
@@ -354,8 +287,8 @@ module Api::V1::Pd
 
     # GET /api/v1/pd/workshops/:id/generic_survey_report
     def generic_survey_report
-      p "Hello workshop = #{@workshop}"
-      p "Test module name #{Pd::SurveyPipeline::WorkshopDailySurveyRetriever}"
+      #p "Hello workshop = #{@workshop}"
+      #p "Test module name #{Pd::SurveyPipeline::WorkshopDailySurveyRetriever}"
 
       return local_workshop_daily_survey_report if @workshop.local_summer? || @workshop.teachercon? ||
         ([COURSE_CSP, COURSE_CSD].include?(@workshop.course) &&
@@ -382,22 +315,3 @@ module Api::V1::Pd
     end
   end
 end
-
-__END__
-
-=begin
-  summary = {
-    this_workshop: {},
-    course_name: @workshop.course,
-    all_my_workshops: {},
-    facilitators: {},
-    facilitator_averages: {},
-    facilitator_response_counts: {}
-  }
-
-  respond_to do |format|
-    format.json do
-      render json: summary
-    end
-  end
-=end

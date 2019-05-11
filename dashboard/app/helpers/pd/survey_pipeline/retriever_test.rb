@@ -1,6 +1,8 @@
 #load 'app/helpers/pd/survey_pipeline/retriever_test.rb'
 
-load 'app/helpers/pd/survey_pipeline/retriever.rb'
+#load 'app/helpers/pd/survey_pipeline/retriever.rb'
+
+require_relative 'retriever.rb'
 
 def test_retriever(logger = nil)
   # filters = {form_ids: [82115699619165], workshop_ids: [6424]}
@@ -13,11 +15,8 @@ def test_retriever(logger = nil)
   logger&.warn "RE: Final result = #{res}"
 end
 
-# log_file = File.new("#{File.dirname(__FILE__)}/log_retriever.txt", 'w')
-# log_file.sync = true
-# logger = Logger.new(log_file, level: Logger::DEBUG)
-
-logger = Logger.new(STDOUT, level: Logger::DEBUG)
-STDOUT.sync = true
+log_file = File.new("#{File.dirname(__FILE__)}/log_retriever.txt", 'w')
+log_file.sync = true
+logger = Logger.new(log_file, level: Logger::DEBUG)
 
 test_retriever(logger) if $0 == 'rails_console'

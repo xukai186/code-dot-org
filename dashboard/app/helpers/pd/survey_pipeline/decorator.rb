@@ -18,10 +18,10 @@ module Pd::SurveyPipeline
       return unless summaries
       return unless raw_data.dig(:survey_questions)
 
-      logger&.debug "DECO summaries.count = #{summaries.count}"
-      logger&.debug "DECO questions.count = #{raw_data[:survey_questions].count}"
-      logger&.debug "DECO form_names.count = #{form_names.count}"
-      logger&.debug "DECO form_names = #{form_names}"
+      logger&.debug "DECO: summaries.count = #{summaries.count}"
+      logger&.debug "DECO: questions.count = #{raw_data[:survey_questions].count}"
+      logger&.debug "DECO: form_names.count = #{form_names.count}"
+      logger&.debug "DECO: form_names = #{form_names}"
 
       res = {
         course_name: nil,
@@ -38,15 +38,17 @@ module Pd::SurveyPipeline
       raw_data[:survey_questions].each do |sq|
         fname = get_form_name(sq.form_id, form_names)
         res[:questions][fname] ||= {general: {}}
+        # res[:questions][fname][:general] = sq&.summarize
 
         q_arr = JSON.parse(sq.questions)
         q_arr.each do |q|
           question_names[{form_id: sq.form_id, qid: q["id"].to_s}] = q["name"]
-          res[:questions][fname][:general][q["name"]] = {text: q["text"], answer_type: q["type"]}
+          # TODO: what to do with this?
+          res[:questions][fname][:general][q["name"]] = q.symbolize_keys  #{text: q["text"], answer_type: q["type"]}
         end
       end
 
-      logger&.debug "DECO question_names = #{question_names}"
+      logger&.debug "DECO: question_names = #{question_names}"
 
       # build summary results for this workshop and all workshops
       summaries.each do |row|
@@ -62,13 +64,13 @@ module Pd::SurveyPipeline
         res[:this_workshop][fname] ||= {general: {}}
 
         if row.dig(:qid)
-          next unless row.dig(:reducer)&.downcase == 'histogram'
-          logger&.debug "DECO row with question = #{row}"
+          #next unless row.dig(:reducer)&.downcase == 'histogram'
+          logger&.debug "DECO: row w/ question = #{row}"
           qname = question_names[{form_id: row[:form_id], qid: row[:qid]}]
           res[:this_workshop][fname][:general][qname] = row[:reducer_result]
         elsif row.dig(:reducer)&.downcase == 'count' || row.dig(:reducer)&.downcase == 'count_distinct'
           # TODO: we have the raw_data, get response_count directly from it instead (cheaper!)
-          logger&.debug "DECO row w/o question = #{row}"
+          logger&.debug "DECO: row w/o question = #{row}"
           res[:this_workshop][fname][:response_count] = row[:reducer_result]
         end
       end

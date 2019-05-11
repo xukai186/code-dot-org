@@ -9,7 +9,10 @@ module Pd::SurveyPipeline
     # Split and join WorkshopDailySurvey and SurveyQuestion data.
     # @param data [Hash] the input data contains WorkshopDailySurvey and SurveyQuestion
     # @return [Array<Hash{FieldKey => FieldValue}>] array of results after join
+    # TODO: @see design doc
+    # TODO: make it clear what is required in input. what output looks like
     def self.transform_data(data:, logger: nil)
+      # TODO: make these input params
       return unless data.dig(:workshop_daily_surveys)
       return unless data.dig(:survey_questions)
 
@@ -21,7 +24,7 @@ module Pd::SurveyPipeline
 
         q_arr.each do |q|
           q_key = {form_id: sq.form_id, id: q["id"].to_s}
-          questions[q_key] = q.symbolize_keys   #{type: q["type"], name: q["name"], text: q["text"]}
+          questions[q_key] = q.symbolize_keys
         end
       end
 
@@ -46,48 +49,9 @@ module Pd::SurveyPipeline
 
       logger&.info "TR: answer count = #{res.count}"
       logger&.debug "TR: first 10 answers = #{res[0..9]}"
+
+      # TODO: transform res for multi-select/matrix questions
       res
     end
-  end
-end
-
-__END__
-
-class WorkshopDailySurveyTransformer < TransformerBase
-  def self.transform_data(data: {}, debug: false)
-    return unless data.dig(:workshop_daily_surveys)
-    return unless data.dig(:survey_questions)
-
-    res = {}
-    data[:survey_questions].each do |sq|
-      q_arr = JSON.parse(sq.questions)
-      q_arr.each do |q|
-        q_key = {name: q["id"].to_s, type: q["type"]}
-        res[q_key] ||= []
-      end
-    end
-
-    p "res ater extracting questions = #{res}" if debug
-
-    data[:workshop_daily_surveys].each do |sub|
-      ans_h = JSON.parse(sub.answers)
-      ans_h.each do |qid, ans|
-        qid_str = qid.to_s
-
-        found = false
-        res.each_key do |key|
-          next if key[:name] != qid_str
-
-          res[key] << {form_id: sub.form_id, workshop_id: sub.pd_workshop_id, ans: ans}
-          found = true
-          break
-        end
-
-        raise "Question id #{qid} does not exist in SurveyQuestion data" unless found
-      end
-    end
-
-    p "Result ater extracting answers = #{res}" if debug
-    return res
   end
 end
