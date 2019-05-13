@@ -1,10 +1,11 @@
 import React from 'react';
-import {shallow} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import sinon from 'sinon';
 import {expect} from '../../../util/configuredChai';
 import i18n from '@cdo/locale';
 import BaseDialog from '@cdo/apps/templates/BaseDialog';
-import Button from '@cdo/apps/templates/Button';
+import Dialog, {Body} from '@cdo/apps/templates/Dialog';
+import Button from '../../../../src/templates/Button';
 import SchoolInfoInputs from '@cdo/apps/templates/SchoolInfoInputs';
 import SchoolInfoInterstitial from '@cdo/apps/lib/ui/SchoolInfoInterstitial';
 import SchoolInfoConfirmationDialog from '@cdo/apps/lib/ui/SchoolInfoConfirmationDialog';
@@ -24,38 +25,63 @@ describe('SchoolInfoConfirmationDialog', () => {
   // beforeEach(() => sinon.stub(firehoseClient, 'putRecord'));
   // afterEach(() => firehoseClient.putRecord.restore());
 
-  // it('renders the schoolinfointerstitial form', () => {
-  //   const wrapper = shallow(
-  //     <SchoolInfoConfirmationDialog
-  //       {...MINIMUM_PROPS}
-  //       scriptData={{
-  //         ...MINIMUM_PROPS.scriptData,
-  //         existingSchoolInfo: {
-  //           country: 'US'
-  //         }
-  //       }}
-  //     />
-  //   );
-  //
-  //   expect(wrapper.find(SchoolInfoInterstitial)).to.have.lengthOf(1);
-  // });
+  it('renders the schoolinfointerstitial form', () => {
+    const wrapper = shallow(
+      <SchoolInfoConfirmationDialog
+        {...MINIMUM_PROPS}
+        scriptData={{
+          ...MINIMUM_PROPS.scriptData,
+          existingSchoolInfo: {
+            country: 'US'
+          }
+        }}
+      />
+    );
+
+    wrapper.instance().setState({showSchoolInterstitial: true});
+    expect(wrapper.find(SchoolInfoInterstitial)).to.have.lengthOf(1);
+  });
+
+  it('renders the school info confirmation dialog', () => {
+    const wrapper = shallow(
+      <SchoolInfoConfirmationDialog
+        {...MINIMUM_PROPS}
+        scriptData={{
+          ...MINIMUM_PROPS.scriptData,
+          existingSchoolInfo: {
+            country: 'US'
+          }
+        }}
+      />
+    );
+
+    expect(wrapper.find(Body)).to.have.lengthOf(1);
+  });
 
   it('simulates click events', () => {
-    debugger;
-    const onButtonClick = sinon.spy();
-    const wrapper = shallow(
-          <SchoolInfoConfirmationDialog
-            {...MINIMUM_PROPS}
-            scriptData={{
-              ...MINIMUM_PROPS.scriptData,
-              existingSchoolInfo: {
-                country: 'US'
-              }
-            }}
-          />
+    const wrapper = mount(
+      <SchoolInfoConfirmationDialog
+        {...MINIMUM_PROPS}
+        scriptData={{
+          ...MINIMUM_PROPS.scriptData,
+          existingSchoolInfo: {
+            country: 'US'
+          }
+        }}
+      />
     );
-    wrapper.find('Button').simulate('click');
-    expect(onButtonClick).to.have.property('callCount', 2);
+    const handleClickSaveStub = sinon.stub(
+      wrapper.instance(),
+      'handleClickSave'
+    );
+    handleClickSaveStub.callsFake(() => {});
+    wrapper.instance().setState({showSchoolInterstitial: true});
+    wrapper
+      .find('div')
+      .at(25)
+      .simulate('click');
+    //expect(handleClickSaveStub.callCount).to.equal(1);
+    expect(wrapper.find('[data-radium="true"]').length).to.equal(1);
   });
 });
 
@@ -100,9 +126,7 @@ describe('SchoolInfoConfirmationDialog', () => {
 
 //   it.only('calls handleClickYes when a user clicks on the yes button', () => {
 
-
 // console.log('yes biuttton', yesButton);
-
 
 //     const handleClickYes = sinon.spy();
 
