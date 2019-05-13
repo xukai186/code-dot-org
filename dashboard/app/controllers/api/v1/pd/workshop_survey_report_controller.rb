@@ -218,6 +218,8 @@ module Api::V1::Pd
 
     def create_generic_survey_report(retriever:, transformer:, map_reducers:, decorator:)
       # 1. Retrieve data from current db
+      # TODO: move retriever filter config out of this function. Create an instance of Retriever with that config
+      # or take config in as input params
       retrieved_data = retriever.retrieve_data(filters: {workshop_ids: [@workshop.id]})
 
       # 2. Transform data so they are aggregatable
