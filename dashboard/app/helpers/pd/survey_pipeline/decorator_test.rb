@@ -35,7 +35,7 @@ def test_decorator(logger)
   summaries = map_reducer1.mapreduce(data: transformed_data, logger: logger)
 
   decorator = ::Pd::SurveyPipeline::WorkshopDailySurveyReportDecorator.new(
-    form_names: {1 => "Pre workshop", 9 => "Post workshop", 82115699619165 => "Pre Workshop"}
+    form_names: {1 => "Pre workshop", 9 => "Post workshop", 82_115_699_619_165 => "Pre Workshop"}
   )
 
   res = decorator.decorate(
