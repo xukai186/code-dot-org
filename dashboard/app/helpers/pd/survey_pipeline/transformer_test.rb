@@ -7,10 +7,13 @@ def test_transformer(logger = nil)
   filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
   retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data filters: filters
 
-  res = Pd::SurveyPipeline::WorkshopDailySurveyFlattenTransformer.transform_data(data: retrieved_data, logger: logger)
+  joined_row = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data(data: retrieved_data, logger: logger)
+  logger&.info "TR: joined_row.count = #{joined_row.count}"
 
-  logger&.warn "TR Final result count = #{res.count}"
-  logger&.debug "TR Final result = #{res}"
+  res = Pd::SurveyPipeline::ComplexQuestionTransformer.new(question_types: ['matrix']).transform_data(data: joined_row, logger: logger)
+
+  logger&.warn "TR: Final result count = #{res.count}"
+  logger&.debug "TR: Final result = #{res}"
 end
 
 log_file = File.new("#{File.dirname(__FILE__)}/log_transformer.txt", 'w')

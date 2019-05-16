@@ -1,7 +1,7 @@
 module Pd::SurveyPipeline
   class DecoratorBase
     def self.decorate(*)
-      raise 'Child class must override this method'
+      raise 'Must override in derived class'
     end
   end
 
@@ -14,12 +14,12 @@ module Pd::SurveyPipeline
       @form_names = form_names
     end
 
-    def decorate(summaries:, raw_data:, logger: nil)
+    def decorate(summaries:, transformed_data:, retrieved_data:, logger: nil)
       return unless summaries
-      return unless raw_data.dig(:survey_questions)
+      return unless retrieved_data.dig(:survey_questions)
 
       logger&.debug "DECO: summaries.count = #{summaries.count}"
-      logger&.debug "DECO: questions.count = #{raw_data[:survey_questions].count}"
+      logger&.debug "DECO: questions.count = #{retrieved_data[:survey_questions].count}"
       logger&.debug "DECO: form_names.count = #{form_names.count}"
       logger&.debug "DECO: form_names = #{form_names}"
 
@@ -33,9 +33,9 @@ module Pd::SurveyPipeline
         facilitator_response_counts: {}
       }
 
-      # build questions list
+      # TODO: build questions list from transformed_data. key = form_id, question_name, qid...
       question_names = {}
-      raw_data[:survey_questions].each do |sq|
+      retrieved_data[:survey_questions].each do |sq|
         fname = get_form_name(sq.form_id, form_names)
         res[:questions][fname] ||= {general: {}}
         # res[:questions][fname][:general] = sq&.summarize
@@ -69,7 +69,7 @@ module Pd::SurveyPipeline
           qname = question_names[{form_id: row[:form_id], qid: row[:qid]}]
           res[:this_workshop][fname][:general][qname] = row[:reducer_result]
         elsif row.dig(:reducer)&.downcase == 'count' || row.dig(:reducer)&.downcase == 'count_distinct'
-          # TODO: we have the raw_data, get response_count directly from it instead (cheaper!)
+          # TODO: we have the retrieved_data, get response_count directly from it instead (cheaper!)
           logger&.debug "DECO: row w/o question = #{row}"
           res[:this_workshop][fname][:response_count] = row[:reducer_result]
         end

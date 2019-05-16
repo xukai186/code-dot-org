@@ -9,47 +9,39 @@ load 'app/helpers/pd/survey_pipeline/retriever.rb'
 def test_decorator(logger)
   filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
   retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data filters: filters, logger: logger
-  transformed_data = Pd::SurveyPipeline::WorkshopDailySurveyFlattenTransformer.transform_data data: retrieved_data, logger: logger
+
+  joined_data = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data data: retrieved_data, logger: logger
+  transformed_data = Pd::SurveyPipeline::ComplexQuestionTransformer.new(question_types: ['matrix']).transform_data data: joined_data, logger: logger
 
   # 1st groupping
-  group_config1 = [:workshop_id, :form_id, :qid, :type]
-  is_number_type = lambda {|hash| hash.dig(:type) == 'number'}
-  is_matrix_type = lambda {|hash| hash.dig(:type) == 'matrix'}
+  group_config1 = [:workshop_id, :form_id, :name, :type, :hidden, :answer_type]
+  is_single_select_answer = lambda {|hash| hash.dig(:answer_type) == 'singleSelect'}
+  is_free_format_question = lambda {|hash| ['textbox', 'textarea'].include?(hash.dig(:type)) && !!!hash.dig(:hidden)}
+
   map_config1 = [
     {
-      condition: is_number_type,
+      condition: is_single_select_answer,
       field: :answer,
-      reducers: [Pd::SurveyPipeline::AvgReducer.new, Pd::SurveyPipeline::HistogramReducer.new]
+      reducers: [Pd::SurveyPipeline::HistogramReducer.new]
     },
     {
-      condition: is_matrix_type,
+      condition: is_free_format_question,
       field: :answer,
-      reducers: [Pd::SurveyPipeline::MatrixHistogramReducer.new]
+      reducers: [Pd::SurveyPipeline::NoOpReducer]
     }
   ]
   map_reducer1 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config1, map_config: map_config1)
 
   summaries = map_reducer1.mapreduce(data: transformed_data, logger: logger)
 
-  # 2nd groupping
-  group_config2 = [:workshop_id, :form_id]
-  no_cond = lambda {|_| true}
-  map_config2 = [{
-    condition: no_cond,
-    field: :submission_id,
-    reducers: [Pd::SurveyPipeline::CountReducer.new(distinct: true)]
-  }]
-  map_reducer2 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config2, map_config: map_config2)
-
-  summaries += map_reducer2.mapreduce(data: transformed_data, logger: logger)
-
   decorator = ::Pd::SurveyPipeline::WorkshopDailySurveyReportDecorator.new(
-    form_names: {1 => "Pre workshop", 9 => "Post workshop"}
+    form_names: {1 => "Pre workshop", 9 => "Post workshop", 82115699619165 => "Pre Workshop"}
   )
 
   res = decorator.decorate(
     summaries: summaries,
-    raw_data: retrieved_data,
+    transform_data: transformed_data,
+    retrieved_data: retrieved_data,
     logger: logger
   )
 

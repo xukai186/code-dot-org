@@ -1,8 +1,7 @@
 module Pd::SurveyPipeline
   class RetrieverBase
     def self.retrive_data(*)
-      # TODO: is there a better way to enforce this using mix-in?
-      raise 'Child class must override this method'
+      raise 'Must override in derived class'
     end
   end
 

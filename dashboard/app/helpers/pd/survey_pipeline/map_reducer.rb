@@ -1,7 +1,7 @@
 module Pd::SurveyPipeline
   class MapReducerBase
     def mapreduce(*)
-      raise 'Child class must override this method'
+      raise 'Must override in derived class'
     end
   end
 
@@ -22,10 +22,10 @@ module Pd::SurveyPipeline
       logger&.info "MP: set group_config = #{group_config}"
       logger&.info "MP: set map_config = #{map_config}"
 
-      # split data into groups
+      # Split data into groups
       groups = {}
       data.each do |row|
-        gkey = Hash[group_config.map {|field| [field, row[field]]}]
+        gkey = group_config.map {|field| [field, row[field]]}.to_h
 
         groups[gkey] ||= []
         groups[gkey] << row
@@ -43,12 +43,12 @@ module Pd::SurveyPipeline
         map_config.each do |condition:, field:, reducers:|
           logger&.debug "Match condition = #{condition.call(gkey)}"
           next unless condition.call(gkey)
-
           logger&.debug "MP: reducers.count = #{reducers.count}"
 
           reducers.each do |reducer|
             reducer_result = reducer.reduce(gvalue.map {|record| record[field]})
             logger&.debug "MP: reducer.name = #{reducer.name}, result = #{reducer_result}"
+
             next unless reducer_result.present?
             summaries << gkey.merge({reducer: reducer.name, reducer_result: reducer_result})
           end
@@ -61,11 +61,11 @@ module Pd::SurveyPipeline
 
   class ReducerBase
     def name(*)
-      raise 'Child class must override this method'
+      raise 'Must override in derived class'
     end
 
     def reduce(*)
-      raise 'Child class must override this method'
+      raise 'Must override in derived class'
     end
   end
 
@@ -131,6 +131,16 @@ module Pd::SurveyPipeline
           end
         end
       end
+    end
+  end
+
+  class NoOpReducer < ReducerBase
+    def self.name
+      'no_op'
+    end
+
+    def self.reduce(values)
+      values
     end
   end
 end

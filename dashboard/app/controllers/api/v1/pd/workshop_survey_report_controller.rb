@@ -278,8 +278,9 @@ module Api::V1::Pd
 
       p "Execute generic survey pipeline"
       create_generic_survey_report(
+        # TODO: convert Retriever to instance method
         retriever: ::Pd::SurveyPipeline::WorkshopDailySurveyRetriever,
-        transformer: ::Pd::SurveyPipeline::WorkshopDailySurveyFlattenTransformer,
+        transformer: ::Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new,
         map_reducers: [map_reducer1, map_reducer2],
         decorator: decorator
       )
