@@ -8,10 +8,10 @@ load 'app/helpers/pd/survey_pipeline/retriever.rb'
 
 def test_decorator(logger)
   filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
-  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data filters: filters, logger: logger
+  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new(filters: filters).retrieve_data
 
-  joined_data = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data data: retrieved_data, logger: logger
-  transformed_data = Pd::SurveyPipeline::ComplexQuestionTransformer.new(question_types: ['matrix']).transform_data data: joined_data, logger: logger
+  joined_data = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data data: retrieved_data
+  transformed_data = Pd::SurveyPipeline::ComplexQuestionTransformer.new(question_types: ['matrix']).transform_data data: joined_data
 
   # 1st groupping
   group_config1 = [:workshop_id, :form_id, :name, :type, :hidden, :answer_type]
@@ -32,7 +32,7 @@ def test_decorator(logger)
   ]
   map_reducer1 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config1, map_config: map_config1)
 
-  summaries = map_reducer1.mapreduce(data: transformed_data, logger: logger)
+  summaries = map_reducer1.mapreduce data: transformed_data
 
   decorator = ::Pd::SurveyPipeline::WorkshopDailySurveyReportDecorator.new(
     form_names: {1 => "Pre workshop", 9 => "Post workshop", 82_115_699_619_165 => "Pre Workshop"}
@@ -40,8 +40,7 @@ def test_decorator(logger)
 
   res = decorator.decorate(
     summaries: summaries,
-    transform_data: transformed_data,
-    retrieved_data: retrieved_data,
+    transformed_data: transformed_data,
     logger: logger
   )
 

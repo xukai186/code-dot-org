@@ -1,4 +1,4 @@
-require_relative '../../../../lib/pd/jot_form/constants.rb'
+#require_relative '../../../../lib/pd/jot_form/constants.rb'  # TODO: remove
 
 module Pd::SurveyPipeline
   class TransformerBase
@@ -10,7 +10,7 @@ module Pd::SurveyPipeline
   class WorkshopDailySurveyJoinTransformer < TransformerBase
     include Pd::JotForm::Constants
 
-    ANSWER_MAPPING = {
+    ANSWER_TYPE_MAPPING = {
       TYPE_NUMBER => ANSWER_TEXT,
       TYPE_TEXTBOX => ANSWER_TEXT,
       TYPE_TEXTAREA => ANSWER_TEXT,
@@ -22,24 +22,23 @@ module Pd::SurveyPipeline
     }.freeze
 
     # Split and join WorkshopDailySurvey and SurveyQuestion data.
-    # @param data [Hash] the input data contains WorkshopDailySurvey and SurveyQuestion
-    # @return [Array<Hash{FieldKey => FieldValue}>] array of results after join
+    # @param data [Hash{WorkshopDailySurveys, SurveyQuestions}] the input data contains WorkshopDailySurvey and SurveyQuestion
+    # @return [Array<Hash{fields}>] array of results after join
     # TODO: @see design doc
     # TODO: make it clear what is required in input. what output looks like
     def transform_data(data:, logger: nil)
-      # TODO: make these input params
       return unless data.dig(:workshop_daily_surveys)
       return unless data.dig(:survey_questions)
 
       # Create question mapping: (form_id, qid) => q_content
       questions = {}
       data[:survey_questions].each do |sq|
-        q_arr = JSON.parse(sq.questions)
-        logger&.info "TR: survey form_id #{sq.form_id} has #{q_arr.count} questions"
+        question_array = JSON.parse(sq.questions)
+        logger&.info "TR: survey form_id #{sq.form_id} has #{question_array.count} questions"
 
-        q_arr.each do |q|
-          q_key = {form_id: sq.form_id, qid: q["id"].to_s}
-          questions[q_key] = q.symbolize_keys
+        question_array.each do |question|
+          question_key = {form_id: sq.form_id, qid: question["id"].to_s}
+          questions[question_key] = question.symbolize_keys
         end
       end
 
@@ -55,17 +54,17 @@ module Pd::SurveyPipeline
         logger&.info "TR: submission id #{submission.id} has #{ans_h.count} answers"
 
         ans_h.each do |qid, ans|
-          q_key = {form_id: submission.form_id, qid: qid.to_s}
-          raise "Question id #{qid} in form #{form_id} does not exist in SurveyQuestion data" unless questions.key?(q_key)
+          question_key = {form_id: submission.form_id, qid: qid.to_s}
+          raise "Question id #{qid} in form #{form_id} does not exist in SurveyQuestion data" unless questions.key?(question_key)
+          question_content = questions[question_key].except(:form_id, :id)
 
-          # TODO: add answer_type to question_content
           # TODO: how to decide what fields to take from sumission record? How to config it?
-          question_content = questions[q_key].except(:form_id, :id)
-          answer_type = ANSWER_MAPPING[question_content[:type]] || 'unknown'
+          answer_type = ANSWER_TYPE_MAPPING[question_content[:type]] || 'unknown'
           submission_content = {
             workshop_id: submission.pd_workshop_id, form_id: submission.form_id,
             submission_id: submission.id, answer: ans, answer_type: answer_type, qid: qid
           }
+
           res << submission_content.merge(question_content)
         end
       end
@@ -89,40 +88,38 @@ module Pd::SurveyPipeline
       @question_types = question_types
     end
 
-    def transform_matrix_question(row)
-      # precondition: row[:answer] exists and is Hash{sub_question => ans}
-      # postcondition: even sub question with empty answer will be produced. Transformer does not attempt
-      # to filter data
+    # precondition: input[:answer] exists and is Hash{sub_question => ans}
+    # postcondition: even sub question with empty answer will be produced. Transformer does not attempt
+    # to filter data
+    def transform_matrix_question_with_answers(input)
+      return unless input
 
-      return unless row
+      produced_outputs = []
+      shared_output = input.except(:name, :type, :text, :answer, :answer_type, :sub_questions)
 
-      produced_rows = []
-      # Create a new row for each answer
-      row[:answer].each do |sub_q, ans|
-        temp_row = row.except(:name, :type, :text, :answer, :answer_type, :sub_questions)
+      # Create a new input for each answer
+      input[:answer].each do |sub_q, ans|
+        temp_output = {}
 
         sub_q_digest = Digest::SHA256.base64digest(sub_q)[0, STRING_DIGEST_LENGTH - 1]
-        temp_row[:name] = "#{row[:name]}_#{sub_q_digest}"
-        temp_row[:type] = 'matrix_derived'
-        temp_row[:text] = "#{row[:text]} #{sub_q}"
-        temp_row[:answer] = ans
+        temp_output[:name] = "#{input[:name]}_#{sub_q_digest}"
+        temp_output[:text] = "#{input[:text]} #{sub_q}"
+        temp_output[:type] = TYPE_MATRIX_DERIVED
+        temp_output[:answer] = ans
 
-        # Just to make the UI happy
-        temp_row[:max_value] = row[:options].length
-        temp_row[:parent] = row[:name]
-
-        # TODO: (Future) New answer_type is default to ANSWER_SINGLE_SELECT for now.
-        # Once we have row[:inputType] for matrix question we can map it to correct answer type,
+        # TODO: (Future) answer_type is default to ANSWER_SINGLE_SELECT for now.
+        # Once we have input[:inputType] for matrix question we can map it to correct answer type,
         # e.g. "Radio Button" -> ANSWER_SINGLE_SELECT, "Check Box" -> ANSWER_MULTI_SELECT
-        temp_row[:answer_type] = ANSWER_SINGLE_SELECT
+        temp_output[:answer_type] = ANSWER_SINGLE_SELECT
 
-        produced_rows << temp_row
+        # Just to be consistent with what the old pipeline returns
+        temp_output[:max_value] = input[:options].length
+        temp_output[:parent] = input[:name]
+
+        produced_outputs << shared_output.merge(temp_output)
       end
 
-      # TODO: remove
-      raise "not expected" unless row[:sub_questions].count == produced_rows.count
-
-      produced_rows
+      produced_outputs
     end
 
     # Break complex questions into multiple smaller questions
@@ -136,13 +133,21 @@ module Pd::SurveyPipeline
 
       res = []
       data.each do |row|
-        if question_types.include?(row[:type]) && TRANSFORMABLE_QUESTION_TYPES.include?(row[:type])
-          logger&.debug "transforming #{row[:type]}"
+        q_type = row[:type]
+
+        if question_types.include?(q_type) && TRANSFORMABLE_QUESTION_TYPES.include?(q_type)
+          logger&.debug "transforming #{q_type}"
 
           # TODO: add if/else or use hash of function to map question types to transform functions
-          res += transform_matrix_question(row)
+          # Question type in TRANSFORMABLE_QUESTION_TYPES but don't have a transformation function
+          # will not be written out.
+          if q_type == TYPE_MATRIX
+            res += transform_matrix_question_with_answers(row)
+          else
+            raise "There is not code to transform question type #{q_type} yet"
+          end
         else
-          logger&.debug "TR: cannot transform #{row[:type]}"
+          logger&.debug "TR: cannot transform #{q_type}"
           res << row
         end
       end

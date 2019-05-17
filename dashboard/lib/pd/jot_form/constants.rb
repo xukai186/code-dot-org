@@ -10,6 +10,7 @@ module Pd
         TYPE_CHECKBOX = 'checkbox'.freeze,
         TYPE_SCALE = 'scale'.freeze,
         TYPE_MATRIX = 'matrix'.freeze,
+        TYPE_MATRIX_DERIVED = 'matrix_derived'.freeze,
       ].freeze
 
       IGNORED_QUESTION_TYPES = [

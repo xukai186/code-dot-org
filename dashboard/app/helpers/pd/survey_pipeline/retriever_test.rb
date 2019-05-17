@@ -1,8 +1,10 @@
 #load 'app/helpers/pd/survey_pipeline/retriever_test.rb'
 
-#load 'app/helpers/pd/survey_pipeline/retriever.rb'
+load 'app/helpers/pd/survey_pipeline/retriever.rb'
 
-require_relative 'retriever.rb'
+# TODO: Add unit tests
+# Create dumb data in Pd::WorkshopDailySurvey
+# Test retrieving data with different filters: empty, 1 workshop, 1 form, 1 workshop + 1 form, multi workshops, multi forms, multi workshops + forms
 
 def test_retriever(logger = nil)
   # filters = {form_ids: [82115699619165], workshop_ids: [6424]}
@@ -11,7 +13,7 @@ def test_retriever(logger = nil)
   # filters = {form_ids: [1]}
   # filters = nil
 
-  res = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data(filters: filters, logger: logger)
+  res = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new(filters: filters).retrieve_data logger: logger
   logger&.warn "RE: Final result = #{res}"
 end
 

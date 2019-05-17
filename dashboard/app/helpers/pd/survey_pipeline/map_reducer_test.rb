@@ -6,18 +6,21 @@ load 'app/helpers/pd/survey_pipeline/transformer.rb'
 load 'app/helpers/pd/survey_pipeline/retriever.rb'
 
 def test_mapreducer(logger = nil)
-  filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
-  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data filters: filters, logger: logger
+  #filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
+  filters = {workshop_ids: [6547]}
+  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new(filters: filters).retrieve_data
 
-  joined_data = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data data: retrieved_data, logger: logger
-  transformed_data = Pd::SurveyPipeline::ComplexQuestionTransformer.new(question_types: ['matrix']).transform_data data: joined_data, logger: logger
+  joined_data = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data data: retrieved_data
+  transformed_data = Pd::SurveyPipeline::ComplexQuestionTransformer.new(question_types: ['matrix']).transform_data data: joined_data
 
   # 1st groupping
   group_config1 = [:workshop_id, :form_id, :name, :type, :hidden, :answer_type]
 
   # TODO: make it clear lambda condition can only execute on fields in group_config. Either processing all rows in a group or none.
+
   is_single_select_answer = lambda {|hash| hash.dig(:answer_type) == 'singleSelect'}
   is_free_format_question = lambda {|hash| ['textbox', 'textarea'].include?(hash.dig(:type)) && !!!hash.dig(:hidden)}
+  is_number_question = lambda {|hash| hash.dig(:type) == 'number'}
 
   map_config1 = [
     {
@@ -29,11 +32,16 @@ def test_mapreducer(logger = nil)
       condition: is_free_format_question,
       field: :answer,
       reducers: [Pd::SurveyPipeline::NoOpReducer]
-    }
+    },
+    {
+      condition: is_number_question,
+      field: :answer,
+      reducers: [Pd::SurveyPipeline::AvgReducer.new]
+    },
   ]
   map_reducer1 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config1, map_config: map_config1)
 
-  res = map_reducer1.mapreduce(data: transformed_data, logger: logger)
+  res = map_reducer1.mapreduce data: transformed_data, logger: logger
 
   logger&.warn "MP: Final result count = #{res.count}"
   logger&.info "MP: Final result = #{res}"

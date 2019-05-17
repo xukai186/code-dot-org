@@ -16,7 +16,6 @@ module Api::V1::Pd
       all_my_workshops = params[:organizer_view] ? Pd::Workshop.organized_by(current_user) : Pd::Workshop.facilitated_by(current_user)
       all_my_completed_workshops = all_my_workshops.where(course: @workshop.course).in_state(Pd::Workshop::STATE_ENDED).exclude_summer
 
-      survey_repo
       survey_report = generate_summary_report(
         workshop: @workshop,
         workshops: all_my_completed_workshops,
@@ -216,14 +215,15 @@ module Api::V1::Pd
       )
     end
 
-    def create_generic_survey_report(retriever:, transformer:, map_reducers:, decorator:)
+    def create_generic_survey_report(retriever:, transformers:, map_reducers:, decorator:)
       # 1. Retrieve data from current db
-      # TODO: move retriever filter config out of this function. Create an instance of Retriever with that config
-      # or take config in as input params
-      retrieved_data = retriever.retrieve_data(filters: {workshop_ids: [@workshop.id]})
+      retrieved_data = retriever.retrieve_data
 
       # 2. Transform data so they are aggregatable
-      transformed_data = transformer.transform_data(data: retrieved_data)
+      transformed_data = retrieved_data
+      transformers.each do |transformer|
+        transformed_data = transformer.transform_data data: transformed_data
+      end
 
       # 3. Summarizing data
       summaries = []
@@ -232,7 +232,11 @@ module Api::V1::Pd
       end
 
       # 4. Decorating data
-      decorated_result = decorator.decorate(summaries: summaries, raw_data: retrieved_data)
+      decorated_result = decorator.decorate(
+        summaries: summaries,
+        transformed_data: transformed_data,
+        retrieved_data: retrieved_data
+      )
 
       # TODO: remove fake result
       # decorated_result[:this_workshop] = fake_summary
@@ -242,46 +246,53 @@ module Api::V1::Pd
     end
 
     def csf_201_survey_report
-      p "Creating mapreducer 1 config"
-      group_config1 = [:workshop_id, :form_id, :qid, :type]
-      is_number_type = lambda {|hash| hash.dig(:answer_type) == 'number'}
-      is_matrix_type = lambda {|hash| hash.dig(:type) == 'matrix'}
+      # Retriever config
+      filters = {workshop_ids: [@workshop.id]}
+      retriever = ::Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new filters: filters
+
+      # Transformer config
+      transformer1 = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new
+      transformer2 = Pd::SurveyPipeline::ComplexQuestionTransformer.new question_types: ['matrix']
+
+      # Map reducer config
+      group_config1 = [:workshop_id, :form_id, :name, :type, :hidden, :answer_type]
+      is_number_question = lambda {|hash| hash.dig(:type) == 'number'}
+      is_single_select_answer = lambda {|hash| hash.dig(:answer_type) == 'singleSelect'}
+      is_free_format_question = lambda do |hash|
+        ['textbox', 'textarea'].include?(hash.dig(:type)) && !!!hash.dig(:hidden)
+      end
+
       map_config1 = [
         {
-          condition: is_number_type,
+          condition: is_number_question,
           field: :answer,
-          reducers: [Pd::SurveyPipeline::AvgReducer.new, Pd::SurveyPipeline::HistogramReducer.new]
+          reducers: [Pd::SurveyPipeline::AvgReducer.new]
         },
         {
-          condition: is_matrix_type,
+          condition: is_single_select_answer,
           field: :answer,
-          reducers: [Pd::SurveyPipeline::MatrixHistogramReducer.new]
+          reducers: [Pd::SurveyPipeline::HistogramReducer.new]
+        },
+        {
+          condition: is_free_format_question,
+          field: :answer,
+          reducers: [Pd::SurveyPipeline::NoOpReducer]
         }
       ]
-      map_reducer1 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config1, map_config: map_config1)
+      map_reducer1 = Pd::SurveyPipeline::GenericMapReducer.new(
+        group_config: group_config1, map_config: map_config1
+      )
 
-      # TODO: don't even need the 2nd mapreducer
-      p "Creating mapreducer 2 config"
-      group_config2 = [:workshop_id, :form_id]
-      no_cond = lambda {|_| true}
-      map_config2 = [{
-        condition: no_cond,   # TODO: assign no condition, nil
-        field: :submission_id,
-        reducers: [Pd::SurveyPipeline::CountReducer.new(distinct: true)]
-      }]
-      map_reducer2 = Pd::SurveyPipeline::GenericMapReducer.new(group_config: group_config2, map_config: map_config2)
-
-      p "Creating decorator config"
+      # Decorator config
       decorator = ::Pd::SurveyPipeline::WorkshopDailySurveyReportDecorator.new(
         form_names: {1 => "Pre workshop", 9 => "Post workshop"}
       )
 
       p "Execute generic survey pipeline"
       create_generic_survey_report(
-        # TODO: convert Retriever to instance method
-        retriever: ::Pd::SurveyPipeline::WorkshopDailySurveyRetriever,
-        transformer: ::Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new,
-        map_reducers: [map_reducer1, map_reducer2],
+        retriever: retriever,
+        transformers: [transformer1, transformer2],
+        map_reducers: [map_reducer1],
         decorator: decorator
       )
 

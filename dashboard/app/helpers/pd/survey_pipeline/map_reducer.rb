@@ -46,7 +46,7 @@ module Pd::SurveyPipeline
           logger&.debug "MP: reducers.count = #{reducers.count}"
 
           reducers.each do |reducer|
-            reducer_result = reducer.reduce(gvalue.map {|record| record[field]})
+            reducer_result = reducer.reduce(gvalue.map {|record| record[field]}.reject(&:blank?))
             logger&.debug "MP: reducer.name = #{reducer.name}, result = #{reducer_result}"
 
             next unless reducer_result.present?

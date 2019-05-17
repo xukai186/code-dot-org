@@ -3,9 +3,19 @@
 load 'app/helpers/pd/survey_pipeline/transformer.rb'
 load 'app/helpers/pd/survey_pipeline/retriever.rb'
 
+# TODO: add unit tests
+# Test Join transformer
+# Can join. Cannot join.
+# Test Matrix transformer
+# Selected type + Transformable type is transformed
+# Selected type but not transformable type is not transformed
+# Not selected type is not transformed
+# Transformable types has function to transform them
+
 def test_transformer(logger = nil)
-  filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
-  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.retrieve_data filters: filters
+  #filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
+  filters = {workshop_ids: [6547]}
+  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new(filters: filters).retrieve_data
 
   joined_row = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data(data: retrieved_data, logger: logger)
   logger&.info "TR: joined_row.count = #{joined_row.count}"
