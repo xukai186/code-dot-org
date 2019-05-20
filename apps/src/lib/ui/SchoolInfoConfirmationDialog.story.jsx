@@ -8,7 +8,9 @@ export default storybook => {
       {
         name: 'Display school info confirmation dialog',
         description: 'Teacher can view prompt to update school information',
-        story: () => <SchoolInfoConfirmationDialog isOpen={true} />
+        story: () => (
+          <SchoolInfoConfirmationDialog isOpen={true} showExperiment={false} />
+        )
       }
     ]);
 };

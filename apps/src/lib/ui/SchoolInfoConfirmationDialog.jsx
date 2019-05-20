@@ -29,7 +29,8 @@ class SchoolInfoConfirmationDialog extends Component {
       }).isRequired
     }).isRequired,
     onClose: PropTypes.func,
-    isOpen: PropTypes.bool
+    isOpen: PropTypes.bool,
+    showExperiment: PropTypes.bool
   };
 
   constructor(props) {
@@ -118,8 +119,9 @@ class SchoolInfoConfirmationDialog extends Component {
 
   render() {
     const {showSchoolInterstitial, isOpen} = this.state;
+    const showExperiment = false;
     return (
-      <Dialog isOpen={isOpen}>
+      <Dialog isOpen={isOpen} showExperiment={showExperiment}>
         {!showSchoolInterstitial
           ? this.renderInitialContent()
           : this.renderSchoolInformationForm()}

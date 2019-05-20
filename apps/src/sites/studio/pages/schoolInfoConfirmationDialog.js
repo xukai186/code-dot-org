@@ -8,6 +8,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import SchoolInfoConfirmationDialog from '@cdo/apps/lib/ui/SchoolInfoConfirmationDialog';
 import getScriptData from '@cdo/apps/util/getScriptData';
+import experiments from '@cdo/apps/util/experiments';
 
 document.addEventListener('DOMContentLoaded', () => {
   const scriptData = getScriptData('schoolinfoconfirmationdialog');
@@ -20,8 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.removeChild(mountPoint);
   }
 
+  function enableExperiment() {
+    if (experiments.isEnabled(experiments.SCHOOL_INFO_CONFIRMATION_DIALOG) {
+      // mount the component?
+    }
+  }
+
   ReactDOM.render(
-    <SchoolInfoConfirmationDialog scriptData={scriptData} onClose={unmount} />,
+    <SchoolInfoConfirmationDialog
+      scriptData={scriptData}
+      onClose={unmount}
+      showExperiment={enableExperiment}
+    />,
     mountPoint
   );
 });
