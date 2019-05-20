@@ -8,20 +8,21 @@ require 'cdo/languages'
 
 require_relative '../i18n_script_utils'
 
-FILES_TO_REDACT = [
-  "dashboard/long_instructions.yml",
-  "dashboard/short_instructions.yml",
-  "dashboard/authored_hints.yml"
-]
+FILES_TO_REDACT_TO_PLUGIN = {
+  "dashboard/long_instructions.yml" => nil,
+  "dashboard/short_instructions.yml" => nil,
+  "dashboard/authored_hints.yml" => nil,
+  "dashboard/blocks.yml" => 'blockfield'
+}
 
 def download_translations(locale)
   system "crowdin --config #{CODEORG_CONFIG_FILE} --identity #{CODEORG_IDENTITY_FILE} -l #{locale} download translations"
 end
 
 def redact_translations(locale, language)
-  FILES_TO_REDACT.each do |file|
+  FILES_TO_REDACT_TO_PLUGIN.each do |file, plugin|
     source = "i18n/locales/#{language}/#{file}"
-    redact(source, source, nil)
+    redact(source, source, plugin)
   end
 end
 
