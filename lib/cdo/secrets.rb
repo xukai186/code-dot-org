@@ -115,6 +115,7 @@ module Cdo
     # @return [String]
     def get_secret_value(client, key, paths)
       path = paths.shift
+      CDO.log.info("GetSecretValue: #{path}#{key}")
       client.get_secret_value(
         secret_id: "#{path}#{key}",
         version_stage: CURRENT

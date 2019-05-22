@@ -26,6 +26,9 @@ before_fork do
   Cdo::AppServerHooks.before_fork
 end
 
+# Ensure all application secrets are loaded.
+CDO.secrets.required!
+
 on_worker_boot do |_index|
   Cdo::AppServerHooks.after_fork(host: CDO.pegasus_hostname)
 end
