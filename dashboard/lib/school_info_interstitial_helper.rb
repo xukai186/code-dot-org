@@ -38,7 +38,9 @@ module SchoolInfoInterstitialHelper
 
     check_school_type = (school_info.public_school? || school_info.private_school? || school_info.charter_school?) && SchoolInfoInterstitialHelper.complete?(school_info)
 
-    check_last_confirmation_date = DateTime.now - user_school_info.last_confirmation_date.to_datetime > 365 && (last_seen_school_info_interstitial is nil || last_seen_school_info_interstitial >= 7)
+    check_last_confirmation_date = DateTime.now - user_school_info.last_confirmation_date.to_datetime > 365 &&
+        (user.last_seen_school_info_interstitial.nil? || if user.last_seen_school_info_interstitial.nil? ? false :
+          user.last_seen_school_info_interstitial >= 7)
 
     check_last_confirmation_date && check_school_type
   end
