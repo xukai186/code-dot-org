@@ -13,11 +13,16 @@ load 'app/helpers/pd/survey_pipeline/retriever.rb'
 # Transformable types has function to transform them
 
 def test_transformer(logger = nil)
-  #filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
-  filters = {workshop_ids: [6547]}
-  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new(filters: filters).retrieve_data
+  #filters = {workshop_ids: [6547]}
+  filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
+  retriever = ::Pd::SurveyPipeline::DailySurveyRetriever.new filters
+  retrieved_data = retriever.retrieve_data
 
-  joined_row = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data(data: retrieved_data, logger: logger)
+  transformer = Pd::SurveyPipeline::DailySurveyJoinTransformer.new(
+    survey_questions: retrieved_data[:survey_questions],
+    survey_submissions: retrieved_data[:workshop_daily_surveys]
+  )
+  joined_row = transformer.transform_data(data: retrieved_data, logger: logger)
   logger&.info "TR: joined_row.count = #{joined_row.count}"
 
   res = Pd::SurveyPipeline::ComplexQuestionTransformer.new(question_types: ['matrix']).transform_data(data: joined_row, logger: logger)

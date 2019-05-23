@@ -66,30 +66,6 @@ module Pd::SurveyPipeline
         res[:this_workshop][form_name][:general][summary[:name]] = summary[:reducer_result]
       end
 
-      # summaries.each do |row|
-      #   # Not yet support calculating res[:all_my_workshops]
-      #   next unless row.dig(:workshop_id)
-      #   # Not yet support combining results from different forms
-      #   next unless row.dig(:form_id)
-
-      #   # Populate data for res[:this_workshop]
-      #   res[:course_name] ||= get_course_name(row[:workshop_id])
-
-      #   form_name = get_form_name(row[:form_id], form_names)
-      #   res[:this_workshop][form_name] ||= {general: {}}
-
-      #   if row.dig(:qid)
-      #     #next unless row.dig(:reducer)&.downcase == 'histogram'
-      #     logger&.debug "DECO: row w/ question = #{row}"
-      #     qname = question_names[{form_id: row[:form_id], qid: row[:qid]}]
-      #     res[:this_workshop][form_name][:general][qname] = row[:reducer_result]
-      #   elsif row.dig(:reducer)&.downcase == 'count' || row.dig(:reducer)&.downcase == 'count_distinct'
-      #     # TODO: we have the retrieved_data, get response_count directly from it instead (cheaper!)
-      #     logger&.debug "DECO: row w/o question = #{row}"
-      #     res[:this_workshop][form_name][:response_count] = row[:reducer_result]
-      #   end
-      # end
-
       return res
     end
 
@@ -105,3 +81,29 @@ module Pd::SurveyPipeline
     end
   end
 end
+
+__END__
+
+# summaries.each do |row|
+#   # Not yet support calculating res[:all_my_workshops]
+#   next unless row.dig(:workshop_id)
+#   # Not yet support combining results from different forms
+#   next unless row.dig(:form_id)
+
+#   # Populate data for res[:this_workshop]
+#   res[:course_name] ||= get_course_name(row[:workshop_id])
+
+#   form_name = get_form_name(row[:form_id], form_names)
+#   res[:this_workshop][form_name] ||= {general: {}}
+
+#   if row.dig(:qid)
+#     #next unless row.dig(:reducer)&.downcase == 'histogram'
+#     logger&.debug "DECO: row w/ question = #{row}"
+#     qname = question_names[{form_id: row[:form_id], qid: row[:qid]}]
+#     res[:this_workshop][form_name][:general][qname] = row[:reducer_result]
+#   elsif row.dig(:reducer)&.downcase == 'count' || row.dig(:reducer)&.downcase == 'count_distinct'
+#     # TODO: we have the retrieved_data, get response_count directly from it instead (cheaper!)
+#     logger&.debug "DECO: row w/o question = #{row}"
+#     res[:this_workshop][form_name][:response_count] = row[:reducer_result]
+#   end
+# end

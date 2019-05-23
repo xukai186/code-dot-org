@@ -11,10 +11,13 @@ def test_retriever(logger = nil)
   # filters = {form_ids: [1], workshop_ids: [6547]}
   filters = {workshop_ids: [6424]}
   # filters = {form_ids: [1]}
-  # filters = nil
+  # filters = {}
 
-  res = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new(filters: filters).retrieve_data logger: logger
+  retriever = ::Pd::SurveyPipeline::DailySurveyRetriever.new filters
+  res = retriever.retrieve_data logger: logger
+
   logger&.warn "RE: Final result = #{res}"
+  logger&.warn "RE: End time = #{Time.now}"
 end
 
 log_file = File.new("#{File.dirname(__FILE__)}/log_retriever.txt", 'w')

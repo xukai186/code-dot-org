@@ -8,9 +8,9 @@ load 'app/helpers/pd/survey_pipeline/retriever.rb'
 def test_mapreducer(logger = nil)
   #filters = {form_ids: [82_115_699_619_165], workshop_ids: [6424]}
   filters = {workshop_ids: [6547]}
-  retrieved_data = Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new(filters: filters).retrieve_data
+  retrieved_data = Pd::SurveyPipeline::DailySurveyRetriever.new(filters: filters).retrieve_data
 
-  joined_data = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new.transform_data data: retrieved_data
+  joined_data = Pd::SurveyPipeline::DailySurveyJoinTransformer.new.transform_data data: retrieved_data
   transformed_data = Pd::SurveyPipeline::ComplexQuestionTransformer.new(question_types: ['matrix']).transform_data data: joined_data
 
   # 1st groupping

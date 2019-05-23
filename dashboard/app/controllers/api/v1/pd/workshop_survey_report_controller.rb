@@ -127,132 +127,50 @@ module Api::V1::Pd
       end
     end
 
-    # TODO: remove this function
-    def fake_json_response
-      JSON.parse('{
-        "course_name": "CS Fundamentals",
-        "questions": {
-          "Pre Workshop": {
-            "general": {
-              "iBelieve_1": {
-                "text": "I believe a successful computer science teacher… creates a classroom culture in which students regularly get feedback on their work from their peers.",
-                "answer_type": "singleSelect",
-                "parent": "iBelieve",
-                "max_value": 7,
-                "options": [
-                  "Strongly Disagree",
-                  "Disagree",
-                  "Slightly Disagree",
-                  "Neutral",
-                  "Slightly Agree",
-                  "Agree",
-                  "Strongly Agree"
-                ],
-                "option_map": {
-                  "Strongly Disagree": 1,
-                  "Disagree": 2,
-                  "Slightly Disagree": 3,
-                  "Neutral": 4,
-                  "Slightly Agree": 5,
-                  "Agree": 6,
-                  "Strongly Agree": 7
-                }
-              }
-            }
-          },
-          "Post Workshop": {
-            "general": {
-              "iFeel18": {
-                "text": "I feel more prepared to teach CS Principles than I did at the beginning of the day.",
-                "answer_type": "scale",
-                "min_value": 1,
-                "max_value": 7,
-                "options": [
-                  "1 - Strongly Disagree",
-                  "2",
-                  "3",
-                  "4",
-                  "5",
-                  "6",
-                  "7 - Strongly Agree"
-                ]
-              }
-            }
-          }
-        },
-        "this_workshop": {
-          "Pre Workshop": {
-            "response_count": 11,
-            "general": {
-              "iBelieve_1": {
-                "Agree": 7,
-                "Neutral": 1,
-                "Strongly Agree": 2,
-                "Slightly Agree": 1
-              }
-            }
-          },
-          "Post Workshop": {
-            "response_count": 12,
-            "general": {
-              "iFeel18": {
-                "5": 2,
-                "7": 6,
-                "4": 2,
-                "3": 1,
-                "6": 1
-              }
-            },
-            "facilitator": {
-            }
-          }
-        },
-        "all_my_workshops": {},
-        "facilitators": {},
-        "facilitator_averages": {},
-        "facilitator_response_counts": {}
-      }'
-      )
-    end
-
-    def create_generic_survey_report(retriever:, transformers:, map_reducers:, decorator:)
+    def create_generic_survey_report(retriever:, transformers: nil, map_reducers: nil, decorator: nil)
+      # TODO: what param is optional? Be strict at first
       # 1. Retrieve data from current db
       retrieved_data = retriever.retrieve_data
 
       # 2. Transform data so they are aggregatable
       transformed_data = retrieved_data
-      transformers.each do |transformer|
+      transformers&.each do |transformer|
         transformed_data = transformer.transform_data data: transformed_data
       end
 
       # 3. Summarizing data
       summaries = []
-      map_reducers.each do |mr|
+      map_reducers&.each do |mr|
         summaries += mr.mapreduce(data: transformed_data)
       end
 
       # 4. Decorating data
-      decorated_result = decorator.decorate(
+      decorated_result = decorator&.decorate(
         summaries: summaries,
         transformed_data: transformed_data,
         retrieved_data: retrieved_data
       )
 
-      # TODO: remove fake result
-      # decorated_result[:this_workshop] = fake_summary
-
+      # TODO: remove field 'new'
       render json: decorated_result.merge({created_time: Time.now, new: true})
-      #render json: fake_json_response.merge({created_time: Time.now})
     end
 
     def csf_201_survey_report
+      # TODO: flow
+      # Simple and not over generalize, not look too far in the future, solve the current problem in a reasonable way
+      # Retrieve data: SurveyQuestion, WorkshopDailySurvey, WorkshopFacilitatorDailySurvey
+      # Parse record to individual quesiton & answer. Result = array of hashes of questions & answers
+      #  + 2nd parse with Matrix question. (also modify question name)
+      #  + Modify facilitator answer (add facilitator name as attribute to all answers)
+      # Join question & answer
+      # Aggregate
+
       # Retriever config
-      filters = {workshop_ids: [@workshop.id]}
-      retriever = ::Pd::SurveyPipeline::WorkshopDailySurveyRetriever.new filters: filters
+      retriever = ::Pd::SurveyPipeline::DailySurveyRetriever.new workshop_ids: [@workshop.id]
 
       # Transformer config
-      transformer1 = Pd::SurveyPipeline::WorkshopDailySurveyJoinTransformer.new
-      transformer2 = Pd::SurveyPipeline::ComplexQuestionTransformer.new question_types: ['matrix']
+      transformer1 = Pd::SurveyPipeline::DailySurveyJoinTransformer.new
+      #transformer2 = Pd::SurveyPipeline::ComplexQuestionTransformer.new question_types: ['matrix']
 
       # Map reducer config
       group_config1 = [:workshop_id, :form_id, :name, :type, :hidden, :answer_type]
@@ -301,8 +219,7 @@ module Api::V1::Pd
 
     # GET /api/v1/pd/workshops/:id/generic_survey_report
     def generic_survey_report
-      #p "Hello workshop = #{@workshop}"
-      #p "Test module name #{Pd::SurveyPipeline::WorkshopDailySurveyRetriever}"
+      # TODO: it all starts from here
 
       return local_workshop_daily_survey_report if @workshop.local_summer? || @workshop.teachercon? ||
         ([COURSE_CSP, COURSE_CSD].include?(@workshop.course) &&

@@ -7,8 +7,10 @@ module Pd::SurveyPipeline
     end
   end
 
-  class WorkshopDailySurveyJoinTransformer < TransformerBase
+  class DailySurveyJoinTransformer < TransformerBase
     include Pd::JotForm::Constants
+
+    attr_reader :survey_questions, :survey_submissions
 
     ANSWER_TYPE_MAPPING = {
       TYPE_NUMBER => ANSWER_TEXT,
@@ -21,15 +23,16 @@ module Pd::SurveyPipeline
       TYPE_SCALE => ANSWER_SCALE,
     }.freeze
 
-    # Split and join WorkshopDailySurvey and SurveyQuestion data.
     # @param data [Hash{WorkshopDailySurveys, SurveyQuestions}] the input data contains WorkshopDailySurvey and SurveyQuestion
     # @return [Array<Hash{fields}>] array of results after join
     # TODO: @see design doc
-    # TODO: make it clear what is required in input. what output looks like
-    def transform_data(data:, logger: nil)
-      return unless data.dig(:workshop_daily_surveys)
-      return unless data.dig(:survey_questions)
+    def initialize(survey_questions:, survey_submissions:)
+      @survey_questions = survey_questions
+      @survey_submissions = survey_submissions
+    end
 
+    # Split and join WorkshopDailySurvey and SurveyQuestion data.
+    def transform_data(logger: nil)
       # Create question mapping: (form_id, qid) => q_content
       questions = {}
       data[:survey_questions].each do |sq|
@@ -47,7 +50,7 @@ module Pd::SurveyPipeline
 
       # Split answers into rows and add question content for each row
       res = []
-      data[:workshop_daily_surveys].each do |submission|
+      data[:survey_submissions].each do |submission|
         next unless submission.answers
 
         ans_h = JSON.parse(submission.answers)
@@ -61,6 +64,7 @@ module Pd::SurveyPipeline
           # TODO: how to decide what fields to take from sumission record? How to config it?
           answer_type = ANSWER_TYPE_MAPPING[question_content[:type]] || 'unknown'
           submission_content = {
+            # TODO: do not change column name?
             workshop_id: submission.pd_workshop_id, form_id: submission.form_id,
             submission_id: submission.id, answer: ans, answer_type: answer_type, qid: qid
           }
