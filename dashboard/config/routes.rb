@@ -608,6 +608,8 @@ Dashboard::Application.routes.draw do
 
       patch 'user_school_infos/:id/update_school_info_id', to: 'user_school_infos#update_school_info_id'
 
+      patch 'users/:id/update_last_seen_school_interstitial', to: 'users#update_last_seen_school_interstitial'
+
       post 'users/:user_id/post_ui_tip_dismissed', to: 'users#post_ui_tip_dismissed'
 
       post 'users/:user_id/postpone_census_banner', to: 'users#postpone_census_banner'

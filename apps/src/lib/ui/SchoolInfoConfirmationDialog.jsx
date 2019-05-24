@@ -55,7 +55,17 @@ class SchoolInfoConfirmationDialog extends Component {
   }
 
   closeModal = () => {
+    const {authTokenName, authTokenValue} = this.props.scriptData;
     this.setState({isOpen: false});
+
+    fetch(
+      `/api/v1/users/${
+        this.props.scriptData.existingSchoolInfo.id
+      }/update_last_seen_school_interstitial`,
+      {method: 'PATCH', headers: {[authTokenName]: authTokenValue}}
+    )
+      .then()
+      .catch(() => {});
   };
 
   handleClickYes = () => {

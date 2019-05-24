@@ -33,6 +33,13 @@ class Api::V1::UsersController < Api::V1::JsonApiController
     render json: {using_text_mode: !!@user.using_text_mode}
   end
 
+  # PATCH /api/v1/users/<user_id>/update_last_seen_school_interstitial
+  def update_last_seen_school_interstitial
+    @user.update!(properties: {last_seen_school_info_interstitial: DateTime.now})
+
+    head :no_content
+  end
+
   # POST /api/v1/users/<user_id>/using_text_mode
   def post_using_text_mode
     @user.using_text_mode = !!params[:using_text_mode].try(:to_bool)

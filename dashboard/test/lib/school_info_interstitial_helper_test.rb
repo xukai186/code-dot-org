@@ -89,6 +89,35 @@ class SchoolInfoInterstitialHelperTest < ActiveSupport::TestCase
     refute SchoolInfoInterstitialHelper.complete? school_info
   end
 
+  test 'school info confirmation dialog is shown when all information is provided' do
+    user = create :user
+    user.user_type = 'teacher'
+    user.save
+    puts "created user ---> #{user.inspect}\n"
+
+    user.last_seen_school_info_interstitial = 6.days.ago
+    user.save
+
+    puts "updated user ---> #{user.inspect}\n"
+
+    school_info = SchoolInfo.new
+    school_info.school_id = 1
+    school_info.country = 'United States'
+    school_info.school_type = SchoolInfo::SCHOOL_TYPE_PUBLIC
+    school_info.school_name = 'Rick Grimes School'
+
+    puts "school_info ---> #{school_info.inspect}\n\n"
+    # require 'pry'
+    # binding.pry
+
+    user.user_school_infos.new({last_confirmation_date: 2.years.ago, start_date: user.created_at, school_info: school_info})
+
+    refute_nil school_info.school_id
+    refute_nil school_info.school_name
+
+    assert SchoolInfoInterstitialHelper.show_school_info_confirmation_dialog? user
+  end
+
   test 'school info confirmation dialog is not shown when the user school infos table is empty' do
     user = create :user
     user.user_type = 'teacher'
