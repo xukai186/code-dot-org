@@ -1,7 +1,8 @@
 class Api::V1::UserSchoolInfosController < ApplicationController
   before_action :authenticate_user!
   before_action :load_user_school_info
-  load_and_authorize_resource
+  load_and_authorize_resource except: [:update_end_date, :update_school_info_id]
+  skip_before_action :verify_authenticity_token
 
   # PATCH /api/v1/users_school_infos/<id>/update_last_confirmation_date
   def update_last_confirmation_date
@@ -14,8 +15,9 @@ class Api::V1::UserSchoolInfosController < ApplicationController
   def update_end_date
     ActiveRecord::Base.transaction do
       @user_school_info.update!(end_date: DateTime.now, last_confirmation_date: DateTime.now)
-      @user_school_info.user.update!(properties: {last_seen_school_info_interstitial: DateTime.now})
     end
+    @user_school_info.user.last_seen_school_info_interstitial = DateTime.now
+    @user_school_info.user.save(validate: false)
 
     head :no_content
   end
@@ -36,10 +38,33 @@ class Api::V1::UserSchoolInfosController < ApplicationController
 
       user = @user_school_info.user
 
+      # require 'pry'
+      # binding.pry
+
       user.user_school_infos.create!({school_info_id: school_info.id, last_confirmation_date: DateTime.now, start_date: user.created_at})
 
       user.update!({school_info_id: school_info.id})
     end
+    # ActiveRecord::Base.transaction do
+    #   # Set end date of existing school info
+    #   @user_school_info.update(end_date: DateTime.now)
+
+    #   # ? do we need to set the end date of the existing user?
+
+    #   # Create new school info record
+    #   school_info = SchoolInfo.create(school_info_params)
+
+    #   # Create new user school info record
+    #   UserSchoolInfo.create(
+    #     user: current_user,
+    #     school_info: school_info,
+    #     last_confirmation_date: DateTime.now,
+    #     start_date: current_user.created_at
+    #   )
+
+    #   # Update user (legacy connection)
+    #   current_user.update!(school_info: school_info)
+    # end
   end
 
   private

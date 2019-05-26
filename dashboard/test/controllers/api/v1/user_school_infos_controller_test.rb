@@ -76,6 +76,7 @@ class UserSchoolInfosControllerTest < ActionDispatch::IntegrationTest
 
   test "school_info_id is updated" do
     user_school_info = create :user_school_info
+    puts "user_school_info_id #{user_school_info}"
     sign_in user_school_info.user
 
     patch "/api/v1/user_school_infos/#{user_school_info.id}/update_school_info_id", params: {

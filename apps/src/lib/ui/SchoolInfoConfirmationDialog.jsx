@@ -88,6 +88,7 @@ class SchoolInfoConfirmationDialog extends Component {
 
   handleClickSave = async () => {
     const {authTokenName, authTokenValue} = this.props.scriptData;
+    console.log('--->', `${authTokenName} ${authTokenValue}`);
     fetch(
       `/api/v1/user_school_infos/${
         this.props.scriptData.existingSchoolInfo.id
@@ -96,7 +97,7 @@ class SchoolInfoConfirmationDialog extends Component {
     )
       .then(() => {
         fetch(
-          `/api/v1/users/${
+          `/api/v1/user_school_infos/${
             this.props.scriptData.existingSchoolInfo.id
           }/update_school_info_id`,
           {method: 'PATCH', headers: {[authTokenName]: authTokenValue}}
