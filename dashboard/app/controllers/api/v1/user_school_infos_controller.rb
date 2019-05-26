@@ -1,12 +1,21 @@
 class Api::V1::UserSchoolInfosController < ApplicationController
   before_action :authenticate_user!
   before_action :load_user_school_info
-  load_and_authorize_resource except: [:update_end_date, :update_school_info_id]
+  load_and_authorize_resource except: [:update_end_date, :update_school_info_id, :update_last_seen_school_interstitial]
   skip_before_action :verify_authenticity_token
 
   # PATCH /api/v1/users_school_infos/<id>/update_last_confirmation_date
   def update_last_confirmation_date
     @user_school_info.update!(last_confirmation_date: DateTime.now)
+
+    head :no_content
+  end
+
+  # PATCH /api/v1/users_school_infos/<id>/update_last_seen_school_interstitial
+  def update_last_seen_school_interstitial
+    current_user.last_seen_school_info_interstitial = DateTime.now
+    puts '---> I am here'
+    current_user.save!
 
     head :no_content
   end
@@ -41,7 +50,9 @@ class Api::V1::UserSchoolInfosController < ApplicationController
       # require 'pry'
       # binding.pry
 
-      user.user_school_infos.create!({school_info_id: school_info.id, last_confirmation_date: DateTime.now, start_date: user.created_at})
+      if user.user_school_infos.last.school_info_id != school_info.id
+        user.user_school_infos.create!({school_info_id: school_info.id, last_confirmation_date: DateTime.now, start_date: user.created_at})
+      end
 
       user.update!({school_info_id: school_info.id})
     end

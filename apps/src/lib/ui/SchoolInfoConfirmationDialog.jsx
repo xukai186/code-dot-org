@@ -59,12 +59,12 @@ class SchoolInfoConfirmationDialog extends Component {
     this.setState({isOpen: false});
 
     fetch(
-      `/api/v1/users/${
+      `/api/v1/user_school_infos/${
         this.props.scriptData.existingSchoolInfo.id
       }/update_last_seen_school_interstitial`,
       {method: 'PATCH', headers: {[authTokenName]: authTokenValue}}
     )
-      .then()
+      .then(() => {})
       .catch(() => {});
   };
 
@@ -83,7 +83,17 @@ class SchoolInfoConfirmationDialog extends Component {
   };
 
   handleClickUpdate = () => {
+    const {authTokenName, authTokenValue} = this.props.scriptData;
     this.setState({showSchoolInterstitial: true});
+
+    fetch(
+      `/api/v1/user_school_infos/${
+        this.props.scriptData.existingSchoolInfo.id
+      }/update_last_seen_school_interstitial`,
+      {method: 'PATCH', headers: {[authTokenName]: authTokenValue}}
+    )
+      .then(() => {})
+      .catch(() => {});
   };
 
   handleClickSave = async () => {
