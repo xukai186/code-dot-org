@@ -12,15 +12,6 @@ require 'cdo/slog'
 require 'os'
 require 'cdo/git_utils'
 require 'uri'
-require 'cdo/secret'
-
-def load_languages(path)
-  [].tap do |results|
-    CSV.foreach(path, headers: true, encoding: 'utf-8') do |row|
-      results << row['code_s!']
-    end
-  end
-end
 
 # Since channel ids are derived from user id and other sequential integer ids
 # use a new S3 sources directory for each Test Build to prevent a UI test
@@ -40,137 +31,55 @@ end
 
 def load_configuration
   root_dir = File.expand_path('..', __FILE__)
-  root_dir = '/home/ubuntu/website-ci' if root_dir == '/home/ubuntu/Dropbox (Code.org)'
-
-  hostname = `hostname`.strip
 
   global_config = YAML.load_file(File.join(root_dir, 'globals.yml')) || {}
   local_config = YAML.load_file(File.join(root_dir, 'locals.yml')) || {}
 
   env = local_config['env'] || global_config['env'] || ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'development'
-
   rack_env = env.to_sym
 
-  {
-    'app_servers'                 => {},
-    'assets_bucket'               => 'cdo-dist',
-    'assets_bucket_prefix'        => rack_env.to_s,
-    'aws_region'                  => 'us-east-1',
-    'build_apps'                  => false,
-    'build_dashboard'             => true,
-    'build_pegasus'               => true,
-    'census_map_table_id'         => rack_env == :development ? nil : '1AUZYRjLMI5NiQsDeDBGFsOIFpL_rLGsnxNpSyR13',
-    'chef_local_mode'             => rack_env == :adhoc,
-    'dcdo_table_name'             => "dcdo_#{rack_env}",
-    'dashboard_assets_dir'        => "#{root_dir}/dashboard/public/assets",
-    'dashboard_db_name'           => "dashboard_#{rack_env}",
-    'dashboard_devise_pepper'     => 'not a pepper!',
-    'dashboard_secret_key_base'   => 'not a secret',
-    'dashboard_honeybadger_api_key' => '00000000',
-    'dashboard_host'              => '0.0.0.0',
-    'dashboard_port'              => 3000,
-    'dashboard_unicorn_name'      => 'dashboard',
-    'dashboard_enable_pegasus'    => rack_env == :development,
-    'dashboard_workers'           => 8,
-    'db_writer'                   => 'mysql://root@localhost/',
-    'default_hoc_mode'            => 'post-hoc', # overridden by 'hoc_mode' DCDO param, except in :test
-    'default_hoc_launch'          => '', # overridden by 'hoc_launch' DCDO param, except in :test
-    'reporting_db_writer'         => 'mysql://root@localhost/',
-    'gatekeeper_table_name'       => "gatekeeper_#{rack_env}",
-    'slack_log_room'              => rack_env.to_s,
-    'hip_chat_logging'            => false,
-    'languages'                   => load_languages(File.join(root_dir, 'pegasus', 'data', 'cdo-languages.csv')),
-    'localize_apps'               => false,
-    'name'                        => hostname,
-    'newrelic_logging'            => rack_env == :production,
-    'netsim_enable_metrics'       => [:staging, :test].include?(rack_env),
-    'netsim_max_routers'          => 20,
-    'netsim_shard_expiry_seconds' => 7200,
-    'partners'                    => %w(),
-    'pdf_port_collate'            => 8081,
-    'pdf_port_markdown'           => 8081,
-    'pegasus_db_name'             => rack_env == :production ? 'pegasus' : "pegasus_#{rack_env}",
-    'pegasus_honeybadger_api_key' => '00000000',
-    'pegasus_port'                => 3000,
-    'pegasus_unicorn_name'        => 'pegasus',
-    'pegasus_workers'             => 8,
-    'poste_host'                  => 'localhost.code.org:3000',
-    'pegasus_skip_asset_map'      => rack_env == :development,
-    'poste_secret'                => 'not a real secret',
-    'proxy'                       => false, # If true, generated URLs will not include explicit port numbers in development
-    'rack_env'                    => rack_env,
-    'rack_envs'                   => [:development, :production, :adhoc, :staging, :test, :levelbuilder, :integration],
-    'read_only'                   => false,
-    'root_dir'                    => root_dir,
-    'firebase_name'               => rack_env == :development ? 'cdo-v3-dev' : nil,
-    'firebase_secret'             => nil,
-    'firebase_max_channel_writes_per_15_sec' => 300,
-    'firebase_max_channel_writes_per_60_sec' => 600,
-    'firebase_max_table_count'    => 10,
-    'firebase_max_table_rows'     => 1000,
-    'firebase_max_record_size'    => 4096,
-    'firebase_max_property_size'  => 4096,
-    'lint'                        => [:staging, :development].include?(rack_env),
-    'files_s3_bucket'             => 'cdo-v3-files',
-    'files_s3_directory'          => rack_env == :production ? 'files' : "files_#{rack_env}",
-    'animations_s3_bucket'        => 'cdo-v3-animations',
-    'animations_s3_directory'     => rack_env == :production ? 'animations' : "animations_#{rack_env}",
-    'assets_s3_bucket'            => 'cdo-v3-assets',
-    'assets_s3_directory'         => rack_env == :production ? 'assets' : "assets_#{rack_env}",
-    'sources_s3_bucket'           => 'cdo-v3-sources',
-    'sources_s3_directory'        => sources_s3_dir(rack_env, root_dir),
-    'use_pusher'                  => false,
-    'pusher_app_id'               => 'fake_app_id',
-    'pusher_application_key'      => 'fake_application_key',
-    'pusher_application_secret'   => 'fake_application_secret',
-    'stub_school_data'            => [:adhoc, :development, :test].include?(rack_env),
-    'stack_name'                  => rack_env == :production ? 'autoscale-prod' : rack_env.to_s,
-    'videos_s3_bucket'            => 'videos.code.org',
-    'videos_url'                  => '//videos.code.org',
-    'google_safe_browsing_key'    => 'fake_api_key'
-  }.tap do |config|
-    raise "'#{rack_env}' is not known environment." unless config['rack_envs'].include?(rack_env)
-    ENV['RACK_ENV'] = rack_env.to_s unless ENV['RACK_ENV']
-    #raise "RACK_ENV ('#{ENV['RACK_ENV']}') does not match configuration ('#{rack_env}')" unless ENV['RACK_ENV'] == rack_env.to_s
+  default_file = File.join(root_dir, 'config.yml.erb')
+  default_yaml = ERB.new(str, nil, '-').tap {|erb| erb.filename = default_file}.result(binding)
+  config = YAML.load(default_yaml, default_file)
+  raise "'#{rack_env}' is not known environment." unless config['rack_envs'].include?(rack_env)
+  ENV['RACK_ENV'] ||= rack_env.to_s
 
-    # test environment should use precompiled, minified, digested assets like production,
-    # unless it's being used for unit tests. This logic should be kept in sync with
-    # the logic for setting config.assets.* under dashboard/config/.
-    ci_test = !!(ENV['UNIT_TEST'] || ENV['CI'])
-    config['pretty_js'] = [:development, :staging].include?(rack_env) || (rack_env == :test && ci_test)
+  # test environment should use precompiled, minified, digested assets like production,
+  # unless it's being used for unit tests. This logic should be kept in sync with
+  # the logic for setting config.assets.* under dashboard/config/.
+  ci_test = !!(ENV['UNIT_TEST'] || ENV['CI'])
+  config['pretty_js'] = [:development, :staging].include?(rack_env) || (rack_env == :test && ci_test)
 
-    config.merge! global_config
-    config.merge! local_config
+  config.merge! global_config
+  config.merge! local_config
 
-    config['bundler_use_sudo']    ||= config['chef_managed']
-    config['channels_api_secret'] ||= config['poste_secret']
-    config['daemon']              ||= [:development, :levelbuilder, :staging, :test].include?(rack_env) || config['name'] == 'production-daemon'
-    config['cdn_enabled']         ||= config['chef_managed']
+  config['bundler_use_sudo']    ||= config['chef_managed']
+  config['channels_api_secret'] ||= config['poste_secret']
+  config['daemon']              ||= [:development, :levelbuilder, :staging, :test].include?(rack_env) || config['name'] == 'production-daemon'
+  config['cdn_enabled']         ||= config['chef_managed']
 
-    config['db_reader']           ||= config['db_writer']
-    config['reporting_db_reader'] ||= config['reporting_db_writer']
-    config['dashboard_db_reader'] ||= config['db_reader'] + config['dashboard_db_name']
-    config['dashboard_db_writer'] ||= config['db_writer'] + config['dashboard_db_name']
-    config['dashboard_reporting_db_reader'] ||= config['reporting_db_reader'] + config['dashboard_db_name']
-    config['dashboard_reporting_db_writer'] ||= config['reporting_db_writer'] + config['dashboard_db_name']
-    config['pegasus_db_reader']   ||= config['db_reader'] + config['pegasus_db_name']
-    config['pegasus_db_writer']   ||= config['db_writer'] + config['pegasus_db_name']
-    config['pegasus_reporting_db_reader'] ||= config['reporting_db_reader'] + config['pegasus_db_name']
-    config['pegasus_reporting_db_writer'] ||= config['reporting_db_writer'] + config['pegasus_db_name']
+  # reader endpoints default to writer endpoint.
+  config['db_reader']           ||= config['db_writer']
+  config['reporting_db_reader'] ||= config['reporting_db_writer']
 
-    config['image_optim'] = config['chef_managed'] && !ci_test if config['image_optim'].nil?
-
-    # Paths used to fetch secrets, in priority order.
-    config['secrets_paths'] ||= [rack_env, 'shared'].map {|name| "#{name}/cdo/"}
-
-    # Set AWS SDK environment variables from provided config and standardize on aws_* attributres
-    ENV['AWS_ACCESS_KEY_ID'] ||= config['aws_access_key'] ||= config['s3_access_key_id']
-    ENV['AWS_SECRET_ACCESS_KEY'] ||= config['aws_secret_key'] ||= config['s3_secret_access_key']
-
-    # AWS Ruby SDK doesn't auto-detect region from EC2 Instance Metadata.
-    # Ref: https://github.com/aws/aws-sdk-ruby/issues/1455
-    ENV['AWS_DEFAULT_REGION'] ||= config['aws_region']
+  # db-specific endpoint defaults.
+  %w(dashboard pegasus).each do |db|
+    ['reporting_', ''].each do |report|
+      %w(reader writer).each do |rw|
+        config["#{db}_#{report}db_#{rw}"] ||= config["#{report}db_#{rw}"] + config["#{db}_db_name"]
+      end
+    end
   end
+
+  config['image_optim'] = config['chef_managed'] && !ci_test if config['image_optim'].nil?
+
+  # Set AWS SDK environment variables from provided config and standardize on aws_* attributes
+  ENV['AWS_ACCESS_KEY_ID'] ||= config['aws_access_key'] ||= config['s3_access_key_id']
+  ENV['AWS_SECRET_ACCESS_KEY'] ||= config['aws_secret_key'] ||= config['s3_secret_access_key']
+
+  # AWS Ruby SDK doesn't auto-detect region from EC2 Instance Metadata.
+  # Ref: https://github.com/aws/aws-sdk-ruby/issues/1455
+  ENV['AWS_DEFAULT_REGION'] ||= config['aws_region']
 end
 
 ####################################################################################################
