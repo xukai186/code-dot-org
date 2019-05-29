@@ -1,3 +1,7 @@
+<%
+  ci_test = !!(ENV['UNIT_TEST'] || ENV['CI'])
+  _env =  rack_env == :production ? '' : '_env'
+-%>
 development:
   census_map_table_id: null
   dashboard_enable_pegasus: true
@@ -44,10 +48,8 @@ production:
 adhoc:
   chef_local_mode: false
   stub_school_data: true
-
-<% _env =  rack_env == :production ? '' : '_env' -%>
 default:
-  secrets:
+  shared_secrets:
     - applitools_eyes
     - cloudfront
     - honeybadger
@@ -98,7 +100,6 @@ default:
   chef_local_mode: true
   dcdo_table_name: dcdo_<%=env%>
   dashboard_assets_dir: <%=root_dir%>/dashboard/public/assets
-  dashboard_db_name: dashboard_<%=env%>
   dashboard_devise_pepper: not a pepper!
   dashboard_secret_key_base: not a secret
   dashboard_honeybadger_api_key: 00000000
@@ -107,10 +108,8 @@ default:
   dashboard_unicorn_name: dashboard
   dashboard_enable_pegasus: false
   dashboard_workers: 8
-  db_writer: 'mysql://root@localhost/'
   default_hoc_mode: post-hoc # overridden by 'hoc_mode' DCDO param, except in :test
   default_hoc_launch: '' # overridden by 'hoc_launch' DCDO param, except in :test
-  reporting_db_writer: 'mysql://root@localhost/'
   gatekeeper_table_name: gatekeeper_<%=env%>
   slack_log_room: <%=env%>
   hip_chat_logging: false
@@ -122,7 +121,6 @@ default:
   partners: []
   pdf_port_collate: 8081
   pdf_port_markdown: 8081
-  pegasus_db_name: pegasus<%=_env%>
   pegasus_honeybadger_api_key: 00000000
   pegasus_port: 3000
   pegasus_unicorn_name: pegasus
@@ -172,3 +170,22 @@ default:
   bundler_use_sudo: <%=config['chef_managed']%>
   cdn_enabled: <%=config['chef_managed']%>
   image_optim: <%=config['chef_managed'] && !ci_test%>
+
+  db_writer: <%=config['db_writer'] ||= 'mysql://root@localhost/'%>
+  reporting_db_writer: <%=config['reporting_db_writer'] ||= 'mysql://root@localhost/'%>
+  dashboard_db_name: <%=config['dashboard_db_name'] ||= "dashboard_#{env}"%>
+  pegasus_db_name: <%=config['pegasus_db_name'] ||= "pegasus#{_env}"%>
+
+  # Default reader endpoints to writer endpoint.
+  db_reader: <%=config['db_reader'] ||= config['db_writer']%>
+  reporting_db_reader: <%=config['reporting_db_reader'] ||= config['reporting_db_writer']%>
+
+  # Default DB-specific endpoints to base endpoint plus db name.
+  dashboard_db_reader:           <%=config['db_reader'] + config['dashboard_db_name']%>
+  dashboard_db_writer:           <%=config['db_writer'] + config['dashboard_db_name']%>
+  pegasus_db_reader:             <%=config['db_reader'] + config['pegasus_db_name']%>
+  pegasus_db_writer:             <%=config['db_writer'] + config['pegasus_db_name']%>
+  dashboard_reporting_db_reader: <%=config['reporting_db_reader'] + config['dashboard_db_name']%>
+  dashboard_reporting_db_writer: <%=config['reporting_db_writer'] + config['dashboard_db_name']%>
+  pegasus_reporting_db_reader:   <%=config['reporting_db_reader'] + config['pegasus_db_name']%>
+  pegasus_reporting_db_writer:   <%=config['reporting_db_writer'] + config['pegasus_db_name']%>

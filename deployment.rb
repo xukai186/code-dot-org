@@ -34,57 +34,9 @@ end
 ## CDO - A singleton that contains our settings and integration helpers.
 ##
 ##########
-
-class CDOImpl < OpenStruct
-  def load_configuration
-    root_dir = File.expand_path('..', __FILE__)
-
-    # Combine secret lists when merging configuration hashes.
-    secrets = ->(key, a, b) {key == :secrets ? a | b : b}
-
-    global_config = YAML.load_file(File.join(root_dir, 'globals.yml')) || {}
-    local_config = YAML.load_file(File.join(root_dir, 'locals.yml')) || {}
-    config = global_config.merge(local_config, &secrets)
-
-    env = local_config['env'] || global_config['env'] || ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'development'
-    ENV['RACK_ENV'] ||= env.to_s
-    rack_env = env.to_sym
-    ci_test = !!(ENV['UNIT_TEST'] || ENV['CI'])
-
-    # ERB-process defaults.
-    default_file = File.join(root_dir, 'config.yml.erb')
-    default_yaml = ERB.new(File.read(default_file), nil, '-').tap {|erb| erb.filename = default_file}.result(binding)
-    default = YAML.load(default_yaml, default_file)
-
-    # Config priority (highest to lowest): locals, globals, config[env], config[default]
-    config = [default['default'], default[env], config].inject {|old, new| old.merge(new, &secrets)}
-
-    config['rack_env'] = config['rack_env'].to_sym
-    config['rack_envs'] = config['rack_envs'].map(&:to_sym)
-    raise "'#{rack_env}' is not known environment." unless config['rack_envs'].include?(rack_env)
-
-    # Default reader endpoints to writer endpoint.
-    config['db_reader']           ||= config['db_writer']
-    config['reporting_db_reader'] ||= config['reporting_db_writer']
-
-    # Default DB-specific endpoints to base endpoint plus db name.
-    config['dashboard_db_reader']           ||= config['db_reader'] + config['dashboard_db_name']
-    config['dashboard_db_writer']           ||= config['db_writer'] + config['dashboard_db_name']
-    config['pegasus_db_reader']             ||= config['db_reader'] + config['pegasus_db_name']
-    config['pegasus_db_writer']             ||= config['db_writer'] + config['pegasus_db_name']
-    config['dashboard_reporting_db_reader'] ||= config['reporting_db_reader'] + config['dashboard_db_name']
-    config['dashboard_reporting_db_writer'] ||= config['reporting_db_writer'] + config['dashboard_db_name']
-    config['pegasus_reporting_db_reader']   ||= config['reporting_db_reader'] + config['pegasus_db_name']
-    config['pegasus_reporting_db_writer']   ||= config['reporting_db_writer'] + config['pegasus_db_name']
-    config
-  end
-
+require 'cdo/config'
+class CDOImpl < Cdo::Config
   @slog = nil
-
-  def initialize
-    @table = {}
-    super load_configuration
-  end
 
   def canonical_hostname(domain)
     # Allow hostname overrides
@@ -289,7 +241,7 @@ class CDOImpl < OpenStruct
   end
 end
 
-CDO ||= CDOImpl.new
+CDO ||= CDOImpl.instance
 
 # Set AWS SDK environment variables from provided config and standardize on aws_* attributes
 ENV['AWS_ACCESS_KEY_ID'] ||= CDO.aws_access_key ||= CDO.s3_access_key_id
