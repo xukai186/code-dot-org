@@ -1,0 +1,174 @@
+development:
+  census_map_table_id: null
+  dashboard_enable_pegasus: true
+  pegasus_skip_asset_map: true
+  firebase_name: cdo-v3-dev
+  lint: true
+  pretty_js: true
+  stub_school_data: true
+  daemon: true
+
+staging:
+  secrets:
+    - azure_content_moderation
+    - omniauth_clever
+    - omniauth_facebook
+    - omniauth_google
+    - omniauth_microsoft
+    - omniauth_windowslive
+    - firebase
+    - github
+    - github_webhook
+    - jotform
+    - lti
+    - dashboard_properties
+    - pusher
+    - slack
+  netsim_enable_metrics: true
+  lint: true
+  pretty_js: true
+  daemon: true
+test:
+  netsim_enable_metrics: true
+  stub_school_data: true
+  # test environment should use precompiled, minified, digested assets like production,
+  # unless it's being used for unit tests. This logic should be kept in sync with
+  # the logic for setting config.assets.* under dashboard/config/.
+  pretty_js: <%=ci_test%>
+  daemon: true
+levelbuilder:
+  daemon: true
+production:
+  newrelic_logging: true
+  stack_name: autoscale-prod
+adhoc:
+  chef_local_mode: false
+  stub_school_data: true
+
+<% _env =  rack_env == :production ? '' : '_env' -%>
+default:
+  secrets:
+    - applitools_eyes
+    - cloudfront
+    - honeybadger
+    - omniauth_clever
+    - omniauth_facebook
+    - omniauth_google
+    - omniauth_microsoft
+    - omniauth_powerschool
+    - omniauth_schoolproject
+    - omniauth_windowslive
+    - dashboard
+    - sinatra
+    - devinternal_db
+    - expo_session_secret
+    - google_analytics
+    - google_maps
+    - google_maps_hoc
+    - google_safe_browsing
+    - logentries
+    - pagerduty
+    - poste
+    - recaptcha
+    - slack
+    - twilio
+    - webpurify
+    - zendesk
+    - azure_content_moderation
+    - firebase
+    - github
+    - github_webhook
+    - jotform
+    - lti
+    - pusher
+    - redshift
+    - reporting_db
+    - db
+    - discourse
+    - mimeo
+    - pardot
+  app_servers: {}
+  assets_bucket: cdo-dist
+  assets_bucket_prefix: <%=env%>
+  aws_region: us-east-1
+  build_apps: false
+  build_dashboard: true
+  build_pegasus: true
+  census_map_table_id: 1AUZYRjLMI5NiQsDeDBGFsOIFpL_rLGsnxNpSyR13
+  chef_local_mode: true
+  dcdo_table_name: dcdo_<%=env%>
+  dashboard_assets_dir: <%=root_dir%>/dashboard/public/assets
+  dashboard_db_name: dashboard_<%=env%>
+  dashboard_devise_pepper: not a pepper!
+  dashboard_secret_key_base: not a secret
+  dashboard_honeybadger_api_key: 00000000
+  dashboard_host: 0.0.0.0
+  dashboard_port: 3000
+  dashboard_unicorn_name: dashboard
+  dashboard_enable_pegasus: false
+  dashboard_workers: 8
+  db_writer: 'mysql://root@localhost/'
+  default_hoc_mode: post-hoc # overridden by 'hoc_mode' DCDO param, except in :test
+  default_hoc_launch: '' # overridden by 'hoc_launch' DCDO param, except in :test
+  reporting_db_writer: 'mysql://root@localhost/'
+  gatekeeper_table_name: gatekeeper_<%=env%>
+  slack_log_room: <%=env%>
+  hip_chat_logging: false
+  localize_apps: false
+  newrelic_logging: false
+  netsim_enable_metrics: false
+  netsim_max_routers: 20
+  netsim_shard_expiry_seconds: 7200
+  partners: []
+  pdf_port_collate: 8081
+  pdf_port_markdown: 8081
+  pegasus_db_name: pegasus<%=_env%>
+  pegasus_honeybadger_api_key: 00000000
+  pegasus_port: 3000
+  pegasus_unicorn_name: pegasus
+  pegasus_workers: 8
+  poste_host: 'localhost.code.org:3000'
+  pegasus_skip_asset_map: false
+  proxy: false # If true, generated URLs will not include explicit port numbers in development
+  rack_env: <%=env%>
+  rack_envs: [development, production, adhoc, staging, test, levelbuilder, integration]
+  read_only: false
+  root_dir: <%=root_dir%>
+  firebase_name: null
+  firebase_secret: null
+  firebase_max_channel_writes_per_15_sec: 300
+  firebase_max_channel_writes_per_60_sec: 600
+  firebase_max_table_count: 10
+  firebase_max_table_rows: 1000
+  firebase_max_record_size: 4096
+  firebase_max_property_size: 4096
+  lint: false
+  files_s3_bucket: cdo-v3-files
+  files_s3_directory: files<%=_env%>
+  animations_s3_bucket: cdo-v3-animations
+  animations_s3_directory: animations<%=_env%>
+  assets_s3_bucket: cdo-v3-assets
+  assets_s3_directory: assets<%=_env%>
+  sources_s3_bucket: cdo-v3-sources
+  sources_s3_directory: <%= sources_s3_dir(rack_env, root_dir) %>
+  use_pusher: false
+  pusher_app_id: fake_app_id
+  pusher_application_key: fake_application_key
+  pusher_application_secret: fake_application_secret
+  stub_school_data: false
+  stack_name: <%=env%>
+  videos_s3_bucket: videos.code.org
+  videos_url: //videos.code.org
+  google_safe_browsing_key: fake_api_key
+  pretty_js: false
+
+  poste_secret: <%=config['poste_secret'] ||= 'not a real secret'%>
+  channels_api_secret: <%=config['poste_secret']%>
+
+  name: <%=config['name'] ||= `hostname`.strip%>
+  daemon: <%=config['name'] == 'production-daemon'%>
+
+  chef_managed: <%=config['chef_managed'] ||= false%>
+  bundler_use_sudo: <%=config['chef_managed']%>
+  cdn_enabled: <%=config['chef_managed']%>
+  image_optim: <%=config['chef_managed'] && !ci_test%>

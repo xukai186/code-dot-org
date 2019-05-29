@@ -29,59 +29,6 @@ def sources_s3_dir(environment, project_directory)
   end
 end
 
-def load_configuration
-  root_dir = File.expand_path('..', __FILE__)
-
-  global_config = YAML.load_file(File.join(root_dir, 'globals.yml')) || {}
-  local_config = YAML.load_file(File.join(root_dir, 'locals.yml')) || {}
-
-  env = local_config['env'] || global_config['env'] || ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'development'
-  rack_env = env.to_sym
-
-  default_file = File.join(root_dir, 'config.yml.erb')
-  default_yaml = ERB.new(str, nil, '-').tap {|erb| erb.filename = default_file}.result(binding)
-  config = YAML.load(default_yaml, default_file)
-  raise "'#{rack_env}' is not known environment." unless config['rack_envs'].include?(rack_env)
-  ENV['RACK_ENV'] ||= rack_env.to_s
-
-  # test environment should use precompiled, minified, digested assets like production,
-  # unless it's being used for unit tests. This logic should be kept in sync with
-  # the logic for setting config.assets.* under dashboard/config/.
-  ci_test = !!(ENV['UNIT_TEST'] || ENV['CI'])
-  config['pretty_js'] = [:development, :staging].include?(rack_env) || (rack_env == :test && ci_test)
-
-  config.merge! global_config
-  config.merge! local_config
-
-  config['bundler_use_sudo']    ||= config['chef_managed']
-  config['channels_api_secret'] ||= config['poste_secret']
-  config['daemon']              ||= [:development, :levelbuilder, :staging, :test].include?(rack_env) || config['name'] == 'production-daemon'
-  config['cdn_enabled']         ||= config['chef_managed']
-
-  # reader endpoints default to writer endpoint.
-  config['db_reader']           ||= config['db_writer']
-  config['reporting_db_reader'] ||= config['reporting_db_writer']
-
-  # db-specific endpoint defaults.
-  %w(dashboard pegasus).each do |db|
-    ['reporting_', ''].each do |report|
-      %w(reader writer).each do |rw|
-        config["#{db}_#{report}db_#{rw}"] ||= config["#{report}db_#{rw}"] + config["#{db}_db_name"]
-      end
-    end
-  end
-
-  config['image_optim'] = config['chef_managed'] && !ci_test if config['image_optim'].nil?
-
-  # Set AWS SDK environment variables from provided config and standardize on aws_* attributes
-  ENV['AWS_ACCESS_KEY_ID'] ||= config['aws_access_key'] ||= config['s3_access_key_id']
-  ENV['AWS_SECRET_ACCESS_KEY'] ||= config['aws_secret_key'] ||= config['s3_secret_access_key']
-
-  # AWS Ruby SDK doesn't auto-detect region from EC2 Instance Metadata.
-  # Ref: https://github.com/aws/aws-sdk-ruby/issues/1455
-  ENV['AWS_DEFAULT_REGION'] ||= config['aws_region']
-end
-
 ####################################################################################################
 ##
 ## CDO - A singleton that contains our settings and integration helpers.
@@ -89,9 +36,53 @@ end
 ##########
 
 class CDOImpl < OpenStruct
+  def load_configuration
+    root_dir = File.expand_path('..', __FILE__)
+
+    # Combine secret lists when merging configuration hashes.
+    secrets = ->(key, a, b) {key == :secrets ? a | b : b}
+
+    global_config = YAML.load_file(File.join(root_dir, 'globals.yml')) || {}
+    local_config = YAML.load_file(File.join(root_dir, 'locals.yml')) || {}
+    config = global_config.merge(local_config, &secrets)
+
+    env = local_config['env'] || global_config['env'] || ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'development'
+    ENV['RACK_ENV'] ||= env.to_s
+    rack_env = env.to_sym
+    ci_test = !!(ENV['UNIT_TEST'] || ENV['CI'])
+
+    # ERB-process defaults.
+    default_file = File.join(root_dir, 'config.yml.erb')
+    default_yaml = ERB.new(File.read(default_file), nil, '-').tap {|erb| erb.filename = default_file}.result(binding)
+    default = YAML.load(default_yaml, default_file)
+
+    # Config priority (highest to lowest): locals, globals, config[env], config[default]
+    config = [default['default'], default[env], config].inject {|old, new| old.merge(new, &secrets)}
+
+    config['rack_env'] = config['rack_env'].to_sym
+    config['rack_envs'] = config['rack_envs'].map(&:to_sym)
+    raise "'#{rack_env}' is not known environment." unless config['rack_envs'].include?(rack_env)
+
+    # Default reader endpoints to writer endpoint.
+    config['db_reader']           ||= config['db_writer']
+    config['reporting_db_reader'] ||= config['reporting_db_writer']
+
+    # Default DB-specific endpoints to base endpoint plus db name.
+    config['dashboard_db_reader']           ||= config['db_reader'] + config['dashboard_db_name']
+    config['dashboard_db_writer']           ||= config['db_writer'] + config['dashboard_db_name']
+    config['pegasus_db_reader']             ||= config['db_reader'] + config['pegasus_db_name']
+    config['pegasus_db_writer']             ||= config['db_writer'] + config['pegasus_db_name']
+    config['dashboard_reporting_db_reader'] ||= config['reporting_db_reader'] + config['dashboard_db_name']
+    config['dashboard_reporting_db_writer'] ||= config['reporting_db_writer'] + config['dashboard_db_name']
+    config['pegasus_reporting_db_reader']   ||= config['reporting_db_reader'] + config['pegasus_db_name']
+    config['pegasus_reporting_db_writer']   ||= config['reporting_db_writer'] + config['pegasus_db_name']
+    config
+  end
+
   @slog = nil
 
   def initialize
+    @table = {}
     super load_configuration
   end
 
@@ -300,11 +291,18 @@ end
 
 CDO ||= CDOImpl.new
 
+# Set AWS SDK environment variables from provided config and standardize on aws_* attributes
+ENV['AWS_ACCESS_KEY_ID'] ||= CDO.aws_access_key ||= CDO.s3_access_key_id
+ENV['AWS_SECRET_ACCESS_KEY'] ||= CDO.aws_secret_key ||= CDO.s3_secret_access_key
+
+# AWS Ruby SDK doesn't auto-detect region from EC2 Instance Metadata.
+# Ref: https://github.com/aws/aws-sdk-ruby/issues/1455
+ENV['AWS_DEFAULT_REGION'] ||= CDO.aws_region
+
 require 'cdo/aws/cdo_google_credentials'
 
 require 'cdo/secrets'
 CDO.secrets = Cdo::Secrets.new(paths: CDO.secrets_paths)
-Cdo::Secret.resolve!(CDO, CDO.secrets)
 
 ####################################################################################################
 ##
