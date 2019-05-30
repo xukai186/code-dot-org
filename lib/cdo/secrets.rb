@@ -10,7 +10,11 @@ module Cdo
     CURRENT = "AWSCURRENT".freeze
     NOT_FOUND = Aws::SecretsManager::Errors::ResourceNotFoundException
 
-    def initialize(client: nil, required: [])
+    attr_accessor :logger
+
+    def initialize(client: nil, required: [], logger: nil)
+      @logger = logger
+
       # Cache fetched secrets in-memory in an instance-variable hash.
       @values = {}
       @client = client
@@ -104,7 +108,7 @@ module Cdo
     # @param key[String]
     # @return [String]
     def get_secret_value(client, key)
-      CDO.log.info("GetSecretValue: #{key}")
+      logger&.info("GetSecretValue: #{key}")
       client.get_secret_value(
         secret_id: key,
         version_stage: CURRENT

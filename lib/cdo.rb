@@ -9,6 +9,11 @@ module Cdo
   class Impl < Config
     @slog = nil
 
+    def initialize
+      super
+      cdo_secrets&.logger = log
+    end
+
     def canonical_hostname(domain)
       # Allow hostname overrides
       return override_dashboard if override_dashboard && domain == 'studio.code.org'
@@ -140,6 +145,7 @@ module Cdo
     # Default logger implementation
     attr_writer :log
     def log
+      require 'logger'
       @log ||= Logger.new(STDOUT).tap do |l|
         l.level = Logger::INFO
         l.formatter = proc do |severity, _, _, msg|

@@ -78,6 +78,7 @@ module Cdo
     end
 
     def load_secrets
+      self.cdo_secrets = nil
       table.select {|_k, v| v.is_a?(Secret)}.each do |key, secret|
         require 'cdo/secrets'
         self.cdo_secrets ||= Cdo::Secrets.new
