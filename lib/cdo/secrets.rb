@@ -10,20 +10,14 @@ module Cdo
     CURRENT = "AWSCURRENT".freeze
     NOT_FOUND = Aws::SecretsManager::Errors::ResourceNotFoundException
 
-    def initialize(paths: [nil], client: nil, required: [])
+    def initialize(client: nil, required: [])
       # Cache fetched secrets in-memory in an instance-variable hash.
       @values = {}
-      @paths = paths
       @client = client
 
       @pool = Concurrent::CachedThreadPool.new
       @required = Set.new
       required(*required)
-    end
-
-    def paths=(paths)
-      @paths = paths
-      @values.clear
     end
 
     # @return [Concurrent::Promises::Future<Aws::SecretsManager::Client>] Secrets Manager Client
@@ -61,12 +55,9 @@ module Cdo
     # @return [Concurrent::Promises::Future<String>] Resolved value
     def get(key)
       key = key.to_s
-      # If key includes `/`, get secret directly without searching paths.
-      paths = key.include?('/') ? [nil] : @paths.dup
-
       @values[key] ||= begin
         client.then do |client|
-          parse_json(get_secret_value(client, key, paths))
+          parse_json(get_secret_value(client, key))
         rescue => e
           e.message << " Key: #{key}"
           raise
@@ -94,7 +85,7 @@ module Cdo
     # +GetSecretValue+ won't be performed until the secret is actually used.
     # @param fetch[Boolean] asynchronously load the object in the background
     # @param fallback[String] Fallback string to return if secret is not found.
-    def lazy(key, fetch: true, fallback: nil)
+    def lazy(key, fetch: false, fallback: nil)
       key = key.to_s
       @required.add(key)
       get(key) if fetch
@@ -108,20 +99,17 @@ module Cdo
 
     private
 
-    # Call GetSecretValue for each path, returning the first found result.
+    # Call GetSecretValue for the provided key.
     # @param client[Aws::SecretsManager::Client]
     # @param key[String]
-    # @param paths[Array<String>]
     # @return [String]
-    def get_secret_value(client, key, paths)
-      path = paths.shift
-      CDO.log.info("GetSecretValue: #{path}#{key}")
+    def get_secret_value(client, key)
+      CDO.log.info("GetSecretValue: #{key}")
       client.get_secret_value(
-        secret_id: "#{path}#{key}",
+        secret_id: key,
         version_stage: CURRENT
       ).secret_string
     rescue NOT_FOUND => e
-      retry unless paths.empty?
       e.set_backtrace []
       raise
     end
