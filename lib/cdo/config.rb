@@ -22,7 +22,6 @@ module Cdo
     def initialize
       super
       load_configuration
-      lazy_load_secrets!
       raise "'#{rack_env}' is not known environment." unless rack_envs.include?(rack_env)
       freeze
     end
@@ -74,50 +73,8 @@ module Cdo
     def merge(*configs)
       configs.each do |config|
         config = config.transform_keys(&:to_sym)
-        process_secrets!(config)
         # Reverse-merge: Keep existing values except nil.
         table.merge!(config) {|_key, old, new| old.nil? ? new : old}
-      end
-    end
-
-    # Stores a reference to a secret so it can be resolved later.
-    class Secret
-      attr_reader :key
-      def initialize(key)
-        @key = key
-      end
-    end
-
-    # Converts items in :secrets / :shared_secrets arrays to `Secret` references in the provided config hash.
-    # To disable all secrets processing set the config key to `false`, e.g.: `shared_secrets: false`.
-    def process_secrets!(config)
-      {secrets: env, shared_secrets: 'shared'}.each do |secret_key, prefix|
-        secrets_keys = config[secret_key]
-        next unless secrets_keys.is_a? Array
-        config.delete(secret_key)
-        secrets_keys.each do |key|
-          unless config.key?(key)
-            config[key] = (@table[secret_key] === false) ? nil :
-              Secret.new("#{prefix}/cdo/#{key}")
-          end
-        end
-      end
-    end
-
-    # Resolve secret references to lazy-loaded values.
-    def lazy_load_secrets!
-      self.cdo_secrets = nil
-      table.select {|_k, v| v.is_a?(Secret)}.each do |key, secret|
-        require 'cdo/secrets'
-        cdo_secrets = self.cdo_secrets ||= Cdo::Secrets.new
-        table[key] = cdo_secrets.lazy(secret.key)
-        define_singleton_method(key) do
-          # Replace lazy references to the underlying object on first access,
-          # in order to support 'falsey' (false / nil) values.
-          val = @table[key]
-          val = @table[key] = val.__getobj__ if val.is_a?(Cdo::Lazy)
-          val
-        end
       end
     end
   end
