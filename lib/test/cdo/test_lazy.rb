@@ -9,4 +9,15 @@ class LazyTest < Minitest::Test
     assert_equal 'Lazy', lazy
     assert loaded
   end
+
+  def test_nil
+    lazy = Cdo.lazy {nil}
+    assert_nil lazy
+  end
+
+  def test_class
+    lazy = Cdo.lazy {'test'}
+    assert_instance_of String, lazy
+    assert_equal String, lazy.class
+  end
 end

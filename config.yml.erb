@@ -4,7 +4,6 @@ default:
   i18n_backend:
   cache:
   freegeoip_host:
-<% unless %w(adhoc development).include?(env) -%>
   shared_secrets:
     - applitools_eyes
     - cloudfront
@@ -45,10 +44,9 @@ default:
     - discourse
     - mimeo
     - pardot
-<% end -%>
-  _env: <%=self._env = env == 'production' ? '' : "_#{env}"%>
-  ci_test: <%=self.ci_test ||= !!(ENV['UNIT_TEST'] || ENV['CI'])%>
-  root_dir: <%=self.root_dir ||= __dir__%>
+  _env: <%=env == 'production' ? '' : "_#{env}"%>
+  ci_test: <%=!!(ENV['UNIT_TEST'] || ENV['CI'])%>
+  root_dir: <%=__dir__%>
   app_servers: {}
   assets_bucket: cdo-dist
   assets_bucket_prefix: <%=env%>
@@ -164,14 +162,17 @@ default:
   use_mailcatcher:
 
   lint: false
-  files_s3_bucket: cdo-v3-files
-  files_s3_directory: files<%=_env%>
-  animations_s3_bucket: cdo-v3-animations
-  animations_s3_directory: animations<%=_env%>
-  assets_s3_bucket: cdo-v3-assets
-  assets_s3_directory: assets<%=_env%>
-  sources_s3_bucket: cdo-v3-sources
-  sources_s3_directory: sources<%=_env%>
+
+  files_s3_bucket:           cdo-v3-files
+  files_s3_directory:        files<%=_env%>
+  animations_s3_bucket:      cdo-v3-animations
+  animations_s3_directory:   animations<%=_env%>
+  assets_s3_bucket:          cdo-v3-assets
+  assets_s3_directory:       assets<%=_env%>
+  sources_s3_bucket:         cdo-v3-sources
+  sources_s3_directory:      sources<%=_env%>
+  librarypilot_s3_bucket:    cdo-v3-librarypilot
+  librarypilot_s3_directory: librarypilot<%=_env%>
 
   # Configuration Options for Pusher.com integration
   # Optional for most devs, very useful if working on Internet Simulator
@@ -199,13 +200,13 @@ default:
   google_safe_browsing_key: fake_api_key
   pretty_js: false
   
-  poste_secret: <%=self.poste_secret ||= 'not a real secret'%>
+  poste_secret: 'not a real secret'
   channels_api_secret: <%=poste_secret%>
   
-  name: <%=self.name ||= `hostname`.strip%>
+  name: <%=`hostname`.strip%>
   daemon: <%=name == 'production-daemon'%>
-  
-  chef_managed: <%=self.chef_managed ||= false%>
+
+  chef_managed: false
 
   # Whether to prefix bundler commands with 'sudo'.
   # It may be useful to set this false when doing local development on Linux.
@@ -213,26 +214,27 @@ default:
   cdn_enabled: <%=chef_managed%>
   image_optim: <%=chef_managed && !ci_test%>
   
-  db_writer: <%=self.db_writer ||= 'mysql://root@localhost/'%>
-  reporting_db_writer: <%=self.reporting_db_writer ||= 'mysql://root@localhost/'%>
-  dashboard_db_name: <%=self.dashboard_db_name ||= "dashboard_#{env}"%>
-  pegasus_db_name: <%=self.pegasus_db_name ||= "pegasus#{_env}"%>
-  
+  db_writer: 'mysql://root@localhost/'
+  reporting_db_writer: 'mysql://root@localhost/'
+  dashboard_db_name: dashboard_<%=env%>
+  pegasus_db_name: pegasus<%=_env%>
+
   # Default reader endpoints to writer endpoint.
-  db_reader: <%=self.db_reader ||= db_writer%>
-  reporting_db_reader: <%=self.reporting_db_reader ||= reporting_db_writer%>
-  
+  db_reader: <%=db_writer%>
+  reporting_db_reader: <%=reporting_db_writer%>
+
   # Default DB-specific endpoints to base endpoint plus db name.
-  dashboard_db_reader:           <%=db_reader + dashboard_db_name%>
-  dashboard_db_writer:           <%=db_writer + dashboard_db_name%>
-  pegasus_db_reader:             <%=db_reader + pegasus_db_name%>
-  pegasus_db_writer:             <%=db_writer + pegasus_db_name%>
-  dashboard_reporting_db_reader: <%=reporting_db_reader + dashboard_db_name%>
-  dashboard_reporting_db_writer: <%=reporting_db_writer + dashboard_db_name%>
-  pegasus_reporting_db_reader:   <%=reporting_db_reader + pegasus_db_name%>
-  pegasus_reporting_db_writer:   <%=reporting_db_writer + pegasus_db_name%>
+  dashboard_db_reader:           <%="#{db_reader}#{dashboard_db_name}"%>
+  dashboard_db_writer:           <%="#{db_writer}#{dashboard_db_name}"%>
+  pegasus_db_reader:             <%="#{db_reader}#{pegasus_db_name}"%>
+  pegasus_db_writer:             <%="#{db_writer}#{pegasus_db_name}"%>
+  dashboard_reporting_db_reader: <%="#{reporting_db_reader}#{dashboard_db_name}"%>
+  dashboard_reporting_db_writer: <%="#{reporting_db_writer}#{dashboard_db_name}"%>
+  pegasus_reporting_db_reader:   <%="#{reporting_db_reader}#{pegasus_db_name}"%>
+  pegasus_reporting_db_writer:   <%="#{reporting_db_writer}#{pegasus_db_name}"%>
 
 development:
+  shared_secrets: false
   census_map_table_id: null
   dashboard_enable_pegasus: true
   pegasus_skip_asset_map: true
@@ -289,5 +291,6 @@ production:
   stack_name: autoscale-prod
 
 adhoc:
+  shared_secrets: false
   chef_local_mode: false
   stub_school_data: true
