@@ -2,16 +2,39 @@ require 'cdo/config'
 
 ####################################################################################################
 ##
-## CDO - A singleton that contains our settings and integration helpers.
+## CDO - A singleton that contains application settings and integration helpers.
 ##
 ##########
 module Cdo
   class Impl < Config
+    include Singleton
     @slog = nil
+
+    # Match CDO_*, plus RACK_ENV and RAILS_ENV.
+    ENV_PREFIX = /^(CDO|(RACK|RAILS)(?=_ENV))_/
 
     def initialize
       super
-      cdo_secrets&.logger = log
+      root = File.expand_path('..', __dir__)
+      load_configuration(
+        # 1. ENV - environment variables (CDO_*)
+        ENV.to_h.select {|k, _| k.match?(ENV_PREFIX)}.transform_keys {|k| k.sub(ENV_PREFIX, '').downcase},
+        # 2. locals.yml - local configuration
+        "#{root}/locals.yml",
+        # 3. globals.yml - [Chef-]provisioned configuration
+        "#{root}/globals.yml"
+      )
+
+      ENV['RACK_ENV'] = self.env ||= 'development'
+      load_configuration(
+        # 4. config/env - environment-specific defaults
+        "#{root}/config/#{env}.yml.erb",
+        # 5. config - global defaults
+        "#{root}/config.yml.erb"
+      )
+
+      raise "'#{rack_env}' is not known environment." unless rack_envs.include?(rack_env)
+      freeze
     end
 
     def canonical_hostname(domain)

@@ -1,296 +1,197 @@
-default:
-  aws_access_key:
-  aws_secret_key:
-  i18n_backend:
-  cache:
-  freegeoip_host:
-  shared_secrets:
-    - applitools_eyes
-    - cloudfront
-    - honeybadger
-    - omniauth_clever
-    - omniauth_facebook
-    - omniauth_google
-    - omniauth_microsoft
-    - omniauth_powerschool
-    - omniauth_schoolproject
-    - omniauth_windowslive
-    - dashboard
-    - sinatra
-    - devinternal_db
-    - expo_session_secret
-    - google_analytics
-    - google_maps
-    - google_maps_hoc
-    - google_safe_browsing
-    - logentries
-    - pagerduty
-    - poste
-    - recaptcha
-    - slack
-    - twilio
-    - webpurify
-    - zendesk
-    - azure_content_moderation
-    - firebase
-    - github
-    - github_webhook
-    - jotform
-    - lti
-    - pusher
-    - redshift
-    - reporting_db
-    - db
-    - discourse
-    - mimeo
-    - pardot
-  _env: <%=env == 'production' ? '' : "_#{env}"%>
-  ci_test: <%=!!(ENV['UNIT_TEST'] || ENV['CI'])%>
-  root_dir: <%=__dir__%>
-  app_servers: {}
-  assets_bucket: cdo-dist
-  assets_bucket_prefix: <%=env%>
-  aws_region: us-east-1
+# Default application configuration.
+# TODO provide _all_ possible keys in this default config (with nil/empty default), so that
+# the config can be 'frozen' preventing other entries from being dynamically added.
 
-  # Whether rake:build should rebuild the apps package
-  build_apps: false
+aws_access_key:
+aws_secret_key:
+i18n_backend:
+cache:
+freegeoip_host:
+_env: <%=env == 'production' ? '' : "_#{env}"%>
+ci_test: <%=!!(ENV['UNIT_TEST'] || ENV['CI'])%>
+root_dir: <%=__dir__%>
+app_servers: {}
+assets_bucket: cdo-dist
+assets_bucket_prefix: <%=env%>
+aws_region: us-east-1
 
-  # Whether dashboard should use your local build of the apps package.
-  # If false, dashboard will try to use a prepackaged version from S3.
-  use_my_apps:
+# Whether rake:build should rebuild the apps package
+build_apps: false
 
-  # Allows your local server to render non-English locales, defaults to false in development.
-  # If false, choosing a locale other than English will have no effect.
-  # Note: You may need to be in an incognito window to see changes
-  # due to a difference in the language cookie between production and localhost.
-  load_locales:
+# Whether dashboard should use your local build of the apps package.
+# If false, dashboard will try to use a prepackaged version from S3.
+use_my_apps:
 
-  # Whether to skip the slow `rake seed:all` command during `rake build`.
-  # Until you manually run `rake seed:all` or disable this flag, you won't
-  # see changes to: videos, concepts, levels, scripts, trophies, prize providers,
-  # callouts, hints, secret words, or secret pictures.
-  skip_seed_all:
+# Allows your local server to render non-English locales, defaults to false in development.
+# If false, choosing a locale other than English will have no effect.
+# Note: You may need to be in an incognito window to see changes
+# due to a difference in the language cookie between production and localhost.
+load_locales:
 
-  # Whether to store sprocket asset cache on disk or in memory. Setting this to
-  # false reduces memory usage, but significantly slows down dev server startup.
-  cache_assets_in_memory:
+# Whether to skip the slow `rake seed:all` command during `rake build`.
+# Until you manually run `rake seed:all` or disable this flag, you won't
+# see changes to: videos, concepts, levels, scripts, trophies, prize providers,
+# callouts, hints, secret words, or secret pictures.
+skip_seed_all:
 
-  # Encryption key required for decoding certain protected level sources.
-  # Contributors should ask a Code.org engineer for this if needed.
-  properties_encryption_key:
+# Whether to store sprocket asset cache on disk or in memory. Setting this to
+# false reduces memory usage, but significantly slows down dev server startup.
+cache_assets_in_memory:
 
-  # Credentials for SauceLabs.com, used to for running selenium tests against
-  # multiple browsers
-  saucelabs_username:
-  saucelabs_authkey:
+# Encryption key required for decoding certain protected level sources.
+# Contributors should ask a Code.org engineer for this if needed.
+properties_encryption_key:
 
-  # Credentials for applitools.com, used for running automated visual tests
-  applitools_eyes_api_key:
+# Credentials for SauceLabs.com, used to for running selenium tests against
+# multiple browsers
+saucelabs_username:
+saucelabs_authkey:
 
-  build_dashboard: true
-  build_pegasus: true
+# Credentials for applitools.com, used for running automated visual tests
+applitools_eyes_api_key:
 
-  # The Fusion Table ID for the census map shown at code.org/yourschool.  If this
-  # is set to the ID for the production site, be careful not to run
-  # update_census_map as it will overwrite that table.
-  census_map_table_id: 1AUZYRjLMI5NiQsDeDBGFsOIFpL_rLGsnxNpSyR13
-  chef_local_mode: true
-  dcdo_table_name: dcdo_<%=env%>
-  dashboard_assets_dir: <%=root_dir%>/dashboard/public/assets
-  dashboard_devise_pepper: not a pepper!
-  dashboard_secret_key_base: not a secret
-  dashboard_honeybadger_api_key: 00000000
-  dashboard_host: 0.0.0.0
-  dashboard_port: 3000
-  dashboard_unicorn_name: dashboard
+build_dashboard: true
+build_pegasus: true
 
-  # Causes dashboard-server to run pegasus as middleware, starting both in a
-  # single command.  This is preferred (and default) in development mode.
-  dashboard_enable_pegasus: false
+# The Fusion Table ID for the census map shown at code.org/yourschool.  If this
+# is set to the ID for the production site, be careful not to run
+# update_census_map as it will overwrite that table.
+census_map_table_id: 1AUZYRjLMI5NiQsDeDBGFsOIFpL_rLGsnxNpSyR13
+chef_local_mode: true
+dcdo_table_name: dcdo_<%=env%>
+dashboard_assets_dir: <%=root_dir%>/dashboard/public/assets
+dashboard_devise_pepper: not a pepper!
+dashboard_secret_key_base: not a secret
+dashboard_honeybadger_api_key: 00000000
+dashboard_host: 0.0.0.0
+dashboard_port: 3000
+dashboard_unicorn_name: dashboard
 
-  # Run dashboard-server with the level editing interface enabled (for admins)
-  levelbuilder_mode:
+# Causes dashboard-server to run pegasus as middleware, starting both in a
+# single command.  This is preferred (and default) in development mode.
+dashboard_enable_pegasus: false
 
-  dashboard_workers: 8
-  default_hoc_mode: post-hoc # overridden by 'hoc_mode' DCDO param, except in :test
-  default_hoc_launch: '' # overridden by 'hoc_launch' DCDO param, except in :test
-  gatekeeper_table_name: gatekeeper_<%=env%>
-  slack_log_room: <%=env%>
-  hip_chat_logging: false
-  localize_apps: false
-  newrelic_logging: false
-  netsim_enable_metrics: false
-  netsim_max_routers: 20
-  netsim_shard_expiry_seconds: 7200
-  partners: []
-  pdf_port_collate: 8081
-  pdf_port_markdown: 8081
-  pegasus_honeybadger_api_key: 00000000
-  pegasus_port: 3000
-  pegasus_unicorn_name: pegasus
-  pegasus_workers: 8
-  poste_host: 'localhost.code.org:3000'
-  pegasus_skip_asset_map: false
-  proxy: false # If true, generated URLs will not include explicit port numbers in development
-  rack_env: :<%=env%>
-  rack_envs:
-    - :development
-    - :production
-    - :adhoc
-    - :staging
-    - :test
-    - :levelbuilder
-    - :integration
-  read_only: false
+# Run dashboard-server with the level editing interface enabled (for admins)
+levelbuilder_mode:
 
-  # Credentials for connecting to Firebase to use data blocks or data browser
-  # in Applab.
-  firebase_name:
-  firebase_secret:
-  firebase_max_channel_writes_per_15_sec: 300
-  firebase_max_channel_writes_per_60_sec: 600
-  firebase_max_table_count: 10
-  firebase_max_table_rows: 1000
-  firebase_max_record_size: 4096
-  firebase_max_property_size: 4096
+dashboard_workers: 8
+default_hoc_mode: post-hoc # overridden by 'hoc_mode' DCDO param, except in :test
+default_hoc_launch: '' # overridden by 'hoc_launch' DCDO param, except in :test
+gatekeeper_table_name: gatekeeper_<%=env%>
+slack_log_room: <%=env%>
+hip_chat_logging: false
+localize_apps: false
+newrelic_logging: false
+netsim_enable_metrics: false
+netsim_max_routers: 20
+netsim_shard_expiry_seconds: 7200
+partners: []
+pdf_port_collate: 8081
+pdf_port_markdown: 8081
+pegasus_honeybadger_api_key: 00000000
+pegasus_port: 3000
+pegasus_unicorn_name: pegasus
+pegasus_workers: 8
+poste_host: 'localhost.code.org:3000'
+pegasus_skip_asset_map: false
+proxy: false # If true, generated URLs will not include explicit port numbers in development
+rack_env: :<%=env%>
+rack_envs:
+  - :development
+  - :production
+  - :adhoc
+  - :staging
+  - :test
+  - :levelbuilder
+  - :integration
+read_only: false
 
-  # Specify `use_mailcatcher: true` if you are running mailcatcher on localhost.
-  # You should have also run this once:
-  #   `gem install mailcatcher`
-  # And this each time you need to start mailcatcher in the background again:
-  #   `mailcatcher --ip=0.0.0.0`
-  use_mailcatcher:
+# Credentials for connecting to Firebase to use data blocks or data browser
+# in Applab.
+firebase_name:
+firebase_secret:
+firebase_max_channel_writes_per_15_sec: 300
+firebase_max_channel_writes_per_60_sec: 600
+firebase_max_table_count: 10
+firebase_max_table_rows: 1000
+firebase_max_record_size: 4096
+firebase_max_property_size: 4096
 
-  lint: false
+# Specify `use_mailcatcher: true` if you are running mailcatcher on localhost.
+# You should have also run this once:
+#   `gem install mailcatcher`
+# And this each time you need to start mailcatcher in the background again:
+#   `mailcatcher --ip=0.0.0.0`
+use_mailcatcher:
 
-  files_s3_bucket:           cdo-v3-files
-  files_s3_directory:        files<%=_env%>
-  animations_s3_bucket:      cdo-v3-animations
-  animations_s3_directory:   animations<%=_env%>
-  assets_s3_bucket:          cdo-v3-assets
-  assets_s3_directory:       assets<%=_env%>
-  sources_s3_bucket:         cdo-v3-sources
-  sources_s3_directory:      sources<%=_env%>
-  librarypilot_s3_bucket:    cdo-v3-librarypilot
-  librarypilot_s3_directory: librarypilot<%=_env%>
+lint: false
 
-  # Configuration Options for Pusher.com integration
-  # Optional for most devs, very useful if working on Internet Simulator
-  use_pusher: false
-  pusher_app_id: fake_app_id
-  pusher_application_key: fake_application_key
-  pusher_application_secret: fake_application_secret
+files_s3_bucket:           cdo-v3-files
+files_s3_directory:        files<%=_env%>
+animations_s3_bucket:      cdo-v3-animations
+animations_s3_directory:   animations<%=_env%>
+assets_s3_bucket:          cdo-v3-assets
+assets_s3_directory:       assets<%=_env%>
+sources_s3_bucket:         cdo-v3-sources
+sources_s3_directory:      sources<%=_env%>
+librarypilot_s3_bucket:    cdo-v3-librarypilot
+librarypilot_s3_directory: librarypilot<%=_env%>
 
-  # Configuration options for Acapela-Group.com integration
-  acapela_storage_app:
-  acapela_storage_password:
-  acapela_ephemeral_app:
-  acapela_ephemeral_password:
+# Configuration Options for Pusher.com integration
+# Optional for most devs, very useful if working on Internet Simulator
+use_pusher: false
+pusher_app_id: fake_app_id
+pusher_application_key: fake_application_key
+pusher_application_secret: fake_application_secret
 
-  # Whether to stub schools and school_districts table with much smaller data,
-  # saving a total of 4 min 30 sec during rake seed. Default: true (in development).
-  stub_school_data: false
+# Configuration options for Acapela-Group.com integration
+acapela_storage_app:
+acapela_storage_password:
+acapela_ephemeral_app:
+acapela_ephemeral_password:
 
-  # Credentials for new relic logging. Used to log apps build times.
-  new_relic_license_key:
+# Whether to stub schools and school_districts table with much smaller data,
+# saving a total of 4 min 30 sec during rake seed. Default: true (in development).
+stub_school_data: false
 
-  stack_name: <%=env%>
-  videos_s3_bucket: videos.code.org
-  videos_url: //videos.code.org
-  google_safe_browsing_key: fake_api_key
-  pretty_js: false
-  
-  poste_secret: 'not a real secret'
-  channels_api_secret: <%=poste_secret%>
-  
-  name: <%=`hostname`.strip%>
-  daemon: <%=name == 'production-daemon'%>
+# Credentials for new relic logging. Used to log apps build times.
+new_relic_license_key:
 
-  chef_managed: false
+stack_name: <%=env%>
+videos_s3_bucket: videos.code.org
+videos_url: //videos.code.org
+google_safe_browsing_key: fake_api_key
+pretty_js: false
 
-  # Whether to prefix bundler commands with 'sudo'.
-  # It may be useful to set this false when doing local development on Linux.
-  bundler_use_sudo: <%=chef_managed%>
-  cdn_enabled: <%=chef_managed%>
-  image_optim: <%=chef_managed && !ci_test%>
-  
-  db_writer: 'mysql://root@localhost/'
-  reporting_db_writer: 'mysql://root@localhost/'
-  dashboard_db_name: dashboard_<%=env%>
-  pegasus_db_name: pegasus<%=_env%>
+poste_secret: 'not a real secret'
+channels_api_secret: <%=poste_secret%>
 
-  # Default reader endpoints to writer endpoint.
-  db_reader: <%=db_writer%>
-  reporting_db_reader: <%=reporting_db_writer%>
+name: <%=`hostname`.strip%>
+daemon: <%=name == 'production-daemon'%>
 
-  # Default DB-specific endpoints to base endpoint plus db name.
-  dashboard_db_reader:           <%="#{db_reader}#{dashboard_db_name}"%>
-  dashboard_db_writer:           <%="#{db_writer}#{dashboard_db_name}"%>
-  pegasus_db_reader:             <%="#{db_reader}#{pegasus_db_name}"%>
-  pegasus_db_writer:             <%="#{db_writer}#{pegasus_db_name}"%>
-  dashboard_reporting_db_reader: <%="#{reporting_db_reader}#{dashboard_db_name}"%>
-  dashboard_reporting_db_writer: <%="#{reporting_db_writer}#{dashboard_db_name}"%>
-  pegasus_reporting_db_reader:   <%="#{reporting_db_reader}#{pegasus_db_name}"%>
-  pegasus_reporting_db_writer:   <%="#{reporting_db_writer}#{pegasus_db_name}"%>
+chef_managed: false
 
-development:
-  shared_secrets: false
-  census_map_table_id: null
-  dashboard_enable_pegasus: true
-  pegasus_skip_asset_map: true
-  firebase_name: cdo-v3-dev
-  lint: true
-  pretty_js: true
-  stub_school_data: true
-  daemon: true
+# Whether to prefix bundler commands with 'sudo'.
+# It may be useful to set this false when doing local development on Linux.
+bundler_use_sudo: <%=chef_managed%>
+cdn_enabled: <%=chef_managed%>
+image_optim: <%=chef_managed && !ci_test%>
 
-staging:
-  secrets:
-    - azure_content_moderation
-    - omniauth_clever
-    - omniauth_facebook
-    - omniauth_google
-    - omniauth_microsoft
-    - omniauth_windowslive
-    - firebase
-    - github
-    - github_webhook
-    - jotform
-    - lti
-    - dashboard_properties
-    - pusher
-    - slack
-  netsim_enable_metrics: true
-  lint: true
-  pretty_js: true
-  daemon: true
+db_writer: 'mysql://root@localhost/'
+reporting_db_writer: 'mysql://root@localhost/'
+dashboard_db_name: dashboard_<%=env%>
+pegasus_db_name: pegasus<%=_env%>
 
-test:
-  netsim_enable_metrics: true
-  stub_school_data: true
-  daemon: true
+# Default reader endpoints to writer endpoint.
+db_reader: <%=db_writer%>
+reporting_db_reader: <%=reporting_db_writer%>
 
-  # test environment should use precompiled, minified, digested assets like production,
-  # unless it's being used for unit tests. This logic should be kept in sync with
-  # the logic for setting config.assets.* under dashboard/config/.
-  pretty_js: <%=ci_test%>
-
-  # Since channel ids are derived from user id and other sequential integer ids
-  # use a new S3 sources directory for each Test Build to prevent a UI test
-  # from inadvertently using a channel id from a previous Test Build.
-  # CircleCI environments already override the sources_s3_directory setting to suffix it with the Circle Build number:
-  # https://github.com/code-dot-org/code-dot-org/blob/fb53af48ec0598692ed19f340f26d2ed0bd9547b/.circleci/config.yml#L153
-  # Detect Circle environment just to be safe.
-  sources_s3_directory: sources_test<%=ENV['CIRCLECI'] ? '' : "/#{GitUtils.git_revision_short(root_dir)}"%>
-
-levelbuilder:
-  daemon: true
-
-production:
-  newrelic_logging: true
-  stack_name: autoscale-prod
-
-adhoc:
-  shared_secrets: false
-  chef_local_mode: false
-  stub_school_data: true
+# Default DB-specific endpoints to base endpoint plus db name.
+dashboard_db_reader:           <%="#{db_reader}#{dashboard_db_name}"%>
+dashboard_db_writer:           <%="#{db_writer}#{dashboard_db_name}"%>
+pegasus_db_reader:             <%="#{db_reader}#{pegasus_db_name}"%>
+pegasus_db_writer:             <%="#{db_writer}#{pegasus_db_name}"%>
+dashboard_reporting_db_reader: <%="#{reporting_db_reader}#{dashboard_db_name}"%>
+dashboard_reporting_db_writer: <%="#{reporting_db_writer}#{dashboard_db_name}"%>
+pegasus_reporting_db_reader:   <%="#{reporting_db_reader}#{pegasus_db_name}"%>
+pegasus_reporting_db_writer:   <%="#{reporting_db_writer}#{pegasus_db_name}"%>

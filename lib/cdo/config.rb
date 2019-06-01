@@ -1,31 +1,9 @@
 require 'singleton'
 require 'cdo/yaml'
-require 'cdo/lazy'
 
 module Cdo
-  ####################################################################################################
-  #
-  # Config - A singleton that loads and combines application configuration settings.
-  #
-  # Config priority (highest to lowest):
-  #
-  # 1. ENV             - environment variables (CDO_*)
-  # 2. locals.yml      - Local configuration
-  # 3. globals.yml     - [Chef-]provisioned configuration
-  # 4. config[env]     - environment-specific defaults
-  # 5. config[default] - global defaults
-  #
-  ##########
+  # Loads and combines structured application configuration settings.
   class Config < OpenStruct
-    include Singleton
-
-    def initialize
-      super
-      load_configuration
-      raise "'#{rack_env}' is not known environment." unless rack_envs.include?(rack_env)
-      freeze
-    end
-
     # Soft-freeze: Don't allow any new config members to be created,
     # but allow setting existing items to new values.
     def freeze
@@ -38,43 +16,38 @@ module Cdo
       super
     end
 
-    # Match CDO_*, plus RACK_ENV and RAILS_ENV.
-    ENV_PREFIX = /^(CDO|(RACK|RAILS)(?=_ENV))_/
-
-    def load_configuration
-      root = File.expand_path('../../..', __FILE__)
-      merge(
-        # 1. ENV - environment variables (CDO_*)
-        ENV.to_h.select {|k, _| k.match?(ENV_PREFIX)}.transform_keys {|k| k.sub(ENV_PREFIX, '').downcase},
-        # 2. locals.yml - local configuration
-        YAML.load_file(File.join(root, 'locals.yml')) || {},
-        # 3. globals.yml - [Chef-]provisioned configuration
-        YAML.load_file(File.join(root, 'globals.yml')) || {}
-      )
-      ENV['RACK_ENV'] = self.env ||= 'development'
-
-      # To resolve ERB config self-references, re-render / merge ERB until result is unchanged.
+    # Loads one or several sources into the merged configuration.
+    # Resolves dynamic config self-references by re-rendering + merging until result is unchanged.
+    def load_configuration(*sources)
       config = nil
       i = 5
       table = @table
-      while config != (config = YAML.load_erb_file(File.join(root, 'config.yml.erb'), binding))
-        raise "Can't resolve config.yml.erb (circular dependency?)" if (i -= 1).zero?
+      while config != (config = render(*sources))
+        raise "Can't resolve config (circular dependency?)" if (i -= 1).zero?
         @table = table.dup
-        merge(
-          # 4. config[env] - environment-specific defaults
-          config[env],
-          # 5. config[default] - global defaults
-          config['default']
-        )
+        config.each(&method(:merge))
       end
     end
 
-    # Merges the provided config hashes into the current config.
-    def merge(*configs)
-      configs.each do |config|
-        config = config.transform_keys(&:to_sym)
-        # Reverse-merge: Keep existing values except nil.
-        table.merge!(config) {|_key, old, new| old.nil? ? new : old}
+    # Renders config source into a hash, loading ERB/YAML files based on extension.
+    def render(*sources)
+      sources.map do |source|
+        if source.is_a?(Hash)
+          source
+        elsif File.extname(source) == '.yml'
+          YAML.load_file(source) || {}
+        elsif File.extname(source) == '.erb'
+          YAML.load_erb_file(source, binding) || {}
+        end
+      end
+    end
+
+    # Merge the provided config hash into the current config.
+    # 'Reverse-merge' keeps existing values except for `nil`.
+    def merge(config)
+      return if config.nil?
+      table.merge!(config.transform_keys(&:to_sym)) do |_key, old, new|
+        old.nil? ? new : old
       end
     end
   end

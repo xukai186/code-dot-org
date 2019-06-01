@@ -19,6 +19,8 @@ module Cdo
 
     def load_erb_file(path, binding=nil)
       YAML.load(erb_file_to_string(path, binding), path)
+    rescue Errno::ENOENT
+      nil
     end
   end
 
