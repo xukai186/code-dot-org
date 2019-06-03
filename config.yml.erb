@@ -2,17 +2,23 @@
 # TODO provide _all_ possible keys in this default config (with nil/empty default), so that
 # the config can be 'frozen' preventing other entries from being dynamically added.
 
+# Credentials for Google-federated AWS access.
+aws_role:
+google_client_id:
+google_client_secret:
+
+# Static AWS SDK credentials.
 aws_access_key:
 aws_secret_key:
+
 i18n_backend:
 cache:
 freegeoip_host:
+
 _env: <%=env == 'production' ? '' : "_#{env}"%>
 ci_test: <%=!!(ENV['UNIT_TEST'] || ENV['CI'])%>
 root_dir: <%=__dir__%>
 app_servers: {}
-assets_bucket: cdo-dist
-assets_bucket_prefix: <%=env%>
 aws_region: us-east-1
 
 # Whether rake:build should rebuild the apps package
@@ -42,7 +48,7 @@ cache_assets_in_memory:
 # Contributors should ask a Code.org engineer for this if needed.
 properties_encryption_key:
 
-# Credentials for SauceLabs.com, used to for running selenium tests against
+# Credentials for SauceLabs.com, used for running selenium tests against
 # multiple browsers
 saucelabs_username:
 saucelabs_authkey:
@@ -57,6 +63,7 @@ build_pegasus: true
 # is set to the ID for the production site, be careful not to run
 # update_census_map as it will overwrite that table.
 census_map_table_id: 1AUZYRjLMI5NiQsDeDBGFsOIFpL_rLGsnxNpSyR13
+
 chef_local_mode: true
 dcdo_table_name: dcdo_<%=env%>
 dashboard_assets_dir: <%=root_dir%>/dashboard/public/assets
@@ -126,6 +133,9 @@ use_mailcatcher:
 
 lint: false
 
+# S3 bucket and (environment-specific) path-prefix configuration
+assets_bucket:        cdo-dist
+assets_bucket_prefix: <%=env%>
 files_s3_bucket:           cdo-v3-files
 files_s3_directory:        files<%=_env%>
 animations_s3_bucket:      cdo-v3-animations
@@ -136,6 +146,8 @@ sources_s3_bucket:         cdo-v3-sources
 sources_s3_directory:      sources<%=_env%>
 librarypilot_s3_bucket:    cdo-v3-librarypilot
 librarypilot_s3_directory: librarypilot<%=_env%>
+videos_s3_bucket: videos.code.org
+videos_url: //videos.code.org
 
 # Configuration Options for Pusher.com integration
 # Optional for most devs, very useful if working on Internet Simulator
@@ -158,8 +170,6 @@ stub_school_data: false
 new_relic_license_key:
 
 stack_name: <%=env%>
-videos_s3_bucket: videos.code.org
-videos_url: //videos.code.org
 google_safe_browsing_key: fake_api_key
 pretty_js: false
 
