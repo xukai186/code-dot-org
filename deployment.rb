@@ -26,10 +26,10 @@ def rack_env?(*env)
 end
 
 def with_rack_env(temporary_env)
-  previous_env = CDO.rack_env
-  CDO.rack_env = temporary_env
+  require 'mocha/api'
+  CDO.stubs(:rack_env).returns(temporary_env)
   yield
-  CDO.rack_env = previous_env
+  CDO.unstub(:rack_env)
 end
 
 def deploy_dir(*dirs)

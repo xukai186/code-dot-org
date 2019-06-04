@@ -40,8 +40,6 @@ Rails.application.reload_routes! if defined?(Rails) && defined?(Rails.applicatio
 require File.expand_path('../../config/environment', __FILE__)
 I18n.load_path += Dir[Rails.root.join('test', 'en.yml')]
 I18n.backend.reload!
-CDO.override_pegasus = nil
-CDO.override_dashboard = nil
 
 Rails.application.routes.default_url_options[:host] = CDO.dashboard_hostname
 Dashboard::Application.config.action_mailer.default_url_options = {host: CDO.canonical_hostname('studio.code.org'), protocol: 'https'}
@@ -71,6 +69,8 @@ class ActiveSupport::TestCase
     UserHelpers.stubs(:random_donor).returns(name_s: 'Someone')
     AWS::S3.stubs(:upload_to_bucket).raises("Don't actually upload anything to S3 in tests... mock it if you want to test it")
     AWS::S3.stubs(:download_from_bucket).raises("Don't actually download anything to S3 in tests... mock it if you want to test it")
+    CDO.stubs(:override_pegasus).returns(nil)
+    CDO.stubs(:override_dashboard).returns(nil)
 
     set_env :test
 
@@ -102,12 +102,12 @@ class ActiveSupport::TestCase
 
   def set_env(env)
     Rails.env = env.to_s
-    CDO.rack_env = env
+    CDO.stubs(:rack_env).returns(env)
   end
 
   # some s3 helpers/mocks
   def expect_s3_upload
-    CDO.disable_s3_image_uploads = false
+    CDO.stubs(:disable_s3_image_uploads).returns(false)
     AWS::S3.expects(:upload_to_bucket).returns(true)
   end
 
@@ -117,7 +117,7 @@ class ActiveSupport::TestCase
   end
 
   def expect_no_s3_upload
-    CDO.disable_s3_image_uploads = false
+    CDO.stubs(:disable_s3_image_uploads).returns(false)
     AWS::S3.expects(:upload_to_bucket).never
   end
 

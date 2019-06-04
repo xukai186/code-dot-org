@@ -1,3 +1,8 @@
+# Unit tests need to stub a lot of CDO properties so don't freeze config.
+freeze: false
+
+pegasus_skip_asset_map: <%=ci_test%>
+
 netsim_enable_metrics: true
 stub_school_data: true
 daemon: true
@@ -14,3 +19,54 @@ pretty_js: <%=ci_test%>
 # https://github.com/code-dot-org/code-dot-org/blob/fb53af48ec0598692ed19f340f26d2ed0bd9547b/.circleci/config.yml#L153
 # Detect Circle environment just to be safe.
 sources_s3_directory: sources_test<%=ENV['CIRCLECI'] ? '' : "/#{GitUtils.git_revision_short(root_dir)}"%>
+
+# Disable this for test by default, it won't make much sense if we keep wiping
+# the DB.
+disable_s3_image_uploads: true
+
+# Overrides for Jotform Form Ids
+jotform_forms:
+  local:
+    day_0: 1
+    day_1: 2
+    day_2: 3
+    day_3: 4
+    day_4: 5
+    day_5: 6
+    facilitator: 7
+    post_workshop: 6
+  local_summer:
+    day_0: 1
+    day_1: 2
+    day_2: 3
+    day_3: 4
+    day_4: 5
+    day_5: 6
+    facilitator: 7
+    post_workshop: 6
+  academic_year_1:
+    day_1: 10
+    facilitator: 11
+    post_workshop: 12
+  academic_year_2:
+    day_1: 20
+    facilitator: 11
+    post_workshop: 12
+  academic_year_3:
+    day_1: 30
+    facilitator: 11
+    post_workshop: 12
+  academic_year_4:
+    day_1: 40
+    facilitator: 11
+    post_workshop: 12
+  academic_year_1_2:
+    day_1: 10
+    day_2: 20
+    facilitator: 11
+    post_workshop: 12
+  academic_year_3_4:
+    day_1: 30
+    day_2: 40
+    facilitator: 11
+    post_workshop: 12

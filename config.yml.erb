@@ -1,6 +1,58 @@
 # Default application configuration.
-# TODO provide _all_ possible keys in this default config (with nil/empty default), so that
-# the config can be 'frozen' preventing other entries from being dynamically added.
+
+# Freeze the config object after loading.
+# Prevents entries from being dynamically added or modified.
+freeze: true
+
+cloudfront_key_pair_id:
+cloudfront_private_key:
+slog_token:
+expo_session_secret:
+firebase_debug:
+pd_teacher_application_list_secret_key:
+slack_endpoint:
+twilio_sid_test:
+
+rack_mini_profiler_enabled:
+https_development:
+override_dashboard:
+override_pegasus:
+allowed_iframe_ancestors:
+pegasus_sock:
+dashboard_sock:
+process_queues:
+skip_locales:
+recaptcha_site_key:
+recaptcha_secret_key:
+secret_pictures_csv:
+no_https_store:
+zendesk_secret:
+zendesk_dev_token:
+
+
+github_webhook_secret:
+sinatra_session_secret:
+slack_set_last_dtt_green_token:
+slack_start_build_token:
+cronjobs_honeybadger_api_key:
+dashboard_devise_secret:
+dashboard_facebook_key:
+dashboard_facebook_secret:
+dashboard_google_key:
+dashboard_google_secret:
+dashboard_windowslive_key:
+dashboard_windowslive_secret:
+dashboard_microsoft_key:
+dashboard_microsoft_secret:
+dashboard_clever_key:
+dashboard_clever_secret:
+dashboard_schoolproject_key:
+dashboard_schoolproject_secret:
+
+google_maps_client_id:
+
+memcached_endpoint:
+memcached_hosts:
 
 # Credentials for Google-federated AWS access.
 aws_role:
@@ -161,6 +213,8 @@ pusher_application_key: fake_application_key
 pusher_application_secret: fake_application_secret
 
 # Configuration options for Acapela-Group.com integration
+use_acapela:
+acapela_login:
 acapela_storage_app:
 acapela_storage_password:
 acapela_ephemeral_app:
@@ -176,6 +230,8 @@ new_relic_license_key:
 stack_name: <%=env%>
 google_safe_browsing_key: fake_api_key
 pretty_js: false
+
+disable_s3_image_uploads: false
 
 poste_secret: 'not a real secret'
 channels_api_secret: <%=poste_secret%>

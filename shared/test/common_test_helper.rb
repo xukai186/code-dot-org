@@ -78,6 +78,7 @@ module SetupTest
     # requests to url paths which must be consistent across test runs.
     # Therefore, remove the commit-specific part of this path only in unit tests.
     CDO.stubs(:sources_s3_directory).returns('sources_test')
+    CDO.stubs(:newrelic_logging).returns(true)
 
     VCR.use_cassette(cassette_name, record: record_mode) do
       PEGASUS_DB.transaction(rollback: :always) do

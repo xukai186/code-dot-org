@@ -40,4 +40,4 @@ module Cdo
   end
 end
 
-CDO.shared_cache = Cdo::SharedCache.cache
+CDO_SHARED_CACHE = Cdo::SharedCache.cache

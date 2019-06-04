@@ -37,6 +37,18 @@ module Cdo
       freeze
     end
 
+    def shared_cache
+      CDO_SHARED_CACHE
+    end
+
+    def cache
+      CDO_CACHE
+    end
+
+    def i18n_backend
+      CDO_I18N_BACKEND
+    end
+
     def canonical_hostname(domain)
       # Allow hostname overrides
       return override_dashboard if override_dashboard && domain == 'studio.code.org'
@@ -146,7 +158,7 @@ module Cdo
     # Sets the slogger to use in a test.
     # slogger must support a `write` method.
     def set_slogger_for_test(slogger)
-      @slog = slogger
+      @@slog = slogger
       # Set a fake slog token so that the slog method will actually call
       # the test slogger.
       self.slog_token = 'fake_slog_token'
@@ -157,8 +169,8 @@ module Cdo
       require 'dynamic_config/gatekeeper'
       return unless Gatekeeper.allows('slogging', default: true)
       require 'cdo/slog'
-      @slog ||= Slog::Writer.new(secret: slog_token)
-      @slog.write params
+      @@slog ||= Slog::Writer.new(secret: slog_token)
+      @@slog.write params
     end
 
     def shared_image_url(path)
@@ -166,10 +178,13 @@ module Cdo
     end
 
     # Default logger implementation
-    attr_writer :log
+    def log=(log)
+      @@log = log
+    end
+
     def log
       require 'logger'
-      @log ||= Logger.new(STDOUT).tap do |l|
+      @@log ||= Logger.new(STDOUT).tap do |l|
         l.level = Logger::INFO
         l.formatter = proc do |severity, _, _, msg|
           "#{severity != 'INFO' ? "#{severity}: " : ''}#{msg}\n"
@@ -198,10 +213,6 @@ module Cdo
       backtrace.join("\n")
     end
 
-    def with_default(default_value)
-      WithDefault.new(self, default_value)
-    end
-
     # When running on Chef Server, use EC2 API to fetch a dynamic list of app-server front-ends,
     # appending to the static list already provided by configuration files.
     def app_servers
@@ -214,21 +225,7 @@ module Cdo
           {name: 'instance-state-name', values: ['running']}
         ]
       ).reservations.map(&:instances).flatten.map {|i| ["fe-#{i.instance_id}", i.private_dns_name]}.to_h
-      servers.merge(super)
-    end
-  end
-
-  class WithDefault < SimpleDelegator
-    def initialize(target, default_value)
-      @default_value = default_value
-      super(target)
-    end
-
-    def method_missing(*args)
-      return @default_value unless __getobj__.respond_to? args.first
-      value = super
-      return @default_value if value.nil?
-      value
+      servers.merge(self[:app_servers])
     end
   end
 end

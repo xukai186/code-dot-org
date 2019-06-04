@@ -4,15 +4,20 @@ require 'cdo/yaml'
 module Cdo
   # Loads and combines structured application configuration settings.
   class Config < OpenStruct
-    # Soft-freeze: Don't allow any new config members to be created,
-    # but allow setting existing items to new values.
+    # Soft-freeze: Don't allow any config items to be created/modified,
+    # but allow stubbing for unit tests.
     def freeze
       @table.each_key(&method(:new_ostruct_member!))
-      @initialized = true
+      @frozen = true
     end
 
     def method_missing(key, *args)
-      raise ArgumentError, "Undefined #{self.class} reference: #{key}", caller(1) if @initialized
+      raise ArgumentError, "Undefined #{self.class} reference: #{key}", caller(1) if @frozen
+      super
+    end
+
+    def modifiable?
+      raise RuntimeError, "can't modify frozen #{self.class}", caller(2) if @frozen
       super
     end
 
@@ -48,6 +53,25 @@ module Cdo
       return if config.nil?
       table.merge!(config.transform_keys(&:to_sym)) do |_key, old, new|
         old.nil? ? new : old
+      end
+    end
+
+    # API for providing a default value for a property lookup.
+    def with_default(default_value)
+      WithDefault.new(self, default_value)
+    end
+
+    class WithDefault < SimpleDelegator
+      def initialize(target, default_value)
+        @default_value = default_value
+        super(target)
+      end
+
+      def method_missing(*args)
+        return @default_value unless __getobj__.respond_to? args.first
+        value = super
+        return @default_value if value.nil?
+        value
       end
     end
   end
