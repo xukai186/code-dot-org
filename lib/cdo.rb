@@ -33,6 +33,10 @@ module Cdo
         "#{root}/config.yml.erb"
       )
 
+      defaults = YAML.load_erb_file("#{root}/config.yml.erb", binding)
+      to_h.keys.each do |key|
+        raise "Unknown property not in defaults: #{key}" unless defaults.key?(key.to_s)
+      end
       raise "'#{rack_env}' is not known environment." unless rack_envs.include?(rack_env)
       freeze
     end

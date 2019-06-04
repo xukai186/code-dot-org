@@ -13,7 +13,16 @@ firebase_debug:
 pd_teacher_application_list_secret_key:
 slack_endpoint:
 activity_queue_url:
+honeybadger_api_token:
+devinternal_db_writer:
+env:
 
+chef_node_name: cdo-ci
+chef_org_name: code-dot-org
+chef_client_key: <%="#{ENV['HOME']}/.chef/#{chef_node_name}.pem"%>
+chef_validation_client_name: <%="#{chef_org_name}-validator"%>
+chef_validation_key: <%="#{ENV['HOME']}/.chef/#{chef_validation_client_name}.pem"%>
+chef_server_url: <%="https://api.opscode.com/organizations/#{chef_org_name}"%>
 
 twilio_auth:
 twilio_auth_test:
@@ -58,6 +67,7 @@ zendesk_secret:
 zendesk_dev_token:
 
 webpurify_key:
+github_access_token:
 github_webhook_secret:
 sinatra_session_secret:
 slack_set_last_dtt_green_token:
@@ -109,6 +119,7 @@ google_client_secret:
 aws_access_key:
 aws_secret_key:
 
+i18n_key_value:
 i18n_backend:
 cache:
 freegeoip_host:
