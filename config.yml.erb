@@ -66,6 +66,7 @@ aws_secret_key:
 i18n_backend:
 cache:
 freegeoip_host:
+geocoder_redis_url:
 
 _env: <%=env == 'production' ? '' : "_#{env}"%>
 ci_test: <%=!!(ENV['UNIT_TEST'] || ENV['CI'])%>
