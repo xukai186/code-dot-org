@@ -112,7 +112,7 @@ class ActiveSupport::TestCase
   end
 
   def expect_s3_upload_failure
-    CDO.disable_s3_image_uploads = false
+    CDO.stubs(:disable_s3_image_uploads).returns(false)
     AWS::S3.expects(:upload_to_bucket).returns(nil)
   end
 

@@ -161,7 +161,7 @@ module Cdo
       @@slog = slogger
       # Set a fake slog token so that the slog method will actually call
       # the test slogger.
-      self.slog_token = 'fake_slog_token'
+      stubs(:slog_token).returns('fake_slog_token')
     end
 
     def slog(params)
