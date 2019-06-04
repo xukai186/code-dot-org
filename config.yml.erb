@@ -6,12 +6,40 @@ freeze: true
 
 cloudfront_key_pair_id:
 cloudfront_private_key:
+logentries_secret:
 slog_token:
 expo_session_secret:
 firebase_debug:
 pd_teacher_application_list_secret_key:
 slack_endpoint:
+activity_queue_url:
+
+
+twilio_auth:
+twilio_auth_test:
+twilio_messaging_service:
+twilio_phone_test_forward:
+twilio_phone_test_to:
+twilio_sid:
 twilio_sid_test:
+
+solr_server:
+disable_all_eyes_running:
+discourse_sso_secret:
+jotform_api_key:
+jotform_forms:
+jotform_min_dates:
+lti_credentials:
+mimeo_api:
+netsim_redis_groups:
+pagerduty_token:
+pardot_password:
+pardot_user_key:
+pardot_username:
+pd_workshop_queue_url:
+
+redshift_host:
+redshift_password:
 
 rack_mini_profiler_enabled:
 https_development:
@@ -29,7 +57,7 @@ no_https_store:
 zendesk_secret:
 zendesk_dev_token:
 
-
+webpurify_key:
 github_webhook_secret:
 sinatra_session_secret:
 slack_set_last_dtt_green_token:
@@ -51,9 +79,26 @@ dashboard_schoolproject_secret:
 
 google_maps_client_id:
 google_maps_api_key:
+google_maps_secret:
+
+hoc_map_account:
+hoc_map_table_id:
+
+ga_account:
+ga_profile_id:
 
 memcached_endpoint:
 memcached_hosts:
+
+crowdin_codeorg_api_key:
+db_cluster_id:
+
+azure_content_moderation_endpoint:
+azure_content_moderation_key:
+
+start_circle_builds_branch:
+start_circle_builds_token:
+circle_run_identifier:
 
 # Credentials for Google-federated AWS access.
 aws_role:
@@ -109,6 +154,8 @@ saucelabs_authkey:
 
 # Credentials for applitools.com, used for running automated visual tests
 applitools_eyes_api_key:
+applitools_eyes_api_key_view:
+ignore_eyes_mismatches:
 
 build_dashboard: true
 build_pegasus: true
@@ -154,10 +201,12 @@ partners: []
 pdf_port_collate: 8081
 pdf_port_markdown: 8081
 pegasus_honeybadger_api_key: 00000000
+pegasus_host:
 pegasus_port: 3000
 pegasus_unicorn_name: pegasus
 pegasus_workers: 8
 poste_host: 'localhost.code.org:3000'
+poste_attachment_dir:
 pegasus_skip_asset_map: false
 proxy: false # If true, generated URLs will not include explicit port numbers in development
 rack_env: :<%=env%>
@@ -175,6 +224,7 @@ read_only: false
 # in Applab.
 firebase_name:
 firebase_secret:
+firebase_channel_id_suffix:
 firebase_max_channel_writes_per_15_sec: 300
 firebase_max_channel_writes_per_60_sec: 600
 firebase_max_table_count: 10
@@ -235,6 +285,9 @@ pretty_js: false
 
 disable_s3_image_uploads: false
 
+poste_smtp_password:
+poste_smtp_server:
+poste_smtp_user:
 poste_secret: 'not a real secret'
 channels_api_secret: <%=poste_secret%>
 
