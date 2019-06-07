@@ -138,6 +138,11 @@
         Sharing disabled?
         %span.admin-sharing-disabled
 
+      %br
+      .admin-sharing-details
+        This project was blocked because:
+        %span.share-failure-details
+
       #disable-auto-moderation{'style' => ('display: none;' if content_moderation_disabled)}
         %br
         %button{id: "disable-auto-moderation", class: "btn btn-default btn-sm"}

@@ -94,6 +94,10 @@ export default project => {
   if ($('.admin-sharing').length) {
     var sharingDisabled = project.getSharingDisabled();
     $('.admin-sharing-disabled').text(sharingDisabled);
+    if (!sharingDisabled) {
+      var shareFailureDetails = project.getShareFailureDetails();
+      $('.share-failure-details').text(JSON.stringify(shareFailureDetails));
+    }
   }
 
   $('#disable-auto-moderation').click(async function() {

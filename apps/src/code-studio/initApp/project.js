@@ -84,6 +84,7 @@ let newSourceVersionInterval = 15 * 60 * 1000; // 15 minutes
 var currentAbuseScore = 0;
 var sharingDisabled = false;
 var currentHasPrivacyProfanityViolation = false;
+var currentShareFailureDetails = {};
 var isEditing = false;
 let initialSaveComplete = false;
 let initialCaptureComplete = false;
@@ -250,6 +251,10 @@ var projects = (module.exports = {
 
   getSharingDisabled() {
     return sharingDisabled;
+  },
+
+  getShareFailureDetails() {
+    return currentShareFailureDetails;
   },
 
   /**
@@ -1419,6 +1424,9 @@ var projects = (module.exports = {
                 fetchAbuseScoreAndPrivacyViolations(this, function() {
                   deferred.resolve();
                 });
+                fetchShareFailureDetails(this, function() {
+                  deferred.resolve();
+                });
               },
               queryParams('version'),
               sourcesApi
@@ -1440,6 +1448,9 @@ var projects = (module.exports = {
             () => {
               projects.showHeaderForProjectBacked();
               fetchAbuseScoreAndPrivacyViolations(this, function() {
+                deferred.resolve();
+              });
+              fetchShareFailureDetails(this, function() {
                 deferred.resolve();
               });
             },
@@ -1618,6 +1629,19 @@ function fetchPrivacyProfanityViolations(resolve) {
     // data.has_violation is 0 or true, coerce to a boolean
     currentHasPrivacyProfanityViolation =
       (data && !!data.has_violation) || currentHasPrivacyProfanityViolation;
+    resolve();
+    if (err) {
+      // Throw an error so that things like New Relic see this. This shouldn't
+      // affect anything else
+      throw err;
+    }
+  });
+}
+
+function fetchShareFailureDetails(resolve) {
+  channels.fetch(current.id + '/share-failure', (err, data) => {
+    currentShareFailureDetails =
+      (data && data.share_failure) || currentShareFailureDetails;
     resolve();
     if (err) {
       // Throw an error so that things like New Relic see this. This shouldn't
