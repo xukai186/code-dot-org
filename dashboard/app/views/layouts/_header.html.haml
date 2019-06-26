@@ -74,29 +74,26 @@
           .header_left
             .header_logo
               - if current_user
-                = link_to(image_tag('logo.png'), '/home', {id: "logo_home_link"})
+                /= link_to(image_tag('logo.png'), '/home', {id: "logo_home_link"})
               - else
-                = link_to(image_tag('logo.png'), CDO.code_org_url, {id: "logo_home_link"})
+                /= link_to(image_tag('logo.png'), CDO.code_org_url, {id: "logo_home_link"})
             .project_info
           .header_middle
             - if should_show_progress
               = render partial: 'shared/header_progress'
             - elsif level
             - else
-              .headerlinks.hide_on_tablet
-                - Hamburger.get_header_contents(header_contents_options).each do |entry|
-                  %a.headerlink{id: entry[:id], href: entry[:url]}= entry[:title]
 
           .header_right
             - if !@hide_sign_in_option && signin_button_enabled
               %span#sign_in_or_user
-                = render file: Rails.root.join('..', 'shared', 'haml', 'user_header.haml'), locals: user_header_options
-            = render file: Rails.root.join('..', 'shared', 'haml', 'hamburger.haml'), locals: hamburger_options
+                /= render file: Rails.root.join('..', 'shared', 'haml', 'user_header.haml'), locals: user_header_options
+            /= render file: Rails.root.join('..', 'shared', 'haml', 'hamburger.haml'), locals: hamburger_options
 
 - if request.path == "/home"
-  #header-banner{class: "header-banner-short", style: 'background-image: url("/shared/images/banners/teacher-homepage-hero.jpg")'}
+  /#header-banner{class: "header-banner-short", style: 'background-image: url("/shared/images/banners/teacher-homepage-hero.jpg")'}
 - elsif request.path == "/courses"
-  #header-banner.header-banner-courses{class: user_type ? "header-banner-short" : "", style: "background-image: url(\"/shared/images/banners/#{@header_banner_image_filename}.jpg\")"}
+  /#header-banner.header-banner-courses{class: user_type ? "header-banner-short" : "", style: "background-image: url(\"/shared/images/banners/#{@header_banner_image_filename}.jpg\")"}
 
 - if request.path == "/projects" || request.path == "/projects/public"
   #header-banner.header-banner-short{style: 'background-image: url("/shared/images/banners/project-banner.jpg")'}

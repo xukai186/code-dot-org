@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 import LegacyDialog from './code-studio/LegacyDialog';
 import project from './code-studio/initApp/project';
 import {dataURIToBlob} from './imageUtils';
-import trackEvent from './util/trackEvent';
+//import trackEvent from './util/trackEvent';
 import {getValidatedResult} from './containedLevels';
 import PublishDialog from './templates/projects/publishDialog/PublishDialog';
 import DownloadReplayVideoButton from './code-studio/components/DownloadReplayVideoButton';
@@ -17,7 +17,7 @@ import {
   PUBLISH_FAILURE
 } from './templates/projects/publishDialog/publishDialogRedux';
 import {createHiddenPrintWindow} from './utils';
-import testImageAccess from './code-studio/url_test';
+//import testImageAccess from './code-studio/url_test';
 import {TestResults, KeyCodes} from './constants';
 
 // Types of blocks that do not count toward displayed block count. Used
@@ -113,6 +113,8 @@ FeedbackUtils.prototype.displayFeedback = function(
   recommendedBlocks,
   maxRecommendedBlocksToFlag
 ) {
+  // 许凯不显示发送到手机
+  options.sendToPhone = false;
   options.level = options.level || {};
 
   const {onContinue, shareLink} = options;
@@ -986,72 +988,74 @@ FeedbackUtils.prototype.createSharingDiv = function(options) {
     });
   }
 
-  var sharingFacebook = sharingDiv.querySelector('#sharing-facebook');
-  if (sharingFacebook) {
-    testImageAccess(
-      'https://facebook.com/favicon.ico' + '?' + Math.random(),
-      () => $(sharingFacebook).show()
-    );
-  }
+  // 许凯取消分享到facebook
+  // var sharingFacebook = sharingDiv.querySelector('#sharing-facebook');
+  // if (sharingFacebook) {
+  //   testImageAccess(
+  //     'https://facebook.com/favicon.ico' + '?' + Math.random(),
+  //     () => $(sharingFacebook).show()
+  //   );
+  // }
 
-  var sharingTwitter = sharingDiv.querySelector('#sharing-twitter');
-  if (sharingTwitter) {
-    testImageAccess(
-      'https://twitter.com/favicon.ico' + '?' + Math.random(),
-      () => $(sharingTwitter).show()
-    );
-  }
+  // 许凯取消分享到twitter
+  // var sharingTwitter = sharingDiv.querySelector('#sharing-twitter');
+  // if (sharingTwitter) {
+  //   testImageAccess(
+  //     'https://twitter.com/favicon.ico' + '?' + Math.random(),
+  //     () => $(sharingTwitter).show()
+  //   );
+  // }
 
-  //  SMS-to-phone feature
-  var sharingPhone = sharingDiv.querySelector('#sharing-phone');
-  if (sharingPhone && options.sendToPhone) {
-    dom.addClickTouchEvent(sharingPhone, function() {
-      var sendToPhone = sharingDiv.querySelector('#send-to-phone');
-      if ($(sendToPhone).is(':hidden')) {
-        $(sendToPhone).show();
-        var phone = $(sharingDiv.querySelector('#phone'));
-        var submitted = false;
-        var submitButton = sharingDiv.querySelector('#phone-submit');
-        submitButton.disabled = true;
-        phone.mask('(000) 000-0000', {
-          onComplete: function() {
-            if (!submitted) {
-              submitButton.disabled = false;
-            }
-          },
-          onChange: function() {
-            submitButton.disabled = true;
-          }
-        });
-        phone.focus();
-        dom.addClickTouchEvent(submitButton, function() {
-          var phone = $(sharingDiv.querySelector('#phone'));
-          var params = $.param({
-            level_source: options.response.level_source_id,
-            channel_id: options.channelId,
-            type: project.getStandaloneApp(),
-            phone: phone.val()
-          });
-          $(submitButton).val('Sending..');
-          phone.prop('readonly', true);
-          submitButton.disabled = true;
-          submitted = true;
-          $.post(options.response.phone_share_url, params)
-            .done(function(response) {
-              $(submitButton).text('Sent!');
-              trackEvent('SendToPhone', 'success');
-            })
-            .fail(function(xhr) {
-              $(submitButton).text('Error!');
-              trackEvent('SendToPhone', 'error');
-            });
-        });
-      } else {
-        // not hidden, hide
-        $(sendToPhone).hide();
-      }
-    });
-  }
+  //  SMS-to-phone feature 许凯取消发送到手机
+  // var sharingPhone = sharingDiv.querySelector('#sharing-phone');
+  // if (sharingPhone && options.sendToPhone) {
+  //   dom.addClickTouchEvent(sharingPhone, function() {
+  //     var sendToPhone = sharingDiv.querySelector('#send-to-phone');
+  //     if ($(sendToPhone).is(':hidden')) {
+  //       $(sendToPhone).show();
+  //       var phone = $(sharingDiv.querySelector('#phone'));
+  //       var submitted = false;
+  //       var submitButton = sharingDiv.querySelector('#phone-submit');
+  //       submitButton.disabled = true;
+  //       phone.mask('(000) 000-0000', {
+  //         onComplete: function() {
+  //           if (!submitted) {
+  //             submitButton.disabled = false;
+  //           }
+  //         },
+  //         onChange: function() {
+  //           submitButton.disabled = true;
+  //         }
+  //       });
+  //       phone.focus();
+  //       dom.addClickTouchEvent(submitButton, function() {
+  //         var phone = $(sharingDiv.querySelector('#phone'));
+  //         var params = $.param({
+  //           level_source: options.response.level_source_id,
+  //           channel_id: options.channelId,
+  //           type: project.getStandaloneApp(),
+  //           phone: phone.val()
+  //         });
+  //         $(submitButton).val('Sending..');
+  //         phone.prop('readonly', true);
+  //         submitButton.disabled = true;
+  //         submitted = true;
+  //         $.post(options.response.phone_share_url, params)
+  //           .done(function(response) {
+  //             $(submitButton).text('Sent!');
+  //             trackEvent('SendToPhone', 'success');
+  //           })
+  //           .fail(function(xhr) {
+  //             $(submitButton).text('Error!');
+  //             trackEvent('SendToPhone', 'error');
+  //           });
+  //       });
+  //     } else {
+  //       // not hidden, hide
+  //       $(sendToPhone).hide();
+  //     }
+  //   });
+  // }
 
   var downloadReplayVideoContainer = sharingDiv.querySelector(
     '#download-replay-video-container'

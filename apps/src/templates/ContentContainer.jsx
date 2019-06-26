@@ -138,12 +138,14 @@ class ContentContainer extends Component {
       linkText,
       description,
       isRtl,
-      responsiveSize,
+      //responsiveSize,
       hideBottomMargin
     } = this.props;
 
-    const showLinkTop = responsiveSize === 'lg' && link && linkText;
-    const showLinkBottom = responsiveSize !== 'lg' && link && linkText;
+    const showLinkTop = false;
+    //xukairesponsiveSize === 'lg' && link && linkText;
+    const showLinkBottom = false;
+    //xukai responsiveSize !== 'lg' && link && linkText;
     const boxStyles = styles.boxResponsive;
     const bottomMargin = hideBottomMargin ? '' : styles.bottomMargin;
 

@@ -2,14 +2,14 @@ import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
-import HeaderBanner from '../HeaderBanner';
+// import HeaderBanner from '../HeaderBanner';
 import {CourseBlocksAll} from './CourseBlocks';
 import CoursesTeacherEnglish from './CoursesTeacherEnglish';
 import CoursesStudentEnglish from './CoursesStudentEnglish';
-import ProtectedStatefulDiv from '../ProtectedStatefulDiv';
+// import ProtectedStatefulDiv from '../ProtectedStatefulDiv';
 import {SpecialAnnouncementActionBlock} from './TwoColumnActionBlock';
-import Button from '@cdo/apps/templates/Button';
-import i18n from '@cdo/locale';
+// import Button from '@cdo/apps/templates/Button';
+// import i18n from '@cdo/locale';
 import styleConstants from '@cdo/apps/styleConstants';
 
 const styles = {
@@ -42,24 +42,24 @@ class Courses extends Component {
     const {
       isEnglish,
       isTeacher,
-      isSignedOut,
+      // isSignedOut,
       modernElementaryCoursesAvailable
     } = this.props;
-    const headingText = isTeacher
-      ? i18n.coursesHeadingTeacher()
-      : i18n.coursesHeadingStudent();
-    const subHeadingText = i18n.coursesHeadingSubText({
-      linesCount: this.props.linesCount,
-      studentsCount: this.props.studentsCount
-    });
-    const headingDescription = isSignedOut
-      ? i18n.coursesHeadingDescription()
-      : null;
+    // const headingText = isTeacher
+    //   ? i18n.coursesHeadingTeacher()
+    //   : i18n.coursesHeadingStudent();
+    // const subHeadingText = i18n.coursesHeadingSubText({
+    //   linesCount: this.props.linesCount,
+    //   studentsCount: this.props.studentsCount
+    // });
+    // const headingDescription = isSignedOut
+    //   ? i18n.coursesHeadingDescription()
+    //   : null;
     const showSpecialTeacherAnnouncement = true;
 
     return (
       <div style={styles.content}>
-        <HeaderBanner
+        {/* <HeaderBanner
           headingText={headingText}
           subHeadingText={subHeadingText}
           description={headingDescription}
@@ -72,9 +72,9 @@ class Courses extends Component {
               text={i18n.createAccount()}
             />
           )}
-        </HeaderBanner>
+        </HeaderBanner> */}
 
-        <ProtectedStatefulDiv ref="flashes" />
+        {/* <ProtectedStatefulDiv ref="flashes" /> */}
 
         {/* English, teacher.  (Also can be shown when signed out.) */}
         {isEnglish && isTeacher && (

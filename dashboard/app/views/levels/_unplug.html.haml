@@ -19,10 +19,11 @@
   .video-section
     %a.btn.btn-primary.next-stage
       = t('next_stage')
-
-    - if video && video.download
-      %a.video-download.btn.pull-right{href: video.download}
-        = t('video.download')
+    -#
+      许凯隐藏下载视频按钮
+      - if video && video.download
+        %a.video-download.btn.pull-right{href: video.download}
+          = t('video.download')
 
     - if show_lesson_plans
       - if pdfs
@@ -40,15 +41,17 @@
 
   .clear
 
-  - if show_lesson_plans && has_pegasus_lesson_plan
-    .lesson-plan
-      %h2
-        = t('lesson_plan')
-      %a.btn.pdf-button{href: @script_level.stage.lesson_plan_html_url, target: '_blank'}
-        = t('view_lesson_plan')
-      - if has_pegasus_lesson_pdf
-        %a.btn.pdf-button{href: @script_level.stage.lesson_plan_pdf_url, target: '_blank'}
-          = t('pdf_download')
+  -#
+    许凯隐藏课程计划
+    - if show_lesson_plans && has_pegasus_lesson_plan
+      .lesson-plan
+        %h2
+          = t('lesson_plan')
+        %a.btn.pdf-button{href: @script_level.stage.lesson_plan_html_url, target: '_blank'}
+          = t('view_lesson_plan')
+        - if has_pegasus_lesson_pdf
+          %a.btn.pdf-button{href: @script_level.stage.lesson_plan_pdf_url, target: '_blank'}
+            = t('pdf_download')
 
 :javascript
   $('a.next-stage').click(function() {

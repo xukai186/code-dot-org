@@ -86,13 +86,13 @@ export default class ScriptOverviewTopRow extends React.Component {
               text={NEXT_BUTTON_TEXT[scriptProgress]}
               size={Button.ButtonSize.large}
             />
-            <Button
+            {/*xukai去掉获取帮助按钮 <Button
               href="//support.code.org"
               text={i18n.getHelp()}
               color={Button.ButtonColor.white}
               size={Button.ButtonSize.large}
               style={{marginLeft: 10}}
-            />
+            /> */}
           </div>
         )}
         {!professionalLearningCourse &&

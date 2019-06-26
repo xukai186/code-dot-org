@@ -164,7 +164,7 @@ progress.renderCourseProgress = function(scriptData) {
 
   store.dispatch(initializeHiddenScripts(scriptData.section_hidden_unit_info));
 
-  const mountPoint = document.createElement('div');
+  var mountPoint = document.createElement('div');
   $('.user-stats-block').prepend(mountPoint);
   ReactDOM.render(
     <Provider store={store}>

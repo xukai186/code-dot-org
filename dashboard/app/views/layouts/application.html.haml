@@ -34,7 +34,7 @@
     = render partial: 'layouts/javascript_strings'
   %body
     - unless Rails.env.production?
-      = render partial: 'layouts/environment_tag'
+      /= render partial: 'layouts/environment_tag'
     - if current_user && current_user.age.nil?
       = render partial: 'layouts/age_interstitial'
 
@@ -78,18 +78,18 @@
           .push
 
       - if view_options[:small_footer]
-        = render partial: 'layouts/small_footer', locals: {channel: view_options[:channel]}
+        /= render partial: 'layouts/small_footer', locals: {channel: view_options[:channel]}
 
       - if view_options[:responsive_content]
         .responsive-content-mobile-footer
-          = render partial: 'layouts/small_footer', locals: {full_width: true}
+          /= render partial: 'layouts/small_footer', locals: {full_width: true}
 
     - unless view_options[:no_footer]
       - if view_options[:responsive_content]
         .responsive-content-desktop-footer
-          = render partial: 'layouts/footer', locals: {full_width: view_options[:full_width]}
+          /= render partial: 'layouts/footer', locals: {full_width: view_options[:full_width]}
       - elsif !view_options[:small_footer]
-        = render partial: 'layouts/footer', locals: {full_width: view_options[:full_width]}
+        /= render partial: 'layouts/footer', locals: {full_width: view_options[:full_width]}
       = render partial: 'shared/maybe_set_hoc_secret'
 
     = render file: Rails.root.join('..', 'shared', 'haml', 'cookie_banner.haml'), locals: {dashboard: true}

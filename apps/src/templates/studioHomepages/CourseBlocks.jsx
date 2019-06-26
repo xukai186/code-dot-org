@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 import ContentContainer from '../ContentContainer';
-import CourseBlocksTools from './CourseBlocksTools';
-import CourseBlocksInternationalGradeBands from './CourseBlocksInternationalGradeBands';
+// import CourseBlocksTools from './CourseBlocksTools';
+// import CourseBlocksInternationalGradeBands from './CourseBlocksInternationalGradeBands';
 import {NotificationResponsive} from '@cdo/apps/templates/Notification';
 import ProtectedStatefulDiv from '../ProtectedStatefulDiv';
 import i18n from '@cdo/locale';
@@ -153,10 +153,10 @@ class CourseBlocksCsfLegacy extends Component {
         </div>
         <br />
         <br />
-        <div className="row">
+        {/* <div className="row">
           <ProtectedStatefulDiv ref="twenty_hour" />
           <ProtectedStatefulDiv ref="unplugged" />
-        </div>
+        </div> */}
       </ContentContainer>
     );
   }
@@ -168,9 +168,12 @@ export class CourseBlocksHoc extends Component {
   };
 
   componentDidMount() {
-    const tiles = this.props.isInternational
-      ? ['#dance', '#aquatic', '#frozen', '#hourofcode']
-      : ['#dance', '#aquatic', '#applab-intro', '#flappy'];
+    // const tiles = this.props.isInternational
+    //   ? ['#dance', '#aquatic', '#frozen', '#hourofcode']
+    //   : ['#dance', '#aquatic', '#applab-intro', '#flappy'];
+
+    // 许凯去掉Dance party(跳舞) 和Minecraft（我的世界）
+    const tiles = ['#frozen', '#hourofcode'];
 
     tiles.forEach((tile, index) => {
       $(tile).appendTo(ReactDOM.findDOMNode(this.refs[index]));
@@ -182,8 +185,8 @@ export class CourseBlocksHoc extends Component {
       <div className="row">
         <ProtectedStatefulDiv ref="0" />
         <ProtectedStatefulDiv ref="1" />
-        <ProtectedStatefulDiv ref="2" />
-        <ProtectedStatefulDiv ref="3" />
+        {/* <ProtectedStatefulDiv ref="2" />
+        <ProtectedStatefulDiv ref="3" /> */}
       </div>
     );
   }
@@ -215,9 +218,9 @@ export class CourseBlocksAll extends Component {
           <CourseBlocksHoc isInternational={!this.props.isEnglish} />
         </ContentContainer>
 
-        {!this.props.isEnglish && <CourseBlocksInternationalGradeBands />}
+        {/* {!this.props.isEnglish && <CourseBlocksInternationalGradeBands />}
 
-        <CourseBlocksTools isEnglish={this.props.isEnglish} />
+        <CourseBlocksTools isEnglish={this.props.isEnglish} /> */}
       </div>
     );
   }
