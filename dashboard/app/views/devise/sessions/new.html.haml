@@ -17,10 +17,11 @@
         = f.label :password
         = f.password_field :password, autofocus: email != ''
 
-      / Forgot password?
-      - if devise_mapping.recoverable?
-        %div.field-aligned
-          = link_to t('auth.forgot_password'), new_password_path(resource_name), id: 'forgot-password'
+      -#
+        / Forgot password?
+        - if devise_mapping.recoverable?
+          %div.field-aligned
+            = link_to t('auth.forgot_password'), new_password_path(resource_name), id: 'forgot-password'
 
       / Sign in button
       %button#signin-button= t('signin_form.submit')
@@ -32,23 +33,25 @@
       = link_to new_user_registration_path, class: 'field-aligned' do
         %button.blue-button= t('nav.user.signup')
 
-  %div.vertical-or
-    %hr
-    = t("or").upcase
-    %hr
+  -# xukai delete
+    %div.vertical-or
+      %hr
+      = t("or").upcase
+      %hr
 
-  = render "devise/shared/oauth_links"
+  /= render "devise/shared/oauth_links"
 
-%h3= t('signin.try_heading')
+/%h3= t('signin.try_heading')
 
-.row
-  - if @is_english
-    - course_blocks = [Script::DANCE_PARTY_NAME, Script::MINECRAFT_AQUATIC_NAME, Script::APPLAB_INTRO, Script::FLAPPY_NAME]
-  - else
-    - course_blocks = [Script::DANCE_PARTY_NAME, Script::MINECRAFT_AQUATIC_NAME, Script::FROZEN_NAME, Script::HOC_NAME]
+-# xukai delete
+  .row
+    - if @is_english
+      - course_blocks = [Script::DANCE_PARTY_NAME, Script::MINECRAFT_AQUATIC_NAME, Script::APPLAB_INTRO, Script::FLAPPY_NAME]
+    - else
+      - course_blocks = [Script::DANCE_PARTY_NAME, Script::MINECRAFT_AQUATIC_NAME, Script::FROZEN_NAME, Script::HOC_NAME]
 
-  - course_blocks.each do |course_id|
-    = render partial: 'shared/course_tall_block', locals: { id: course_id }
+    - course_blocks.each do |course_id|
+      = render partial: 'shared/course_tall_block', locals: { id: course_id }
 
 
 %br/

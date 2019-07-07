@@ -4,7 +4,7 @@
 if (CDO.skip_locales || Rails.env.development?) && (!CDO.load_locales)
   Dashboard::Application.config.i18n.railties_load_path.each do |path|
     #path.glob = "*{es-ES,en}.yml" 许凯默认替换成中文
-    path.glob = "*{es-ES,en}.yml"
+    path.glob = "*{zh-CN,zh}.yml"
   end
 end
 
